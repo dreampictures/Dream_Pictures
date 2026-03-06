@@ -127,24 +127,25 @@ export default function Album() {
                 </span>
               </a>
             </Link>
-
-            <div className="text-right">
-              <h1 className="text-3xl md:text-4xl text-gold-gradient mb-1">
-                {album.code.charAt(0).toUpperCase() + album.code.slice(1)}
-              </h1>
-              <div className="flex flex-col items-end opacity-40">
-                <p className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium font-sans">
-                  Dream Pictures
-                </p>
-                <p className="text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-light font-sans">
-                  Photography & Films
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Main Flipbook Area */}
-          <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="mb-8 text-center"
+            >
+              <h1 className="text-4xl md:text-6xl text-gold-gradient font-serif tracking-tight">
+                {album.code.charAt(0).toUpperCase() + album.code.slice(1)}
+              </h1>
+              <div className="flex flex-col items-center opacity-40 mt-2">
+                <p className="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium font-sans">
+                  Dream Pictures
+                </p>
+              </div>
+            </motion.div>
             <div className="w-full max-w-7xl h-full flex items-center justify-center">
               <FlipbookViewer pages={album.pages} albumName={album.code} />
             </div>
