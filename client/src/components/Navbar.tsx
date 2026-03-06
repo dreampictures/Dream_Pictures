@@ -20,7 +20,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Portfolio", href: "/portfolio" },
-    { name: "Golden Album", href: "/golden-album" },
+    { name: "Albums", href: "/golden-album" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/#contact" },
   ];

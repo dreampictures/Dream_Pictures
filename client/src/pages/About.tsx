@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import heroImg from "@/assets/images/about-hero.jpg";
+import meImg from "@/assets/images/about-me.jpg";
 import logoImg from "@assets/DP_logo_2021_White_1772790737407.png";
 
 export default function About() {
@@ -24,7 +26,7 @@ export default function About() {
             className="aspect-[3/4] overflow-hidden rounded-sm"
           >
             <img 
-              src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&q=80&w=1000" 
+              src={meImg} 
               alt="The Photographer" 
               className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
             />

@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Sparkles } from "lucide-react";
 
+import albumPlaceholder from "@/assets/images/album-placeholder.jpg";
+
 export default function AlbumSearch() {
   const [, setLocation] = useLocation();
   const [code, setCode] = useState("");
@@ -19,7 +21,7 @@ export default function AlbumSearch() {
   return (
     <div className="relative min-h-[80vh] w-full flex flex-col justify-center items-center overflow-hidden bg-black rounded-lg my-12">
       <img
-        src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&h=1080&fit=crop&q=80"
+        src={albumPlaceholder}
         alt="Cinematic Wedding Background"
         className="absolute inset-0 w-full h-full object-cover object-center opacity-40 select-none pointer-events-none"
       />

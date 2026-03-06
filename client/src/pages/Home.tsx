@@ -4,13 +4,19 @@ import { motion } from "framer-motion";
 import { ArrowRight, Camera, Video, Sparkles } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 import signatureImg from "@assets/image_1772788541421.png";
+import veniceImg from "@/assets/images/venice.jpg";
+import goldenHourImg from "@/assets/images/golden-hour.jpg";
+import firstDanceImg from "@/assets/images/first-dance.jpg";
+import urbanEditorialImg from "@/assets/images/urban-editorial.jpg";
+import heroBgImg from "@/assets/images/hero-bg.jpg";
+import aboutMeImg from "@/assets/images/about-me.jpg";
 
 // Fallback high-quality cinematic imagery
 const FALLBACK_PORTFOLIO = [
-  { id: 1, title: "Elegance in Venice", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800" },
-  { id: 2, title: "Golden Hour", img: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80&w=800" },
-  { id: 3, title: "The First Dance", img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800" },
-  { id: 4, title: "Urban Editorial", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800" },
+  { id: 1, title: "Elegance in Venice", img: veniceImg },
+  { id: 2, title: "Golden Hour", img: goldenHourImg },
+  { id: 3, title: "The First Dance", img: firstDanceImg },
+  { id: 4, title: "Urban Editorial", img: urbanEditorialImg },
 ];
 
 export default function Home() {
@@ -36,7 +42,7 @@ export default function Home() {
         {/* landing page hero cinematic wedding couple */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=2000")' }}
+          style={{ backgroundImage: `url(${heroBgImg})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background" />
         </div>
@@ -79,7 +85,7 @@ export default function Home() {
             >
               {/* about section cinematic photographer */}
               <img 
-                src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=1000" 
+                src={aboutMeImg} 
                 alt="Our Process" 
                 className="w-full h-full object-cover filter brightness-90 hover:brightness-100 transition-all duration-700 hover:scale-105"
               />

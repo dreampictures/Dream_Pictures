@@ -3,14 +3,21 @@ import { motion } from "framer-motion";
 import { usePortfolio } from "@/hooks/use-portfolio";
 import { Loader2, Image as ImageIcon } from "lucide-react";
 
+import veniceImg from "@/assets/images/venice.jpg";
+import goldenHourImg from "@/assets/images/golden-hour.jpg";
+import firstDanceImg from "@/assets/images/first-dance.jpg";
+import urbanEditorialImg from "@/assets/images/urban-editorial.jpg";
+import promisesImg from "@/assets/images/promises.jpg";
+import cinematicEscapesImg from "@/assets/images/cinematic-escapes.jpg";
+
 // Stunning Unsplash fallback if DB is empty
 const MOCK_GALLERY = [
-  { id: "m1", title: "Elegance in Venice", category: "Wedding", img: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80", span: "md:col-span-2 md:row-span-2" },
-  { id: "m2", title: "Golden Hour", category: "Pre-Wedding", img: "https://images.unsplash.com/photo-1606800052052-a08af7148866?w=800&q=80", span: "md:col-span-1 md:row-span-1" },
-  { id: "m3", title: "The First Dance", category: "Cinematography", img: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80", span: "md:col-span-1 md:row-span-2" },
-  { id: "m4", title: "Urban Editorial", category: "Portrait", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80", span: "md:col-span-1 md:row-span-1" },
-  { id: "m5", title: "Promises", category: "Wedding", img: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80", span: "md:col-span-2 md:row-span-1" },
-  { id: "m6", title: "Cinematic Escapes", category: "Cinematography", img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80", span: "md:col-span-1 md:row-span-1" },
+  { id: "m1", title: "Elegance in Venice", category: "Wedding", img: veniceImg, span: "md:col-span-2 md:row-span-2" },
+  { id: "m2", title: "Golden Hour", category: "Pre-Wedding", img: goldenHourImg, span: "md:col-span-1 md:row-span-1" },
+  { id: "m3", title: "The First Dance", category: "Cinematography", img: firstDanceImg, span: "md:col-span-1 md:row-span-2" },
+  { id: "m4", title: "Urban Editorial", category: "Portrait", img: urbanEditorialImg, span: "md:col-span-1 md:row-span-1" },
+  { id: "m5", title: "Promises", category: "Wedding", img: promisesImg, span: "md:col-span-2 md:row-span-1" },
+  { id: "m6", title: "Cinematic Escapes", category: "Cinematography", img: cinematicEscapesImg, span: "md:col-span-1 md:row-span-1" },
 ];
 
 export default function Portfolio() {
