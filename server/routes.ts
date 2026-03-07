@@ -128,5 +128,23 @@ export async function registerRoutes(
     }
   });
 
+  // Admin Login
+  app.post("/api/admin/login", async (req, res) => {
+    const { username, password } = req.body;
+    const { validateAdminCredentials } = await import("./admin");
+    
+    if (validateAdminCredentials(username, password)) {
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+  });
+
+  // Admin endpoints (require verification from client-side localStorage)
+  app.get("/api/admin/contacts", async (req, res) => {
+    const messages = await storage.getContactMessages();
+    res.json(messages);
+  });
+
   return httpServer;
 }

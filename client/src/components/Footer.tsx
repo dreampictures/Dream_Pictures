@@ -56,10 +56,6 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="space-y-8 flex flex-col items-center md:items-start">
-            <h4 className="font-serif text-xl">Admin</h4>
-            <Link href="/admin" className="inline-block px-6 py-2 border border-white/10 text-xs uppercase tracking-[0.2em] hover:border-primary transition-all">Studio Portal</Link>
-          </div>
         </div>
 
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
