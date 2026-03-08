@@ -22,6 +22,7 @@ export default function Navbar() {
     { name: "Portfolio", href: "/portfolio" },
     { name: "Albums", href: "/golden-album" },
     { name: "About", href: "/about" },
+    { name: "Terms", href: "/terms" },
     { name: "Contact", href: "/#contact" },
   ];
 
