@@ -2,6 +2,7 @@ import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -34,7 +35,8 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  const projectRoot = path.dirname(import.meta.dirname);
+  const __filename = fileURLToPath(import.meta.url);
+  const projectRoot = path.dirname(path.dirname(__filename));
   
   await rm("dist", { recursive: true, force: true });
 
