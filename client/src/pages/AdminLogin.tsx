@@ -55,6 +55,7 @@ export default function AdminLogin() {
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
                 <Input
+                  type="password"
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
