@@ -44,9 +44,14 @@ export default function Navbar() {
                 alt="Dream Pictures Logo" 
                 className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
               />
-              <span className="font-serif text-lg md:text-xl font-medium tracking-widest uppercase text-foreground hidden sm:block">
-                Dream Pictures
-              </span>
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="font-serif text-lg md:text-xl font-medium tracking-widest uppercase text-foreground">
+                  Dream Pictures
+                </span>
+                <span className="text-[10px] md:text-xs tracking-widest uppercase text-muted-foreground">
+                  Photography & Films
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Nav */}
