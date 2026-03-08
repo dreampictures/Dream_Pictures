@@ -81,8 +81,17 @@ export async function registerRoutes(
       }
 
       const firstUrl = `${CDN_BASE_URL}/${code}/001.jpg`;
-      const firstResponse = await fetch(firstUrl, { method: 'HEAD' });
-      
+      let firstResponse: Response;
+      try {
+        firstResponse = await fetch(firstUrl, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(8000),
+        });
+      } catch (fetchErr: any) {
+        console.error(`Album CDN fetch failed for "${code}":`, fetchErr?.message ?? fetchErr);
+        return res.status(503).json({ message: "Could not reach the image server. Please try again." });
+      }
+
       if (!firstResponse.ok) {
         return res.status(404).json({ message: "Your album is being prepared. Please contact Dream Pictures." });
       }
