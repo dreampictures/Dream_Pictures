@@ -37,23 +37,12 @@ const allowlist = [
 async function buildAll() {
   const __filename = fileURLToPath(import.meta.url);
   const projectRoot = path.dirname(path.dirname(__filename));
-  
+
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   await viteBuild({
-    root: path.join(projectRoot, "client"),
-    resolve: {
-      alias: {
-        "@": path.join(projectRoot, "client", "src"),
-        "@shared": path.join(projectRoot, "shared"),
-        "@assets": path.join(projectRoot, "attached_assets"),
-      },
-    },
-    build: {
-      outDir: path.join(projectRoot, "dist/public"),
-      emptyOutDir: true,
-    },
+    configFile: path.join(projectRoot, "vite.config.ts"),
   });
 
   console.log("building server...");
