@@ -5,7 +5,7 @@ app = "dream-pictures"
 primary_region = "ams"
 
 [build]
-  builder = "docker"
+  builder = "paketobuildpacks/builder:base"
 
 [http_service]
   internal_port = 5000
@@ -18,7 +18,6 @@ primary_region = "ams"
   NODE_ENV = "production"
   PORT = "5000"
   ADMIN_USERNAME = "714752420017"
-  ADMIN_PASSWORD = "Ba@606368"
 
 [[vm]]
   memory = "1gb"
