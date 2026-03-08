@@ -124,6 +124,45 @@ export async function registerRoutes(
     }
   });
 
+  // Album Auth (public — used by album page)
+  app.get("/api/albums/:code/auth", async (req, res) => {
+    const code = req.params.code.toLowerCase();
+    const password = await storage.getAlbumPassword(code);
+    res.json({ required: password !== null });
+  });
+
+  app.post("/api/albums/:code/verify", async (req, res) => {
+    const code = req.params.code.toLowerCase();
+    const { password } = req.body;
+    const stored = await storage.getAlbumPassword(code);
+    if (stored === null) {
+      return res.json({ valid: true });
+    }
+    res.json({ valid: password === stored });
+  });
+
+  // Admin — Album Passwords
+  app.get("/api/admin/album-passwords", async (req, res) => {
+    const passwords = await storage.getAlbumPasswords();
+    res.json(passwords);
+  });
+
+  app.post("/api/admin/album-passwords/:code", async (req, res) => {
+    const code = req.params.code.toLowerCase();
+    const { password } = req.body;
+    if (!password || typeof password !== "string") {
+      return res.status(400).json({ message: "Password is required" });
+    }
+    await storage.setAlbumPassword(code, password);
+    res.json({ success: true });
+  });
+
+  app.delete("/api/admin/album-passwords/:code", async (req, res) => {
+    const code = req.params.code.toLowerCase();
+    await storage.removeAlbumPassword(code);
+    res.json({ success: true });
+  });
+
   // Admin Login
   app.post("/api/admin/login", async (req, res) => {
     const { username, password } = req.body;

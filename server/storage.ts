@@ -2,7 +2,8 @@ import {
   portfolioItems, type PortfolioItem, type InsertPortfolioItem,
   contactMessages, type ContactMessage, type InsertContactMessage,
   albums, type Album, type InsertAlbum,
-  albumsCache, type AlbumCache, type InsertAlbumCache
+  albumsCache, type AlbumCache, type InsertAlbumCache,
+  albumPasswords,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -17,6 +18,10 @@ export interface IStorage {
   createAlbum(album: InsertAlbum): Promise<Album>;
   getAlbumCache(code: string): Promise<AlbumCache | undefined>;
   setAlbumCache(cache: InsertAlbumCache): Promise<AlbumCache>;
+  getAlbumPasswords(): Promise<Record<string, string>>;
+  getAlbumPassword(code: string): Promise<string | null>;
+  setAlbumPassword(code: string, password: string): Promise<void>;
+  removeAlbumPassword(code: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,6 +77,33 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return cache;
+  }
+
+  async getAlbumPasswords(): Promise<Record<string, string>> {
+    const rows = await db.select().from(albumPasswords);
+    const result: Record<string, string> = {};
+    for (const row of rows) {
+      result[row.code] = row.password;
+    }
+    return result;
+  }
+
+  async getAlbumPassword(code: string): Promise<string | null> {
+    const [row] = await db.select().from(albumPasswords).where(eq(albumPasswords.code, code));
+    return row ? row.password : null;
+  }
+
+  async setAlbumPassword(code: string, password: string): Promise<void> {
+    await db.insert(albumPasswords)
+      .values({ code, password })
+      .onConflictDoUpdate({
+        target: albumPasswords.code,
+        set: { password },
+      });
+  }
+
+  async removeAlbumPassword(code: string): Promise<void> {
+    await db.delete(albumPasswords).where(eq(albumPasswords.code, code));
   }
 }
 

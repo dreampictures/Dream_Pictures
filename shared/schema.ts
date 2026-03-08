@@ -45,6 +45,13 @@ export const albumsCache = pgTable("albums_cache", {
   lastChecked: timestamp("last_checked").defaultNow(),
 });
 
+export const albumPasswords = pgTable("album_passwords", {
+  code: text("code").primaryKey(),
+  password: text("password").notNull(),
+});
+
+export const insertAlbumPasswordSchema = createInsertSchema(albumPasswords);
+
 export const insertPortfolioSchema = createInsertSchema(portfolioItems).omit({ id: true });
 export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({ id: true, createdAt: true });
 export const insertAlbumSchema = createInsertSchema(albums).omit({ id: true, createdAt: true });
