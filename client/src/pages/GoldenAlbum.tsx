@@ -114,7 +114,7 @@ export default function Album() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative z-10 w-full min-h-screen py-12 px-4 md:px-8 flex flex-col items-center"
+        className="relative z-10 w-full min-h-screen pt-20 md:pt-24 pb-12 px-4 md:px-8 flex flex-col items-center"
       >
         <div className="w-full max-w-7xl">
           {/* Header */}
@@ -135,7 +135,7 @@ export default function Album() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="mb-8 text-center"
+              className="mt-10 mb-8 text-center"
             >
               <h1 className="text-4xl md:text-6xl text-gold-gradient font-serif tracking-tight">
                 {album.code.charAt(0).toUpperCase() + album.code.slice(1)}
