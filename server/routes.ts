@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 
-const CDN_BASE_URL = "https://cdn.thedreampictures.com/albums";
+const CDN_BASE_URL = "https://cdn.thedreampictures.com";
 
 function padPageNumber(num: number): string {
   return num.toString().padStart(3, '0');
