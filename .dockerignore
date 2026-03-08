@@ -1,10 +1,9 @@
 node_modules
-npm-debug.log
+dist
 .git
 .gitignore
-.env.local
-.cache
+.env
+.env.*
+*.log
 .local
-migrations/meta
-*.ts
-!script/build.ts
+attached_assets
