@@ -1,12 +1,12 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { 
-  Users, 
-  MessageSquare, 
-  Plus, 
-  Image as ImageIcon, 
-  LogOut, 
+import {
+  Users,
+  MessageSquare,
+  Plus,
+  Image as ImageIcon,
+  LogOut,
   CheckCircle,
   Clock,
   QrCode,
@@ -15,6 +15,10 @@ import {
   Lock,
   Unlock,
   RefreshCw,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,17 +31,243 @@ import QRCode from "qrcode";
 
 const ALBUM_BASE_URL = "https://album.thedreampictures.com/golden-album";
 
+function getAlbumUrl(code: string) {
+  return `${ALBUM_BASE_URL}/${code}`;
+}
+
+async function generateQRDataUrl(code: string): Promise<string> {
+  return QRCode.toDataURL(getAlbumUrl(code), {
+    width: 300,
+    margin: 2,
+    color: { dark: "#D4AF37", light: "#0a0a0a" },
+    errorCorrectionLevel: "H",
+  });
+}
+
+function AlbumRow({
+  code,
+  passwords,
+  onPasswordChange,
+}: {
+  code: string;
+  passwords: Record<string, string>;
+  onPasswordChange: () => void;
+}) {
+  const { toast } = useToast();
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [editingPwd, setEditingPwd] = useState(false);
+  const [pwdInput, setPwdInput] = useState("");
+
+  const hasPassword = Boolean(passwords[code]);
+  const albumUrl = getAlbumUrl(code);
+
+  const setPasswordMutation = useMutation({
+    mutationFn: async ({ code, password }: { code: string; password: string }) => {
+      await apiRequest("POST", `/api/admin/album-passwords/${code}`, { password });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/album-passwords"] });
+      toast({ title: "Password Saved", description: `Password set for ${code}` });
+      setEditingPwd(false);
+      setPwdInput("");
+      onPasswordChange();
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to save password.", variant: "destructive" });
+    },
+  });
+
+  const removePasswordMutation = useMutation({
+    mutationFn: async (code: string) => {
+      await apiRequest("DELETE", `/api/admin/album-passwords/${code}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/album-passwords"] });
+      toast({ title: "Password Removed", description: `${code} is now public.` });
+      onPasswordChange();
+    },
+  });
+
+  const handleShowQr = async () => {
+    if (!qrUrl) {
+      const url = await generateQRDataUrl(code);
+      setQrUrl(url);
+    }
+    setShowQr((v) => !v);
+  };
+
+  const handleDownloadQr = async () => {
+    const url = qrUrl || (await generateQRDataUrl(code));
+    if (!qrUrl) setQrUrl(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qr-${code}.png`;
+    a.click();
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(albumUrl);
+    toast({ title: "Copied!", description: "Album link copied to clipboard." });
+  };
+
+  return (
+    <div
+      className="bg-white/[0.02] border border-white/5 rounded-xl p-4 space-y-3"
+      data-testid={`album-row-${code}`}
+    >
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+        {/* Name + Link */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-primary/60 shrink-0" />
+            <span className="font-mono text-sm font-semibold text-white truncate">{code}</span>
+            {hasPassword ? (
+              <span className="text-[10px] uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full shrink-0">
+                Protected
+              </span>
+            ) : (
+              <span className="text-[10px] uppercase tracking-widest bg-white/5 text-white/30 border border-white/10 px-2 py-0.5 rounded-full shrink-0">
+                Public
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-[11px] text-white/30 truncate">{albumUrl}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-xs text-white/50 hover:text-primary border border-white/10 hover:border-primary/30"
+            onClick={handleShowQr}
+            data-testid={`button-qr-${code}`}
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            {showQr ? "Hide QR" : "QR Code"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-xs text-white/50 hover:text-primary border border-white/10 hover:border-primary/30"
+            onClick={handleDownloadQr}
+            data-testid={`button-download-qr-${code}`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-xs text-white/50 hover:text-primary border border-white/10 hover:border-primary/30"
+            onClick={handleCopyLink}
+            data-testid={`button-copy-${code}`}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Copy Link
+          </Button>
+          <a
+            href={albumUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-primary border border-white/10 hover:border-primary/30 rounded-md px-3 py-1.5 transition-colors"
+            data-testid={`link-open-${code}`}
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Open
+          </a>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 text-xs text-white/50 hover:text-yellow-400 border border-white/10 hover:border-yellow-400/30"
+            onClick={() => setEditingPwd((v) => !v)}
+            data-testid={`button-setpwd-${code}`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            {hasPassword ? "Change" : "Set Password"}
+          </Button>
+          {hasPassword && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="gap-1.5 text-xs text-white/50 hover:text-red-400 border border-white/10 hover:border-red-400/30"
+              onClick={() => removePasswordMutation.mutate(code)}
+              disabled={removePasswordMutation.isPending}
+              data-testid={`button-removepwd-${code}`}
+            >
+              <Unlock className="w-3.5 h-3.5" />
+              Remove
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Password display */}
+      {hasPassword && !editingPwd && (
+        <div className="flex items-center gap-2 text-xs text-white/40 pl-6">
+          <Lock className="w-3 h-3 text-primary/40" />
+          <span className="font-mono">
+            {showPwd ? passwords[code] : "•".repeat(passwords[code].length)}
+          </span>
+          <button
+            onClick={() => setShowPwd((v) => !v)}
+            className="text-white/30 hover:text-white/60 transition-colors"
+          >
+            {showPwd ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      )}
+
+      {/* Password edit form */}
+      {editingPwd && (
+        <div className="flex items-center gap-2 pl-6">
+          <Input
+            value={pwdInput}
+            onChange={(e) => setPwdInput(e.target.value)}
+            placeholder="Enter new password"
+            className="h-8 text-sm bg-black/40 border-white/10 focus:border-primary/50 max-w-xs"
+            data-testid={`input-pwd-${code}`}
+          />
+          <Button
+            size="sm"
+            className="h-8 text-xs bg-gradient-to-r from-[#B38D2F] to-[#D4AF37] text-black font-semibold hover:opacity-90"
+            disabled={!pwdInput.trim() || setPasswordMutation.isPending}
+            onClick={() => setPasswordMutation.mutate({ code, password: pwdInput.trim() })}
+            data-testid={`button-savepwd-${code}`}
+          >
+            {setPasswordMutation.isPending ? "Saving…" : "Save"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs text-white/40 hover:text-white"
+            onClick={() => { setEditingPwd(false); setPwdInput(""); }}
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {/* QR code display */}
+      {showQr && qrUrl && (
+        <div className="pl-6 pt-1">
+          <div className="inline-block p-2 rounded-lg bg-[#0a0a0a] border border-primary/20 shadow-[0_0_20px_rgba(212,175,55,0.08)]">
+            <img src={qrUrl} alt={`QR for ${code}`} className="w-32 h-32 block" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("messages");
-
-  // Album Manager state
-  const [clientName, setClientName] = useState("");
-  const [albumPassword, setAlbumPassword] = useState("");
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
-  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (localStorage.getItem("admin_auth") !== "true") {
@@ -51,6 +281,15 @@ export default function AdminDashboard() {
 
   const { data: portfolio } = useQuery<PortfolioItem[]>({
     queryKey: ["/api/portfolio"],
+  });
+
+  const {
+    data: r2Albums,
+    isLoading: albumsLoading,
+    refetch: refetchAlbums,
+  } = useQuery<string[]>({
+    queryKey: ["/api/admin/albums"],
+    enabled: activeTab === "albums",
   });
 
   const { data: albumPasswords, refetch: refetchPasswords } = useQuery<Record<string, string>>({
@@ -78,96 +317,17 @@ export default function AdminDashboard() {
     },
   });
 
-  const setPasswordMutation = useMutation({
-    mutationFn: async ({ code, password }: { code: string; password: string }) => {
-      await apiRequest("POST", `/api/admin/album-passwords/${code}`, { password });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/album-passwords"] });
-      toast({ title: "Password Saved", description: "Album password has been updated." });
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to save password.", variant: "destructive" });
-    },
-  });
-
-  const removePasswordMutation = useMutation({
-    mutationFn: async (code: string) => {
-      await apiRequest("DELETE", `/api/admin/album-passwords/${code}`, undefined);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/album-passwords"] });
-      toast({ title: "Password Removed", description: "Album is now public." });
-    },
-  });
-
   const handleLogout = () => {
     localStorage.removeItem("admin_auth");
     setLocation("/admin");
   };
 
-  const getAlbumUrl = (code: string) => `${ALBUM_BASE_URL}/${code}`;
-
-  const generateQR = async (code: string) => {
-    const url = getAlbumUrl(code);
-    try {
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 300,
-        margin: 2,
-        color: { dark: "#D4AF37", light: "#0a0a0a" },
-        errorCorrectionLevel: "H",
-      });
-      setQrDataUrl(dataUrl);
-      setGeneratedCode(code);
-    } catch (err) {
-      toast({ title: "QR Error", description: "Could not generate QR code.", variant: "destructive" });
-    }
-  };
-
-  const handleGenerateAlbum = async () => {
-    const code = clientName.trim().toLowerCase().replace(/\s+/g, "");
-    if (!code) {
-      toast({ title: "Missing Name", description: "Please enter a client name.", variant: "destructive" });
-      return;
-    }
-    await generateQR(code);
-  };
-
-  const handleUpdatePassword = () => {
-    const code = clientName.trim().toLowerCase().replace(/\s+/g, "");
-    if (!code) {
-      toast({ title: "Missing Name", description: "Please enter a client name.", variant: "destructive" });
-      return;
-    }
-    if (!albumPassword.trim()) {
-      toast({ title: "Missing Password", description: "Please enter a password.", variant: "destructive" });
-      return;
-    }
-    setPasswordMutation.mutate({ code, password: albumPassword.trim() });
-  };
-
-  const handleRemovePassword = () => {
-    const code = clientName.trim().toLowerCase().replace(/\s+/g, "");
-    if (!code) {
-      toast({ title: "Missing Name", description: "Please enter a client name.", variant: "destructive" });
-      return;
-    }
-    removePasswordMutation.mutate(code);
-  };
-
-  const handleDownloadQR = () => {
-    if (!qrDataUrl || !generatedCode) return;
-    const a = document.createElement("a");
-    a.href = qrDataUrl;
-    a.download = `album-qr-${generatedCode}.png`;
-    a.click();
-  };
-
-  const handleCopyLink = () => {
-    if (!generatedCode) return;
-    navigator.clipboard.writeText(getAlbumUrl(generatedCode));
-    toast({ title: "Copied!", description: "Album link copied to clipboard." });
-  };
+  const allAlbumCodes = Array.from(
+    new Set([
+      ...(r2Albums || []),
+      ...Object.keys(albumPasswords || {}),
+    ])
+  ).sort();
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-24 px-4">
@@ -309,202 +469,67 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* ── ALBUM MANAGER ── */}
-          <TabsContent value="albums" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left — Form */}
-              <Card className="bg-white/[0.02] border-white/5">
-                <CardHeader>
-                  <CardTitle className="font-serif flex items-center gap-2">
-                    <QrCode className="w-5 h-5 text-primary" />
-                    Album Manager
-                  </CardTitle>
-                  <p className="text-muted-foreground text-xs uppercase tracking-widest">
-                    Generate links, QR codes &amp; manage access
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Client Name
-                    </label>
-                    <Input
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      placeholder="e.g. nirmalsingh"
-                      className="bg-black/30 border-white/10 focus:border-primary/50"
-                      data-testid="input-client-name"
-                    />
-                    <p className="text-[11px] text-white/30">
-                      Spaces are removed automatically.
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Album Password
-                    </label>
-                    <Input
-                      value={albumPassword}
-                      onChange={(e) => setAlbumPassword(e.target.value)}
-                      placeholder="Leave blank to keep public"
-                      type="text"
-                      className="bg-black/30 border-white/10 focus:border-primary/50"
-                      data-testid="input-album-password"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <Button
-                      onClick={handleGenerateAlbum}
-                      className="gap-2 bg-gradient-to-r from-[#B38D2F] to-[#D4AF37] text-black hover:opacity-90 font-semibold"
-                      data-testid="button-generate-album"
-                    >
-                      <QrCode className="w-4 h-4" />
-                      Generate Album
-                    </Button>
-                    <Button
-                      onClick={handleUpdatePassword}
-                      variant="outline"
-                      className="gap-2 border-white/10 hover:border-primary/50"
-                      disabled={setPasswordMutation.isPending}
-                      data-testid="button-update-password"
-                    >
-                      <Lock className="w-4 h-4" />
-                      {setPasswordMutation.isPending ? "Saving…" : "Update Password"}
-                    </Button>
-                    <Button
-                      onClick={handleRemovePassword}
-                      variant="outline"
-                      className="gap-2 border-white/10 hover:border-red-500/50 hover:text-red-400"
-                      disabled={removePasswordMutation.isPending}
-                      data-testid="button-remove-password"
-                    >
-                      <Unlock className="w-4 h-4" />
-                      {removePasswordMutation.isPending ? "Removing…" : "Remove Password"}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const code = clientName.trim().toLowerCase().replace(/\s+/g, "");
-                        if (code) generateQR(code);
-                      }}
-                      variant="outline"
-                      className="gap-2 border-white/10 hover:border-primary/50"
-                      data-testid="button-generate-qr"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Generate QR
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Right — QR Display */}
-              <Card className="bg-white/[0.02] border-white/5 flex flex-col">
-                <CardHeader>
-                  <CardTitle className="font-serif text-base">QR Code &amp; Link</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col items-center justify-center gap-6">
-                  {qrDataUrl && generatedCode ? (
-                    <>
-                      <div className="p-3 rounded-xl bg-[#0a0a0a] border border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.1)]">
-                        <img
-                          src={qrDataUrl}
-                          alt={`QR for ${generatedCode}`}
-                          className="w-48 h-48 block"
-                        />
-                      </div>
-                      <div className="w-full space-y-2">
-                        <p className="text-center text-xs text-white/40 uppercase tracking-widest">
-                          {generatedCode}
-                        </p>
-                        <div className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/50 truncate text-center">
-                          {getAlbumUrl(generatedCode)}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Button
-                            onClick={handleDownloadQR}
-                            className="gap-2 bg-gradient-to-r from-[#B38D2F] to-[#D4AF37] text-black font-semibold hover:opacity-90"
-                            data-testid="button-download-qr"
-                          >
-                            <Download className="w-4 h-4" />
-                            Download QR
-                          </Button>
-                          <Button
-                            onClick={handleCopyLink}
-                            variant="outline"
-                            className="gap-2 border-white/10 hover:border-primary/50"
-                            data-testid="button-copy-link"
-                          >
-                            <Copy className="w-4 h-4" />
-                            Copy Link
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center text-white/20 py-8">
-                      <QrCode className="w-16 h-16 mx-auto mb-3 opacity-20" />
-                      <p className="text-sm uppercase tracking-widest">
-                        Enter a client name and click Generate Album
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+          <TabsContent value="albums" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-serif text-2xl">Album Manager</h2>
+                <p className="text-white/40 text-xs uppercase tracking-widest mt-1">
+                  Albums auto-detected from Cloudflare R2
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-white/10 hover:border-primary/40"
+                onClick={() => { refetchAlbums(); refetchPasswords(); }}
+                data-testid="button-refresh-albums"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
             </div>
 
-            {/* Password-protected albums list */}
-            {albumPasswords && Object.keys(albumPasswords).length > 0 && (
-              <Card className="bg-white/[0.02] border-white/5">
-                <CardHeader>
-                  <CardTitle className="font-serif text-base flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-primary" />
-                    Password-Protected Albums
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(albumPasswords).map(([code, pwd]) => (
-                      <div
-                        key={code}
-                        className="flex items-center justify-between px-4 py-3 rounded-lg bg-black/30 border border-white/5"
-                        data-testid={`row-album-${code}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Lock className="w-3.5 h-3.5 text-primary/60" />
-                          <span className="font-mono text-sm text-white/80">{code}</span>
-                          <span className="text-white/30 text-xs font-mono">
-                            {"•".repeat(Math.min(pwd.length, 8))}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-white/40 hover:text-primary text-xs gap-1"
-                            onClick={() => {
-                              setClientName(code);
-                              setActiveTab("albums");
-                              generateQR(code);
-                            }}
-                          >
-                            <QrCode className="w-3.5 h-3.5" /> QR
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-white/40 hover:text-red-400 text-xs gap-1"
-                            onClick={() => removePasswordMutation.mutate(code)}
-                            data-testid={`button-remove-${code}`}
-                          >
-                            <Unlock className="w-3.5 h-3.5" /> Remove
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 text-center">
+                <p className="text-2xl font-serif text-primary">{allAlbumCodes.length}</p>
+                <p className="text-[11px] uppercase tracking-widest text-white/40 mt-1">Total Albums</p>
+              </div>
+              <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 text-center">
+                <p className="text-2xl font-serif text-primary">{Object.keys(albumPasswords || {}).length}</p>
+                <p className="text-[11px] uppercase tracking-widest text-white/40 mt-1">Protected</p>
+              </div>
+              <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 text-center">
+                <p className="text-2xl font-serif text-primary">
+                  {allAlbumCodes.length - Object.keys(albumPasswords || {}).length}
+                </p>
+                <p className="text-[11px] uppercase tracking-widest text-white/40 mt-1">Public</p>
+              </div>
+            </div>
+
+            {/* Albums list */}
+            {albumsLoading ? (
+              <div className="text-center py-16 text-white/30">
+                <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+                <p className="text-sm uppercase tracking-widest">Scanning R2 bucket…</p>
+              </div>
+            ) : allAlbumCodes.length === 0 ? (
+              <div className="text-center py-16 text-white/20 border border-white/5 rounded-xl">
+                <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                <p className="text-sm uppercase tracking-widest">No albums found in R2 bucket</p>
+                <p className="text-xs mt-2 text-white/20">Upload folders to your R2 bucket to see them here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {allAlbumCodes.map((code) => (
+                  <AlbumRow
+                    key={code}
+                    code={code}
+                    passwords={albumPasswords || {}}
+                    onPasswordChange={refetchPasswords}
+                  />
+                ))}
+              </div>
             )}
           </TabsContent>
         </Tabs>

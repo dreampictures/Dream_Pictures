@@ -3,8 +3,39 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 const CDN_BASE_URL = "https://cdn.thedreampictures.com";
+
+function getR2Client() {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+}
+
+async function listR2Albums(): Promise<string[]> {
+  const client = getR2Client();
+  if (!client) return [];
+  const bucket = process.env.R2_BUCKET_NAME || "albums";
+  try {
+    const cmd = new ListObjectsV2Command({ Bucket: bucket, Delimiter: "/" });
+    const res = await client.send(cmd);
+    const folders = (res.CommonPrefixes || [])
+      .map((p) => p.Prefix?.replace(/\/$/, "") || "")
+      .filter(Boolean)
+      .filter((name) => name !== "passwords" && !name.startsWith("."));
+    return folders.sort();
+  } catch (err) {
+    console.error("R2 list error:", err);
+    return [];
+  }
+}
 
 function padPageNumber(num: number): string {
   return num.toString().padStart(3, '0');
@@ -139,6 +170,12 @@ export async function registerRoutes(
       return res.json({ valid: true });
     }
     res.json({ valid: password === stored });
+  });
+
+  // Admin — List R2 albums
+  app.get("/api/admin/albums", async (req, res) => {
+    const albums = await listR2Albums();
+    res.json(albums);
   });
 
   // Admin — Album Passwords
