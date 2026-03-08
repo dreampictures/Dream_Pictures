@@ -44,12 +44,13 @@ export default function Navbar() {
                 alt="Dream Pictures Logo" 
                 className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
               />
-              <div className="hidden sm:flex flex-col leading-tight">
+              <div className="hidden sm:flex flex-col items-center gap-0.5">
                 <span className="font-serif text-lg md:text-xl font-medium tracking-widest uppercase text-foreground">
                   Dream Pictures
                 </span>
-                <span className="text-[10px] md:text-xs tracking-widest uppercase text-muted-foreground">
-                  Photography & Films
+                <div className="w-full h-px bg-white/20" />
+                <span className="text-[9px] tracking-[0.18em] uppercase text-white/50 font-light">
+                  Photography &amp; Films
                 </span>
               </div>
             </Link>
