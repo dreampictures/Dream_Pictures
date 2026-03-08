@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 
-const CDN_BASE_URL = "https://cdn.thedreampictures.com";
+const CDN_BASE_URL = "https://cdn.thedreampictures.com/albums";
 
 function padPageNumber(num: number): string {
   return num.toString().padStart(3, '0');
@@ -68,18 +68,6 @@ export async function registerRoutes(
   app.get(api.albums.get.path, async (req, res) => {
     const code = req.params.code;
     try {
-      const cached = await storage.getAlbumCache(code);
-      if (cached) {
-        const pages = Array.from({ length: cached.pageCount }, (_, i) => 
-          `${CDN_BASE_URL}/${code}/${padPageNumber(i + 1)}.jpg`
-        );
-        return res.json({
-          code,
-          pages,
-          totalPages: cached.pageCount
-        });
-      }
-
       const firstUrl = `${CDN_BASE_URL}/${code}/001.jpg`;
       let firstResponse: Response;
       try {
@@ -126,7 +114,6 @@ export async function registerRoutes(
         currentCheck += batchSize;
       }
 
-      await storage.setAlbumCache({ code, pageCount });
       const pages = Array.from({ length: pageCount }, (_, i) => 
         `${CDN_BASE_URL}/${code}/${padPageNumber(i + 1)}.jpg`
       );
