@@ -14,4 +14,4 @@ RUN npm ci --omit=dev
 EXPOSE 5000
 ENV NODE_ENV=production
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/index.cjs"]

@@ -1,0 +1,208 @@
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026> fly launch
+An existing fly.toml file was found for app dream-pictures
+? Would you like to use this fly.toml configuration for this app? No
+
+Scanning source code
+Detected a NodeJS app
+Managed Postgres is not available in region bom.
+? Would you like to switch to a region that supports Managed Postgres? No
+Using Unmanaged Postgres in region bom
+Creating app in D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+
+
+
+                       %%%%%%%
+                  %#+++=.  .:+*+*#%%
+               %#+=====:       :++=+#%
+             %#+======-          .++==#%
+            %*=======+.            .+==+%
+           %#========+               *==+%
+           #+========+              = *==*%
+           #=========+           .. : .*=+#
+           #=========*    ==      .:   *==*%
+           #+========+-             :. +==*%
+           #*=========+              :-*==*%         %@
+           %#**+======+-           .-. #==*%      @%%%%@
+           %%#++=======+:      .::.   :*=+%       @%
+           %%%#*++=====++.            #=+#%      @%@
+          %%  %%#*++++++*+.          **+#@       %@
+         %%     @%#***+++*+         =*+#%%      %%
+        @@        @%%##*****       :*+%@%%%    %%
+        @@        @@@@%#***##     .**%%   %% %%%
+        @      @@@@  @@@%%#**%   .+#%@     @%%
+        @@@@@@@           @%#*#.:*%%
+                            @%#**%@
+                             @@%@@
+                            %%#%%%
+                          @#***+**%
+                          %**+***#%
+                          @@%#+*#%
+
+
+We're about to launch your NodeJS app on Fly.io. Here's what you're getting:
+
+Organization: Dream Pictures                     (fly launch defaults to the personal org)
+Name:         dream-pictures-2026                (derived from your directory name)
+Region:       Mumbai, India                      (this is the fastest region for you)
+App Machines: shared-cpu-1x, 1GB RAM             (most apps need about 1GB of RAM)
+Postgres:     shared-cpu-1x, 256MB RAM, 1GB disk (determined from app source)
+Redis:        <none>                             (not requested)
+Tigris:       <none>                             (not requested)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+
+? Do you want to tweak these settings before proceeding? No
+? Do you want to tweak these settings before proceeding? (y/N) N
+Created app 'dream-pictures-2026' in organization 'personal'
+
+Admin URL: https://fly.io/apps/dream-pictures-2026
+Hostname: dream-pictures-2026.fly.dev
+Run `fly tokens create deploy -x 999999h` to create a token and set it as the FLY_API_TOKEN secret in your GitHub repository settings
+See https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+
+Creating postgres cluster in organization personal
+Creating app...
+Setting secrets on app dream-pictures-2026-db...
+Provisioning 1 of 1 machines with image flyio/postgres-flex:17.2@sha256:77a24a931bf5862878fb6b53c1e62fd914beb69e7864a56b0f17d2bd069f1529
+Waiting for machine to start...
+Machine 874dd7b02e9318 is created
+==> Monitoring health checks
+  Waiting for 874dd7b02e9318 to become healthy (started, 3/3)
+
+Postgres cluster dream-pictures-2026-db created
+  Username:    postgres
+  Password:    dvwTHLT24DEDgje
+  Hostname:    dream-pictures-2026-db.internal
+  Flycast:     fdaa:44:5ea5:0:1::f
+  Proxy port:  5432
+  Postgres port:  5433
+  Connection string: postgres://postgres:dvwTHLT24DEDgje@dream-pictures-2026-db.flycast:5432
+
+Save your credentials in a secure place -- you won't be able to see them again!
+
+Connect to postgres
+Any app within the Dream Pictures organization can connect to this Postgres using the above connection string
+
+Now that you've set up Postgres, here's what you need to understand: https://fly.io/docs/postgres/getting-started/what-you-should-know/
+Checking for existing attachments
+Registering attachment
+Creating database
+Creating user
+
+Postgres cluster dream-pictures-2026-db is now attached to dream-pictures-2026
+The following secret was added to dream-pictures-2026:
+  DATABASE_URL=postgres://dream_pictures_2026:hKpXxFH2MJKjmtu@dream-pictures-2026-db.flycast:5432/dream_pictures_2026?sslmode=disable
+Postgres cluster dream-pictures-2026-db is now attached to dream-pictures-2026
+installing: npx --yes @flydotio/dockerfile@latest --skip
+       skip  Dockerfile
+Error: failed to list app secrets: app not found (Request ID: 01KK6GHJAKZ6ZJEQABRXHNWEYY-bom)
+Wrote config file fly.toml
+Validating D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026\fly.toml
+✓ Configuration is valid
+==> Building image
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+==> Building image with Depot
+--> build:
+[+] Building 15.7s (11/14)
+ => [internal] load build definition from Dockerfile                                                               4.1s
+ => => transferring dockerfile: 462B                                                                               4.1s
+ => [internal] load metadata for docker.io/library/node:20-slim                                                    0.3s
+ => [internal] load .dockerignore                                                                                  1.4s
+ => => transferring context: 146B                                                                                  1.4s
+ => [internal] load build context                                                                                  6.8s
+ => => transferring context: 1.90MB                                                                                6.8s
+ => [builder 1/6] FROM docker.io/library/node:20-slim@sha256:a82f40540f5959e0003fb7b3c0f80490def2927be8bdbee7e3e0  0.0s
+ => => resolve docker.io/library/node:20-slim@sha256:a82f40540f5959e0003fb7b3c0f80490def2927be8bdbee7e3e0ac65cce3  0.0s
+ => CACHED [builder 2/6] WORKDIR /app                                                                              0.0s
+ => CACHED [stage-1 3/6] RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*         0.0s
+ => CACHED [builder 3/6] COPY package*.json ./                                                                     0.0s
+ => CACHED [builder 4/6] RUN npm ci                                                                                0.0s
+ => [builder 5/6] COPY . .                                                                                         0.1s
+ => ERROR [builder 6/6] RUN npm run build                                                                          3.1s
+------
+ > [builder 6/6] RUN npm run build:
+0.464
+0.464 > rest-express@1.0.0 build
+0.464 > tsx script/build.ts
+0.464
+1.741 building client...
+1.804 vite v7.3.0 building client environment for production...
+2.728 ✓ 0 modules transformed.
+2.961 ✗ Build failed in 245ms
+2.964 Could not resolve entry module "index.html".
+2.964     at getRollupError (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+2.964     at error (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+2.964     at ModuleLoader.loadEntryModule (/app/node_modules/rollup/dist/es/shared/node-entry.js:21654:20)
+2.964     at async Promise.all (index 0) {
+2.964   code: 'UNRESOLVED_ENTRY'
+2.964 }
+------
+==> Building image
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+Waiting for depot builder...
+==> Building image with Depot
+--> build:
+[+] Building 6.0s (11/14)
+ => [internal] load build definition from Dockerfile                                                               1.3s
+ => => transferring dockerfile: 462B                                                                               1.3s
+ => [internal] load metadata for docker.io/library/node:20-slim                                                    0.3s
+ => [internal] load .dockerignore                                                                                  1.1s
+ => => transferring context: 146B                                                                                  1.1s
+ => [builder 1/6] FROM docker.io/library/node:20-slim@sha256:a82f40540f5959e0003fb7b3c0f80490def2927be8bdbee7e3e0  0.0s
+ => => resolve docker.io/library/node:20-slim@sha256:a82f40540f5959e0003fb7b3c0f80490def2927be8bdbee7e3e0ac65cce3  0.0s
+ => [internal] load build context                                                                                  1.1s
+ => => transferring context: 6.25kB                                                                                1.1s
+ => CACHED [builder 2/6] WORKDIR /app                                                                              0.0s
+ => CACHED [stage-1 3/6] RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*         0.0s
+ => CACHED [builder 3/6] COPY package*.json ./                                                                     0.0s
+ => CACHED [builder 4/6] RUN npm ci                                                                                0.0s
+ => CACHED [builder 5/6] COPY . .                                                                                  0.0s
+ => ERROR [builder 6/6] RUN npm run build                                                                          2.1s
+------
+ > [builder 6/6] RUN npm run build:
+0.259
+0.259 > rest-express@1.0.0 build
+0.259 > tsx script/build.ts
+0.259
+1.197 building client...
+1.229 vite v7.3.0 building client environment for production...
+1.838 ✓ 0 modules transformed.
+1.995 ✗ Build failed in 511ms
+1.997 Could not resolve entry module "index.html".
+1.997     at getRollupError (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+1.997     at error (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+1.997     at ModuleLoader.loadEntryModule (/app/node_modules/rollup/dist/es/shared/node-entry.js:21654:20)
+1.997     at async Promise.all (index 0) {
+1.997   code: 'UNRESOLVED_ENTRY'
+1.997 }
+------
+Error: failed to fetch an image or build from source: error building: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026> fly secrets set DATABASE_URL="postgresql://neondb_owner:npg_kTG6nRXUW7Pw@ep-quiet-smoke-a12xb8yh-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+Secrets are staged for the first deployment
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026> fly secrets set USERNAME="714752420017"
+Secrets are staged for the first deployment
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026> fly secrets set PASSWORD="Ba@606368"
+Secrets are staged for the first deployment
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026>
