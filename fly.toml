@@ -2,7 +2,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 
 app = "dream-pictures-2026"
-primary_region = "ams"
+primary_region = "bom"
 
 [build]
 
@@ -19,6 +19,6 @@ primary_region = "ams"
   ADMIN_USERNAME = "714752420017"
 
 [[vm]]
-  memory = "1gb"
+  memory = "256mb"
   cpu_kind = "shared"
   cpus = 1
