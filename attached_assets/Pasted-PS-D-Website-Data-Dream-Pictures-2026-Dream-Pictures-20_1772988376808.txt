@@ -1,0 +1,357 @@
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026> fly deploy
+==> Verifying app config
+Validating D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026\fly.toml
+✓ Configuration is valid
+--> Verified app config
+==> Building image
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Remote builder fly-builder-nameless-frog-8038 ready
+==> Building image with Buildpacks
+--> docker host: 24.0.7 linux x86_64
+base: Pulling from paketobuildpacks/builder
+Digest: sha256:17ea21162ba8c7717d3ead3ee3836a368aced7f02f2e59658e52029bd6d149e7
+Status: Image is up to date for paketobuildpacks/builder:base
+base-cnb: Pulling from paketobuildpacks/run
+Digest: sha256:1af9935d8987fd52b2266d288200c9482d1dd5529860bbf5bc2d248de1cb1a38
+Status: Image is up to date for paketobuildpacks/run:base-cnb
+===> ANALYZING
+Image with name "registry.fly.io/dream-pictures-2026:cache" not found
+===> DETECTING
+5 of 11 buildpacks participating
+paketo-buildpacks/ca-certificates 3.6.2
+paketo-buildpacks/node-engine     1.6.0
+paketo-buildpacks/npm-install     1.1.4
+paketo-buildpacks/node-run-script 1.0.10
+paketo-buildpacks/npm-start       1.0.11
+===> RESTORING
+===> BUILDING
+
+Paketo Buildpack for CA Certificates 3.6.2
+  https://github.com/paketo-buildpacks/ca-certificates
+  Launch Helper: Contributing to layer
+    Creating /layers/paketo-buildpacks_ca-certificates/helper/exec.d/ca-certificates-helper
+Paketo Buildpack for Node Engine 1.6.0
+  Resolving Node Engine version
+    Candidate version sources (in priority order):
+                -> ""
+      <unknown> -> ""
+
+    Selected Node Engine version (using ): 18.16.1
+      Version 18.16.1 of Node Engine is deprecated.
+      Migrate your application to a supported version of Node Engine.
+
+  Executing build process
+    Installing Node Engine 18.16.1
+      Completed in 3.104s
+
+  Generating SBOM for /layers/paketo-buildpacks_node-engine/node
+      Completed in 0s
+
+  Configuring build environment
+    NODE_ENV     -> "production"
+    NODE_HOME    -> "/layers/paketo-buildpacks_node-engine/node"
+    NODE_OPTIONS -> "--use-openssl-ca"
+    NODE_VERBOSE -> "false"
+
+  Configuring launch environment
+    NODE_ENV     -> "production"
+    NODE_HOME    -> "/layers/paketo-buildpacks_node-engine/node"
+    NODE_OPTIONS -> "--use-openssl-ca"
+    NODE_VERBOSE -> "false"
+
+    Writing exec.d/0-optimize-memory
+      Calculates available memory based on container limits at launch time.
+      Made available in the MEMORY_AVAILABLE environment variable.
+
+Paketo Buildpack for NPM Install 1.1.4
+  Resolving installation process
+    Process inputs:
+      node_modules      -> "Not found"
+      npm-cache         -> "Not found"
+      package-lock.json -> "Found"
+
+    Selected NPM build process: 'npm ci'
+
+  Executing build environment install process
+    Running 'npm ci --unsafe-perm --cache /layers/paketo-buildpacks_npm-install/npm-cache'
+
+      added 482 packages, and audited 483 packages in 16s
+
+      76 packages are looking for funding
+        run `npm fund` for details
+
+      4 vulnerabilities (1 low, 1 moderate, 2 high)
+
+      To address all issues, run:
+        npm audit fix
+
+      Run `npm audit` for details.
+      npm notice
+      npm notice New major version of npm available! 9.5.1 -> 11.11.0
+      npm notice Changelog: <https://github.com/npm/cli/releases/tag/v11.11.0>
+      npm notice Run `npm install -g npm@11.11.0` to update!
+      npm notice
+      Completed in 27.628s
+
+  Configuring build environment
+    NODE_ENV -> "development"
+    PATH     -> "$PATH:/layers/paketo-buildpacks_npm-install/build-modules/node_modules/.bin"
+
+  Generating SBOM for /layers/paketo-buildpacks_npm-install/build-modules
+      Completed in 3.519s
+
+  Executing launch environment install process
+    Running 'npm prune'
+
+      up to date, audited 374 packages in 2s
+
+      61 packages are looking for funding
+        run `npm fund` for details
+
+      3 vulnerabilities (1 low, 1 moderate, 1 high)
+
+      To address all issues, run:
+        npm audit fix
+
+      Run `npm audit` for details.
+      npm notice
+      npm notice New major version of npm available! 9.5.1 -> 11.11.0
+      npm notice Changelog: <https://github.com/npm/cli/releases/tag/v11.11.0>
+      npm notice Run `npm install -g npm@11.11.0` to update!
+      npm notice
+      Completed in 2.751s
+
+  Configuring launch environment
+    NODE_PROJECT_PATH   -> "/workspace"
+    NPM_CONFIG_LOGLEVEL -> "error"
+    PATH                -> "$PATH:/layers/paketo-buildpacks_npm-install/launch-modules/node_modules/.bin"
+
+  Generating SBOM for /layers/paketo-buildpacks_npm-install/launch-modules
+      Completed in 3.033s
+
+
+Paketo Buildpack for Node Run Script 1.0.10
+  Executing build process
+    Running 'npm run build'
+
+      > rest-express@1.0.0 build
+      > tsx script/build.ts
+
+      TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received undefined
+          at __node_internal_captureLargerStackTrace (node:internal/errors:490:5)
+          at new NodeError (node:internal/errors:399:5)
+          at validateString (node:internal/validators:163:11)
+          at Object.dirname (node:path:1276:5)
+          at buildAll (/workspace/script/build.ts:37:28)
+          at <anonymous> (/workspace/script/build.ts:80:1)
+          at ModuleJob.run (node:internal/modules/esm/module_job:194:25) {
+        code: 'ERR_INVALID_ARG_TYPE'
+      }
+exit status 1
+ERROR: failed to build: exit status 1
+==> Building image
+✓ compatible remote builder found
+INFO Override builder host with: https://fly-builder-nameless-frog-8038.fly.dev (was tcp://[fdaa:44:5ea5:a7b:5f1:3c18:c9e3:2]:2375)
+
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Waiting for remote builder fly-builder-nameless-frog-8038...
+Remote builder fly-builder-nameless-frog-8038 ready
+==> Building image with Buildpacks
+--> docker host: 24.0.7 linux x86_64
+base: Pulling from paketobuildpacks/builder
+Digest: sha256:17ea21162ba8c7717d3ead3ee3836a368aced7f02f2e59658e52029bd6d149e7
+Status: Image is up to date for paketobuildpacks/builder:base
+base-cnb: Pulling from paketobuildpacks/run
+Digest: sha256:1af9935d8987fd52b2266d288200c9482d1dd5529860bbf5bc2d248de1cb1a38
+Status: Image is up to date for paketobuildpacks/run:base-cnb
+===> ANALYZING
+Image with name "registry.fly.io/dream-pictures-2026:cache" not found
+===> DETECTING
+5 of 11 buildpacks participating
+paketo-buildpacks/ca-certificates 3.6.2
+paketo-buildpacks/node-engine     1.6.0
+paketo-buildpacks/npm-install     1.1.4
+paketo-buildpacks/node-run-script 1.0.10
+paketo-buildpacks/npm-start       1.0.11
+===> RESTORING
+===> BUILDING
+
+Paketo Buildpack for CA Certificates 3.6.2
+  https://github.com/paketo-buildpacks/ca-certificates
+  Launch Helper: Contributing to layer
+    Creating /layers/paketo-buildpacks_ca-certificates/helper/exec.d/ca-certificates-helper
+Paketo Buildpack for Node Engine 1.6.0
+  Resolving Node Engine version
+    Candidate version sources (in priority order):
+                -> ""
+      <unknown> -> ""
+
+    Selected Node Engine version (using ): 18.16.1
+      Version 18.16.1 of Node Engine is deprecated.
+      Migrate your application to a supported version of Node Engine.
+
+  Executing build process
+    Installing Node Engine 18.16.1
+      Completed in 3.234s
+
+  Generating SBOM for /layers/paketo-buildpacks_node-engine/node
+      Completed in 1ms
+
+  Configuring build environment
+    NODE_ENV     -> "production"
+    NODE_HOME    -> "/layers/paketo-buildpacks_node-engine/node"
+    NODE_OPTIONS -> "--use-openssl-ca"
+    NODE_VERBOSE -> "false"
+
+  Configuring launch environment
+    NODE_ENV     -> "production"
+    NODE_HOME    -> "/layers/paketo-buildpacks_node-engine/node"
+    NODE_OPTIONS -> "--use-openssl-ca"
+    NODE_VERBOSE -> "false"
+
+    Writing exec.d/0-optimize-memory
+      Calculates available memory based on container limits at launch time.
+      Made available in the MEMORY_AVAILABLE environment variable.
+
+Paketo Buildpack for NPM Install 1.1.4
+  Resolving installation process
+    Process inputs:
+      node_modules      -> "Not found"
+      npm-cache         -> "Not found"
+      package-lock.json -> "Found"
+
+    Selected NPM build process: 'npm ci'
+
+  Executing build environment install process
+    Running 'npm ci --unsafe-perm --cache /layers/paketo-buildpacks_npm-install/npm-cache'
+
+      added 482 packages, and audited 483 packages in 15s
+
+      76 packages are looking for funding
+        run `npm fund` for details
+
+      4 vulnerabilities (1 low, 1 moderate, 2 high)
+
+      To address all issues, run:
+        npm audit fix
+
+      Run `npm audit` for details.
+      npm notice
+      npm notice New major version of npm available! 9.5.1 -> 11.11.0
+      npm notice Changelog: <https://github.com/npm/cli/releases/tag/v11.11.0>
+      npm notice Run `npm install -g npm@11.11.0` to update!
+      npm notice
+      Completed in 29.151s
+
+  Configuring build environment
+    NODE_ENV -> "development"
+    PATH     -> "$PATH:/layers/paketo-buildpacks_npm-install/build-modules/node_modules/.bin"
+
+  Generating SBOM for /layers/paketo-buildpacks_npm-install/build-modules
+      Completed in 3.288s
+
+  Executing launch environment install process
+    Running 'npm prune'
+
+      up to date, audited 374 packages in 2s
+
+      61 packages are looking for funding
+        run `npm fund` for details
+
+      3 vulnerabilities (1 low, 1 moderate, 1 high)
+
+      To address all issues, run:
+        npm audit fix
+
+      Run `npm audit` for details.
+      npm notice
+      npm notice New major version of npm available! 9.5.1 -> 11.11.0
+      npm notice Changelog: <https://github.com/npm/cli/releases/tag/v11.11.0>
+      npm notice Run `npm install -g npm@11.11.0` to update!
+      npm notice
+      Completed in 2.812s
+
+  Configuring launch environment
+    NODE_PROJECT_PATH   -> "/workspace"
+    NPM_CONFIG_LOGLEVEL -> "error"
+    PATH                -> "$PATH:/layers/paketo-buildpacks_npm-install/launch-modules/node_modules/.bin"
+
+  Generating SBOM for /layers/paketo-buildpacks_npm-install/launch-modules
+      Completed in 2.979s
+
+
+Paketo Buildpack for Node Run Script 1.0.10
+  Executing build process
+    Running 'npm run build'
+
+      > rest-express@1.0.0 build
+      > tsx script/build.ts
+
+      TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received undefined
+          at __node_internal_captureLargerStackTrace (node:internal/errors:490:5)
+          at new NodeError (node:internal/errors:399:5)
+          at validateString (node:internal/validators:163:11)
+          at Object.dirname (node:path:1276:5)
+          at buildAll (/workspace/script/build.ts:37:28)
+          at <anonymous> (/workspace/script/build.ts:80:1)
+          at ModuleJob.run (node:internal/modules/esm/module_job:194:25) {
+        code: 'ERR_INVALID_ARG_TYPE'
+      }
+exit status 1
+ERROR: failed to build: exit status 1
+Error: failed to fetch an image or build from source: executing lifecycle: failed with status code: 51
+PS D:\Website Data\Dream Pictures - 2026\Dream Pictures - 2026>
