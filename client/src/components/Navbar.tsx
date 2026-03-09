@@ -26,6 +26,17 @@ export default function Navbar() {
     { name: "Contact", href: "/#contact" },
   ];
 
+  const handleInquire = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById("contact");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.href = "/#contact";
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <>
       <header
@@ -68,12 +79,13 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <Link
+              <a
                 href="/#contact"
+                onClick={handleInquire}
                 className="px-6 py-2.5 border border-primary/50 text-primary text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 Inquire
-              </Link>
+              </a>
             </nav>
 
             {/* Mobile Toggle */}
@@ -107,13 +119,13 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Link
+            <a
               href="/#contact"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={handleInquire}
               className="mt-4 px-8 py-3 bg-primary text-primary-foreground text-sm uppercase tracking-widest"
             >
               Inquire Now
-            </Link>
+            </a>
           </motion.div>
         )}
       </AnimatePresence>

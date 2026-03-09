@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Camera, Video, Sparkles } from "lucide-react";
+import { ArrowRight, Camera, Video, Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Youtube } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 import signatureImg from "@assets/image_1772788541421.png";
 import veniceImg from "@/assets/images/venice.jpg";
@@ -208,6 +208,31 @@ export default function Home() {
               <motion.p variants={fadeInUp} className="text-muted-foreground font-light leading-relaxed">
                 We take on a limited number of commissions each year to ensure every couple receives the artistic devotion their story deserves. Tell us about your vision.
               </motion.p>
+              <motion.div variants={fadeInUp} className="space-y-4 pt-2">
+                <a href="mailto:info@thedreampictures.com" className="flex items-center gap-4 text-white/60 hover:text-primary transition-colors group">
+                  <Mail className="w-4 h-4 text-primary/60 shrink-0" />
+                  <span className="text-sm">info@thedreampictures.com</span>
+                </a>
+                <a href="tel:+918437566186" className="flex items-center gap-4 text-white/60 hover:text-primary transition-colors group">
+                  <Phone className="w-4 h-4 text-primary/60 shrink-0" />
+                  <span className="text-sm">+91 84375 66186</span>
+                </a>
+                <div className="flex items-start gap-4 text-white/60">
+                  <MapPin className="w-4 h-4 text-primary/60 shrink-0 mt-0.5" />
+                  <span className="text-sm leading-relaxed">Village Jogewala, Ferozepur,<br />Punjab 142044</span>
+                </div>
+              </motion.div>
+              <motion.div variants={fadeInUp} className="flex items-center gap-5 pt-2">
+                <a href="https://www.instagram.com/its_bakhshish_singh" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-primary transition-colors">
+                  <Instagram className="w-5 h-5" />
+                </a>
+                <a href="https://www.facebook.com/itsbs.in/" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-primary transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="https://www.youtube.com/@dreampicturess" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-primary transition-colors">
+                  <Youtube className="w-5 h-5" />
+                </a>
+              </motion.div>
             </motion.div>
             
             <motion.div 

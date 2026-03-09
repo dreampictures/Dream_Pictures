@@ -7,7 +7,6 @@ export default function Footer() {
 
   return (
     <footer className="bg-black border-t border-white/5 pt-24 pb-12 overflow-hidden relative text-center md:text-left">
-      {/* Decorative wash */}
       <div className="absolute bottom-0 left-0 w-full h-[300px] bg-primary/5 blur-[120px] -z-10 translate-y-1/2" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,11 +19,33 @@ export default function Footer() {
               Crafting visual poems of your most profound human experiences. Cinematic storytelling for the discerning couple.
             </p>
             <div className="flex items-center gap-6">
-              {[Instagram, Facebook, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="text-white/40 hover:text-primary transition-colors">
-                  <Icon className="w-5 h-5" />
-                </a>
-              ))}
+              <a
+                href="https://www.instagram.com/its_bakhshish_singh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/40 hover:text-primary transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.facebook.com/itsbs.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/40 hover:text-primary transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.youtube.com/@dreampicturess"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/40 hover:text-primary transition-colors"
+                aria-label="YouTube"
+              >
+                <Youtube className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
@@ -41,21 +62,53 @@ export default function Footer() {
           <div className="space-y-8">
             <h4 className="font-serif text-xl">Contact</h4>
             <div className="space-y-4 flex flex-col items-center md:items-start">
-              <div className="flex items-center gap-4 text-muted-foreground group">
-                <Mail className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors" />
-                <span className="text-sm">hello@thedreampictures.com</span>
-              </div>
-              <div className="flex items-center gap-4 text-muted-foreground group">
-                <Phone className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors" />
-                <span className="text-sm">+91 99999 99999</span>
-              </div>
-              <div className="flex items-center gap-4 text-muted-foreground group">
-                <MapPin className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors" />
-                <span className="text-sm">New Delhi, India</span>
+              <a href="mailto:info@thedreampictures.com" className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group">
+                <Mail className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors shrink-0" />
+                <span className="text-sm">info@thedreampictures.com</span>
+              </a>
+              <a href="tel:+918437566186" className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group">
+                <Phone className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors shrink-0" />
+                <span className="text-sm">+91 84375 66186</span>
+              </a>
+              <div className="flex items-start gap-4 text-muted-foreground group">
+                <MapPin className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors shrink-0 mt-0.5" />
+                <span className="text-sm leading-relaxed text-left">Village Jogewala,<br />Ferozepur, Punjab 142044</span>
               </div>
             </div>
           </div>
 
+          <div className="space-y-8">
+            <h4 className="font-serif text-xl">Bakhshish Singh</h4>
+            <div className="space-y-4 flex flex-col items-center md:items-start">
+              <a
+                href="https://www.instagram.com/its_bakhshish_singh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
+                <Instagram className="w-4 h-4 text-primary/50" />
+                @its_bakhshish_singh
+              </a>
+              <a
+                href="https://www.facebook.com/itsbs.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
+                <Facebook className="w-4 h-4 text-primary/50" />
+                facebook.com/itsbs.in
+              </a>
+              <a
+                href="https://www.youtube.com/@dreampicturess"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
+                <Youtube className="w-4 h-4 text-primary/50" />
+                @dreampicturess
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
