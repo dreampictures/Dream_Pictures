@@ -272,12 +272,14 @@ export async function registerRoutes(
 
   app.post("/api/crm/works", async (req, res) => {
     try {
-      const { clientId, clientName, description, totalPrice, advancePaid, workDate, status } = req.body;
+      const { clientId, clientName, description, workType, workStage, totalPrice, advancePaid, workDate, status } = req.body;
       if (!clientName || !description || !workDate) return res.status(400).json({ message: "Client, description, and date are required" });
       const work = await storage.createCrmWork({
         clientId: clientId || null,
         clientName,
         description,
+        workType: workType || "Other",
+        workStage: workStage || "Shoot Done",
         totalPrice: Number(totalPrice) || 0,
         advancePaid: Number(advancePaid) || 0,
         workDate,
@@ -292,11 +294,13 @@ export async function registerRoutes(
   app.put("/api/crm/works/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { clientId, clientName, description, totalPrice, advancePaid, workDate, status } = req.body;
+      const { clientId, clientName, description, workType, workStage, totalPrice, advancePaid, workDate, status } = req.body;
       const work = await storage.updateCrmWork(id, {
         clientId: clientId || null,
         clientName,
         description,
+        workType: workType || "Other",
+        workStage: workStage || "Shoot Done",
         totalPrice: Number(totalPrice) || 0,
         advancePaid: Number(advancePaid) || 0,
         workDate,
@@ -315,6 +319,44 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to delete work" });
+    }
+  });
+
+  // CRM — Payments
+  app.get("/api/crm/payments", async (req, res) => {
+    try {
+      const payments = await storage.getCrmPayments();
+      res.json(payments);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  app.post("/api/crm/payments", async (req, res) => {
+    try {
+      const { clientId, clientName, amount, paymentDate, paymentMethod, notes } = req.body;
+      if (!clientName || !amount || !paymentDate) return res.status(400).json({ message: "Client, amount, and date are required" });
+      const payment = await storage.createCrmPayment({
+        clientId: clientId || null,
+        clientName,
+        amount: Number(amount),
+        paymentDate,
+        paymentMethod: paymentMethod || "Cash",
+        notes: notes || null,
+      });
+      res.status(201).json(payment);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create payment" });
+    }
+  });
+
+  app.delete("/api/crm/payments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCrmPayment(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete payment" });
     }
   });
 

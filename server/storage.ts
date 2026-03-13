@@ -6,6 +6,7 @@ import {
   albumPasswords,
   crmClients, type CrmClient, type InsertCrmClient,
   crmWorks, type CrmWork, type InsertCrmWork,
+  crmPayments, type CrmPayment, type InsertCrmPayment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -34,6 +35,10 @@ export interface IStorage {
   createCrmWork(work: InsertCrmWork): Promise<CrmWork>;
   updateCrmWork(id: number, work: Partial<InsertCrmWork>): Promise<CrmWork>;
   deleteCrmWork(id: number): Promise<void>;
+  getCrmPayments(): Promise<CrmPayment[]>;
+  createCrmPayment(payment: InsertCrmPayment): Promise<CrmPayment>;
+  updateCrmPayment(id: number, payment: Partial<InsertCrmPayment>): Promise<CrmPayment>;
+  deleteCrmPayment(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -165,6 +170,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCrmWork(id: number): Promise<void> {
     await db.delete(crmWorks).where(eq(crmWorks.id, id));
+  }
+
+  async getCrmPayments(): Promise<CrmPayment[]> {
+    return await db.select().from(crmPayments).orderBy(desc(crmPayments.createdAt));
+  }
+
+  async createCrmPayment(payment: InsertCrmPayment): Promise<CrmPayment> {
+    const [p] = await db.insert(crmPayments).values(payment).returning();
+    return p;
+  }
+
+  async updateCrmPayment(id: number, payment: Partial<InsertCrmPayment>): Promise<CrmPayment> {
+    const [p] = await db.update(crmPayments).set(payment).where(eq(crmPayments.id, id)).returning();
+    return p;
+  }
+
+  async deleteCrmPayment(id: number): Promise<void> {
+    await db.delete(crmPayments).where(eq(crmPayments.id, id));
   }
 }
 

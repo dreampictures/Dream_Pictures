@@ -1,0 +1,280 @@
+Upgrade the Dream Pictures CRM system into a lightweight professional business CRM.
+
+IMPORTANT REQUIREMENTS
+
+The system must remain lightweight so it runs smoothly on Fly.io small machines and uses minimal Neon PostgreSQL storage.
+
+Avoid heavy background processes, cron jobs, or large logs.
+
+Use only simple database queries and calculations.
+
+-------------------------------------
+
+MAIN NAVIGATION
+
+Dashboard  
+Clients  
+Work  
+Payments  
+Work History  
+
+-------------------------------------
+
+DASHBOARD
+
+Improve the Dashboard UI.
+
+Add summary cards:
+
+Pending Work  
+Pending Payments  
+Birthdays (Next 30 Days)  
+Anniversaries (Next 30 Days)  
+Today's Income  
+Monthly Income  
+
+Below the cards add sections:
+
+PENDING WORK LIST
+
+Show table:
+
+Client Name  
+Work Description  
+Work Date  
+Status  
+Action (Mark Done)
+
+Highlight pending work in RED.
+
+-------------------------------------
+
+PENDING PAYMENTS
+
+Show table:
+
+Client Name  
+Total Price  
+Advance Paid  
+Balance Due  
+
+Highlight balance due in ORANGE.
+
+Add button:
+
+Send WhatsApp Reminder
+
+-------------------------------------
+
+UPCOMING BIRTHDAYS
+
+Show:
+
+Client Name  
+Phone Number  
+Birthday  
+WhatsApp Button
+
+WhatsApp message template:
+
+Happy Birthday from Dream Pictures 🎉
+
+-------------------------------------
+
+UPCOMING ANNIVERSARIES
+
+Same layout as birthdays.
+
+WhatsApp message template:
+
+Happy Anniversary from Dream Pictures 💐
+
+-------------------------------------
+
+QUICK ACTION BUTTONS
+
+Add buttons on dashboard:
+
+Add Client  
+Add Work  
+Record Payment  
+
+-------------------------------------
+
+CLIENT MANAGEMENT
+
+Create Clients page.
+
+Fields:
+
+Client Name  
+Phone Number  
+Address  
+Date of Birth  
+Marriage Anniversary  
+Notes  
+
+Actions:
+
+Edit  
+Delete  
+Call  
+WhatsApp  
+
+-------------------------------------
+
+WORK MANAGEMENT
+
+Create Work entry system.
+
+Fields:
+
+Client Name  
+Work Description  
+Work Type (Album / Shoot / Editing / Other)  
+Total Price  
+Advance Paid  
+Balance (auto calculate)  
+Work Date  
+Work Stage
+
+Work Stage options:
+
+Shoot Done  
+Editing  
+Album Designing  
+Ready  
+Delivered  
+
+Status options:
+
+Pending  
+Done  
+
+When status becomes DONE:
+
+Move record automatically to Work History.
+
+-------------------------------------
+
+WORK HISTORY
+
+Create Work History page.
+
+Show completed work.
+
+Columns:
+
+Client Name  
+Work  
+Total Price  
+Advance  
+Balance  
+Completion Date  
+
+-------------------------------------
+
+PAYMENT MANAGEMENT
+
+Create payment records.
+
+Fields:
+
+Client Name  
+Payment Amount  
+Payment Date  
+Payment Method  
+Notes  
+
+Store payment history.
+
+-------------------------------------
+
+INCOME DASHBOARD
+
+Show:
+
+Today's Income  
+Monthly Income  
+Total Pending Balance  
+
+Use simple SQL aggregation queries.
+
+-------------------------------------
+
+TOP CLIENTS
+
+Create section showing top clients by total business value.
+
+Columns:
+
+Client Name  
+Total Business Value  
+
+-------------------------------------
+
+AUTO REMINDERS
+
+Do not run background jobs.
+
+Instead dynamically calculate reminders when dashboard loads.
+
+Alerts:
+
+Pending Work  
+Pending Payment  
+Upcoming Birthdays  
+Upcoming Anniversaries  
+
+-------------------------------------
+
+WHATSAPP FEATURES
+
+Add WhatsApp buttons:
+
+Birthday Wish  
+Anniversary Wish  
+Payment Reminder  
+
+Example payment reminder message:
+
+Hello,
+Your pending balance for your Dream Pictures work is ₹[balance].
+Kindly clear the payment.
+Thank you.
+
+-------------------------------------
+
+DATABASE OPTIMIZATION
+
+Use only these tables:
+
+clients  
+works  
+payments  
+
+Use indexes for:
+
+client_id  
+status  
+work_date  
+
+Avoid unnecessary logs and heavy data.
+
+-------------------------------------
+
+PERFORMANCE
+
+The CRM must remain fast and optimized for Fly.io small instances.
+
+Avoid heavy queries.
+
+Load data only when needed.
+
+-------------------------------------
+
+UI
+
+Use clean dark professional UI matching Dream Pictures branding.
+
+Ensure mobile friendly layout because the CRM will be used daily in business.

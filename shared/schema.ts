@@ -67,6 +67,8 @@ export const crmWorks = pgTable("crm_works", {
   clientId: integer("client_id").references(() => crmClients.id),
   clientName: text("client_name").notNull(),
   description: text("description").notNull(),
+  workType: text("work_type").notNull().default("Other"),
+  workStage: text("work_stage").notNull().default("Shoot Done"),
   totalPrice: real("total_price").notNull().default(0),
   advancePaid: real("advance_paid").notNull().default(0),
   workDate: text("work_date").notNull(),
@@ -74,13 +76,27 @@ export const crmWorks = pgTable("crm_works", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const crmPayments = pgTable("crm_payments", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => crmClients.id),
+  clientName: text("client_name").notNull(),
+  amount: real("amount").notNull().default(0),
+  paymentDate: text("payment_date").notNull(),
+  paymentMethod: text("payment_method").notNull().default("Cash"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertCrmClientSchema = createInsertSchema(crmClients).omit({ id: true, createdAt: true });
 export const insertCrmWorkSchema = createInsertSchema(crmWorks).omit({ id: true, createdAt: true });
+export const insertCrmPaymentSchema = createInsertSchema(crmPayments).omit({ id: true, createdAt: true });
 
 export type CrmClient = typeof crmClients.$inferSelect;
 export type InsertCrmClient = z.infer<typeof insertCrmClientSchema>;
 export type CrmWork = typeof crmWorks.$inferSelect;
 export type InsertCrmWork = z.infer<typeof insertCrmWorkSchema>;
+export type CrmPayment = typeof crmPayments.$inferSelect;
+export type InsertCrmPayment = z.infer<typeof insertCrmPaymentSchema>;
 
 export const insertAlbumPasswordSchema = createInsertSchema(albumPasswords);
 
