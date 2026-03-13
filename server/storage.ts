@@ -4,6 +4,8 @@ import {
   albums, type Album, type InsertAlbum,
   albumsCache, type AlbumCache, type InsertAlbumCache,
   albumPasswords,
+  crmClients, type CrmClient, type InsertCrmClient,
+  crmWorks, type CrmWork, type InsertCrmWork,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -22,6 +24,16 @@ export interface IStorage {
   getAlbumPassword(code: string): Promise<string | null>;
   setAlbumPassword(code: string, password: string): Promise<void>;
   removeAlbumPassword(code: string): Promise<void>;
+  // CRM
+  getCrmClients(): Promise<CrmClient[]>;
+  getCrmClient(id: number): Promise<CrmClient | undefined>;
+  createCrmClient(client: InsertCrmClient): Promise<CrmClient>;
+  updateCrmClient(id: number, client: Partial<InsertCrmClient>): Promise<CrmClient>;
+  deleteCrmClient(id: number): Promise<void>;
+  getCrmWorks(): Promise<CrmWork[]>;
+  createCrmWork(work: InsertCrmWork): Promise<CrmWork>;
+  updateCrmWork(id: number, work: Partial<InsertCrmWork>): Promise<CrmWork>;
+  deleteCrmWork(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -104,6 +116,55 @@ export class DatabaseStorage implements IStorage {
 
   async removeAlbumPassword(code: string): Promise<void> {
     await db.delete(albumPasswords).where(eq(albumPasswords.code, code));
+  }
+
+  // CRM
+  async getCrmClients(): Promise<CrmClient[]> {
+    return await db.select().from(crmClients).orderBy(desc(crmClients.createdAt));
+  }
+
+  async getCrmClient(id: number): Promise<CrmClient | undefined> {
+    const [client] = await db.select().from(crmClients).where(eq(crmClients.id, id));
+    return client;
+  }
+
+  async createCrmClient(client: InsertCrmClient): Promise<CrmClient> {
+    const [newClient] = await db.insert(crmClients).values(client).returning();
+    return newClient;
+  }
+
+  async updateCrmClient(id: number, client: Partial<InsertCrmClient>): Promise<CrmClient> {
+    const [updated] = await db.update(crmClients)
+      .set(client)
+      .where(eq(crmClients.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCrmClient(id: number): Promise<void> {
+    await db.delete(crmWorks).where(eq(crmWorks.clientId, id));
+    await db.delete(crmClients).where(eq(crmClients.id, id));
+  }
+
+  async getCrmWorks(): Promise<CrmWork[]> {
+    return await db.select().from(crmWorks).orderBy(desc(crmWorks.createdAt));
+  }
+
+  async createCrmWork(work: InsertCrmWork): Promise<CrmWork> {
+    const [newWork] = await db.insert(crmWorks).values(work).returning();
+    return newWork;
+  }
+
+  async updateCrmWork(id: number, work: Partial<InsertCrmWork>): Promise<CrmWork> {
+    const [updated] = await db.update(crmWorks)
+      .set(work)
+      .where(eq(crmWorks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCrmWork(id: number): Promise<void> {
+    await db.delete(crmWorks).where(eq(crmWorks.id, id));
   }
 }
 

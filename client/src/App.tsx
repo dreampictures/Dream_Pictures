@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,9 +16,22 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import GoldenAlbumView from "@/pages/GoldenAlbumView";
 import GoldenAlbum from "@/pages/GoldenAlbum";
+import AdminCRM from "@/pages/AdminCRM";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const [location] = useLocation();
+
+  // CRM page — no navbar or footer
+  if (location.startsWith("/admin-work-secret")) {
+    return (
+      <Switch>
+        <Route path="/admin-work-secret" component={AdminCRM} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen relative selection:bg-primary selection:text-primary-foreground">
       <Navbar />
@@ -33,7 +46,6 @@ function Router() {
           <Route path="/admin/dashboard" component={AdminDashboard} />
           <Route path="/golden-album" component={GoldenAlbumView} />
           <Route path="/golden-album/:code" component={GoldenAlbum} />
-          {/* Fallback to 404 */}
           <Route component={NotFound} />
         </Switch>
       </main>

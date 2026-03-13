@@ -1,0 +1,148 @@
+I want to add a hidden Admin CRM page inside my existing Dream Pictures website.
+
+This page must NOT appear in the main menu or navigation.  
+It should only open using a direct secret URL.
+
+Example URL:
+/admin-work-secret
+
+Before opening the page, it must require Admin Login.
+
+ADMIN LOGIN
+
+When someone opens the secret URL, show a login form:
+
+Fields:
+- Username
+- Password
+
+Use the existing admin username and password from the website.
+
+If login is correct:
+Open the Admin CRM dashboard.
+
+If login is incorrect:
+Show message: "Invalid admin credentials".
+
+Keep the admin session active so the admin does not need to login again for every action.
+
+If someone tries to access the page without login, automatically redirect to login.
+
+--------------------------------------
+
+ADMIN CRM PAGE STRUCTURE
+
+The page should contain two main tabs.
+
+TAB 1: CLIENT DATA
+
+Create a form to store client personal information.
+
+Fields:
+- Client Name
+- Phone Number
+- Date of Birth (optional)
+- Marriage Anniversary Date (optional)
+- Address (optional)
+- Notes
+
+Buttons:
+- Save Client
+- Edit Client
+- Delete Client
+
+Purpose:
+This data will later be used for birthday wishes and anniversary wishes to improve business relations.
+
+--------------------------------------
+
+TAB 2: WORK MANAGEMENT
+
+Create a form to track client work and payments.
+
+Fields:
+- Client Name (dropdown from client table)
+- Work Description
+- Total Price
+- Advance Paid
+- Balance (auto calculate: Total Price - Advance)
+- Work Date
+- Work Status (Pending / Done)
+
+Buttons:
+- Save Work
+- Mark Work as Done
+
+--------------------------------------
+
+DASHBOARD SECTION
+
+At the top of the page show these sections:
+
+1. Pending Work Alert
+Show all pending works so no client work is forgotten.
+
+2. Pending Payments
+Show clients who still have balance payment remaining.
+
+3. Upcoming Birthdays
+Automatically detect birthdays from the client database.
+
+4. Upcoming Anniversaries
+Automatically detect upcoming marriage anniversary dates.
+
+--------------------------------------
+
+WORK DISPLAY
+
+Create two tables:
+
+Pending Work
+Completed Work History
+
+When work is marked as "Done":
+- Move it to Completed Work History
+- Hide it from Pending Work list
+
+--------------------------------------
+
+DATABASE
+
+Use the existing Neon PostgreSQL database connected to the website.
+
+Create two tables if they do not exist:
+
+clients
+works
+
+Clients table stores client personal information.
+
+Works table stores client work details and payment status.
+
+--------------------------------------
+
+EXPORT OPTION
+
+Add a button to export completed work data to Excel or CSV.
+
+--------------------------------------
+
+SECURITY
+
+This admin page must remain hidden from the website navigation.
+
+Only accessible using the secret URL:
+
+/admin-work-secret
+
+And only after admin login.
+
+--------------------------------------
+
+UI REQUIREMENT
+
+The interface must be simple, fast, and mobile-friendly because it will be used daily in the business.
+
+Highlight Pending Work in red so it is clearly visible.
+
+Completed work should move automatically to the history section.

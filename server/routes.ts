@@ -218,5 +218,105 @@ export async function registerRoutes(
     res.json(messages);
   });
 
+  // CRM — Clients
+  app.get("/api/crm/clients", async (req, res) => {
+    try {
+      const clients = await storage.getCrmClients();
+      res.json(clients);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.post("/api/crm/clients", async (req, res) => {
+    try {
+      const { name, phone, dob, anniversary, address, notes } = req.body;
+      if (!name || !phone) return res.status(400).json({ message: "Name and phone are required" });
+      const client = await storage.createCrmClient({ name, phone, dob: dob || null, anniversary: anniversary || null, address: address || null, notes: notes || null });
+      res.status(201).json(client);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  app.put("/api/crm/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, phone, dob, anniversary, address, notes } = req.body;
+      const client = await storage.updateCrmClient(id, { name, phone, dob: dob || null, anniversary: anniversary || null, address: address || null, notes: notes || null });
+      res.json(client);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update client" });
+    }
+  });
+
+  app.delete("/api/crm/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCrmClient(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete client" });
+    }
+  });
+
+  // CRM — Works
+  app.get("/api/crm/works", async (req, res) => {
+    try {
+      const works = await storage.getCrmWorks();
+      res.json(works);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch works" });
+    }
+  });
+
+  app.post("/api/crm/works", async (req, res) => {
+    try {
+      const { clientId, clientName, description, totalPrice, advancePaid, workDate, status } = req.body;
+      if (!clientName || !description || !workDate) return res.status(400).json({ message: "Client, description, and date are required" });
+      const work = await storage.createCrmWork({
+        clientId: clientId || null,
+        clientName,
+        description,
+        totalPrice: Number(totalPrice) || 0,
+        advancePaid: Number(advancePaid) || 0,
+        workDate,
+        status: status || "pending",
+      });
+      res.status(201).json(work);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create work" });
+    }
+  });
+
+  app.put("/api/crm/works/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { clientId, clientName, description, totalPrice, advancePaid, workDate, status } = req.body;
+      const work = await storage.updateCrmWork(id, {
+        clientId: clientId || null,
+        clientName,
+        description,
+        totalPrice: Number(totalPrice) || 0,
+        advancePaid: Number(advancePaid) || 0,
+        workDate,
+        status,
+      });
+      res.json(work);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update work" });
+    }
+  });
+
+  app.delete("/api/crm/works/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCrmWork(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete work" });
+    }
+  });
+
   return httpServer;
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -49,6 +49,38 @@ export const albumPasswords = pgTable("album_passwords", {
   code: text("code").primaryKey(),
   password: text("password").notNull(),
 });
+
+// CRM Tables
+export const crmClients = pgTable("crm_clients", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  dob: text("dob"),
+  anniversary: text("anniversary"),
+  address: text("address"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const crmWorks = pgTable("crm_works", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => crmClients.id),
+  clientName: text("client_name").notNull(),
+  description: text("description").notNull(),
+  totalPrice: real("total_price").notNull().default(0),
+  advancePaid: real("advance_paid").notNull().default(0),
+  workDate: text("work_date").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCrmClientSchema = createInsertSchema(crmClients).omit({ id: true, createdAt: true });
+export const insertCrmWorkSchema = createInsertSchema(crmWorks).omit({ id: true, createdAt: true });
+
+export type CrmClient = typeof crmClients.$inferSelect;
+export type InsertCrmClient = z.infer<typeof insertCrmClientSchema>;
+export type CrmWork = typeof crmWorks.$inferSelect;
+export type InsertCrmWork = z.infer<typeof insertCrmWorkSchema>;
 
 export const insertAlbumPasswordSchema = createInsertSchema(albumPasswords);
 
