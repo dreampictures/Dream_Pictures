@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import type { CrmClient, CrmWork, CrmPayment } from "@shared/schema";
+import type { CrmClient, CrmWork, CrmPayment, CrmExpense } from "@shared/schema";
 
 const LS_KEY = "crm_auth";
 const WORK_TYPES = ["Album", "Shoot", "Editing", "Other"];
 const WORK_STAGES = ["Shoot Done", "Editing", "Album Designing", "Ready", "Delivered"];
 const PAYMENT_METHODS = ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"];
+const EXPENSE_CATEGORIES = ["Rent", "Equipment", "Fuel / Travel", "Printing", "Salary", "Food", "Marketing", "Utilities", "Other"];
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 
@@ -73,16 +74,24 @@ function exportPayments(payments: CrmPayment[]) {
   );
 }
 
-function exportIncomeReport(payments: CrmPayment[]) {
-  const byDate: Record<string, number> = {};
-  for (const p of payments) {
-    byDate[p.paymentDate] = (byDate[p.paymentDate] || 0) + p.amount;
-  }
-  const rows = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, total]) => [date, total]);
+function exportIncomeReport(payments: CrmPayment[], expenses: CrmExpense[]) {
+  const dates = new Set([...payments.map(p => p.paymentDate), ...expenses.map(e => e.date)]);
+  const rows = Array.from(dates).sort().map(date => {
+    const inc = payments.filter(p => p.paymentDate === date).reduce((s, p) => s + p.amount, 0);
+    const exp = expenses.filter(e => e.date === date).reduce((s, e) => s + e.amount, 0);
+    return [date, inc, exp, inc - exp];
+  });
   dlCSV(
-    [["Date", "Total Income"], ...rows],
+    [["Date", "Income (₹)", "Expenses (₹)", "Net Profit (₹)"], ...rows],
     "income_report.csv"
+  );
+}
+
+function exportExpenses(expenses: CrmExpense[]) {
+  dlCSV(
+    [["Date", "Category", "Description", "Amount (₹)", "Payment Method", "Notes"],
+    ...expenses.map(e => [e.date, e.category, e.description, e.amount, e.paymentMethod, e.notes || ""])],
+    "expenses_export.csv"
   );
 }
 
@@ -263,6 +272,169 @@ function PaymentForm({ clients, onSave, onCancel, saving }: { clients: CrmClient
   );
 }
 
+// ─── Expense Form ─────────────────────────────────────────────────────────────
+
+function ExpenseForm({ onSave, onCancel, saving }: { onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
+  const [f, setF] = useState({ date: todayStr(), category: "General", description: "", amount: "", paymentMethod: "Cash", notes: "" });
+  const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
+  return (
+    <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 mb-4">
+      <h3 className="text-white font-semibold mb-4 text-sm">Add Expense</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={lbl}>Date *</label><input data-testid="input-expense-date" type="date" className={inp} value={f.date} onChange={e => s("date", e.target.value)} /></div>
+        <div>
+          <label className={lbl}>Category</label>
+          <select data-testid="select-expense-category" className={sel} value={f.category} onChange={e => s("category", e.target.value)}>
+            {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="sm:col-span-2"><label className={lbl}>Description *</label><input data-testid="input-expense-description" className={inp} value={f.description} onChange={e => s("description", e.target.value)} /></div>
+        <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-expense-amount" type="number" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
+        <div>
+          <label className={lbl}>Payment Method</label>
+          <select data-testid="select-expense-method" className={sel} value={f.paymentMethod} onChange={e => s("paymentMethod", e.target.value)}>
+            {PAYMENT_METHODS.map(m => <option key={m}>{m}</option>)}
+          </select>
+        </div>
+        <div className="sm:col-span-2"><label className={lbl}>Notes</label><input data-testid="input-expense-notes" className={inp} value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
+      </div>
+      <div className="flex gap-2 mt-4">
+        <button data-testid="button-save-expense" onClick={() => onSave(f)} disabled={saving || !f.date || !f.description || !f.amount} className={btn("bg-red-700 hover:bg-red-600")}>{saving ? "Saving…" : "Save Expense"}</button>
+        <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Finance Tab ──────────────────────────────────────────────────────────────
+
+function FinanceTab({ payments, expenses, onCreateExpense, onDeleteExpense, saving }: {
+  payments: CrmPayment[]; expenses: CrmExpense[];
+  onCreateExpense: (d: any) => void; onDeleteExpense: (id: number) => void;
+  saving: boolean;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const month = thisMonthStr();
+
+  const totalIncome = payments.reduce((s, p) => s + p.amount, 0);
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const netProfit = totalIncome - totalExpenses;
+
+  const monthIncome = payments.filter(p => p.paymentDate.startsWith(month)).reduce((s, p) => s + p.amount, 0);
+  const monthExpenses = expenses.filter(e => e.date.startsWith(month)).reduce((s, e) => s + e.amount, 0);
+  const monthProfit = monthIncome - monthExpenses;
+
+  // Expenses by category
+  const byCategory = expenses.reduce((acc: Record<string, number>, e) => {
+    acc[e.category] = (acc[e.category] || 0) + e.amount;
+    return acc;
+  }, {});
+  const topCategories = Object.entries(byCategory).sort(([, a], [, b]) => b - a);
+
+  return (
+    <div className="space-y-5">
+      {/* All-time summary */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-green-950/40 border border-green-800/40 rounded-xl p-4 text-center">
+          <div className="text-lg font-bold text-green-400">{fmtCur(totalIncome)}</div>
+          <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Total Income</div>
+        </div>
+        <div className="bg-red-950/40 border border-red-800/40 rounded-xl p-4 text-center">
+          <div className="text-lg font-bold text-red-400">{fmtCur(totalExpenses)}</div>
+          <div className="text-red-300 text-xs mt-0.5 uppercase tracking-wider">Total Expenses</div>
+        </div>
+        <div className={`border rounded-xl p-4 text-center ${netProfit >= 0 ? "bg-teal-950/40 border-teal-800/40" : "bg-red-950/40 border-red-800/40"}`}>
+          <div className={`text-lg font-bold ${netProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(netProfit)}</div>
+          <div className={`text-xs mt-0.5 uppercase tracking-wider ${netProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Net Profit</div>
+        </div>
+      </div>
+
+      {/* This month */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">This Month</h3>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-green-400 font-bold">{fmtCur(monthIncome)}</div>
+            <div className="text-zinc-500 text-xs mt-0.5">Income</div>
+          </div>
+          <div>
+            <div className="text-red-400 font-bold">{fmtCur(monthExpenses)}</div>
+            <div className="text-zinc-500 text-xs mt-0.5">Expenses</div>
+          </div>
+          <div>
+            <div className={`font-bold ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
+            <div className="text-zinc-500 text-xs mt-0.5">Profit</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Expense by category */}
+      {topCategories.length > 0 && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">Expenses by Category</h3>
+          <div className="space-y-2">
+            {topCategories.map(([cat, total]) => (
+              <div key={cat} className="flex items-center justify-between">
+                <span className="text-zinc-300 text-sm">{cat}</span>
+                <span className="text-red-400 font-semibold text-sm">{fmtCur(total)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add Expense + Export */}
+      <div className="flex items-center justify-between">
+        {!showForm && (
+          <button data-testid="button-add-expense" onClick={() => setShowForm(true)} className={btn("bg-red-700 hover:bg-red-600")}>+ Add Expense</button>
+        )}
+        {expenses.length > 0 && (
+          <button data-testid="button-export-expenses" onClick={() => exportExpenses(expenses)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors ml-auto">↓ Export Expenses</button>
+        )}
+      </div>
+
+      {showForm && <ExpenseForm onSave={d => { onCreateExpense(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
+
+      {/* Expense list */}
+      <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Expense History</h3>
+      {expenses.length === 0 ? (
+        <div className="text-zinc-600 text-sm text-center py-6">No expenses recorded yet.</div>
+      ) : (
+        <div className="rounded-xl border border-zinc-800 overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
+              <th className="text-left p-3">Date</th>
+              <th className="text-left p-3">Category</th>
+              <th className="text-left p-3 hidden sm:table-cell">Description</th>
+              <th className="text-right p-3">Amount</th>
+              <th className="text-left p-3 hidden sm:table-cell">Method</th>
+              <th className="p-3" />
+            </tr></thead>
+            <tbody>
+              {expenses.map(e => (
+                <tr key={e.id} data-testid={`row-expense-${e.id}`} className="border-t border-zinc-800 hover:bg-zinc-900/50">
+                  <td className="p-3 text-zinc-400 text-xs">{fmtDate(e.date)}</td>
+                  <td className="p-3">
+                    <span className="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">{e.category}</span>
+                  </td>
+                  <td className="p-3 text-zinc-400 hidden sm:table-cell">{e.description}
+                    {e.notes && <div className="text-zinc-600 text-xs">{e.notes}</div>}
+                  </td>
+                  <td className="p-3 text-right font-bold text-red-400">{fmtCur(e.amount)}</td>
+                  <td className="p-3 text-zinc-500 hidden sm:table-cell text-xs">{e.paymentMethod}</td>
+                  <td className="p-3 text-center">
+                    <button data-testid={`button-delete-expense-${e.id}`} onClick={() => { if (confirm("Delete this expense?")) onDeleteExpense(e.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Stage Badge ──────────────────────────────────────────────────────────────
 
 function StageBadge({ stage }: { stage: string }) {
@@ -278,8 +450,8 @@ function StageBadge({ stage }: { stage: string }) {
 
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
-function DashboardTab({ clients, works, payments, onMarkDone, onQuickAction }: {
-  clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[];
+function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickAction }: {
+  clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[]; expenses: CrmExpense[];
   onMarkDone: (w: CrmWork) => void;
   onQuickAction: (tab: string) => void;
 }) {
@@ -290,6 +462,9 @@ function DashboardTab({ clients, works, payments, onMarkDone, onQuickAction }: {
   const month = thisMonthStr();
   const todayIncome = payments.filter(p => p.paymentDate === today).reduce((s, p) => s + p.amount, 0);
   const monthIncome = payments.filter(p => p.paymentDate.startsWith(month)).reduce((s, p) => s + p.amount, 0);
+  const todayExpense = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
+  const monthExpense = expenses.filter(e => e.date.startsWith(month)).reduce((s, e) => s + e.amount, 0);
+  const monthProfit = monthIncome - monthExpense;
   const birthdays = clients.filter(c => { const d = daysUntil(c.dob); return d !== null && d <= 30; }).sort((a, b) => (daysUntil(a.dob) ?? 99) - (daysUntil(b.dob) ?? 99));
   const anniversaries = clients.filter(c => { const d = daysUntil(c.anniversary); return d !== null && d <= 30; }).sort((a, b) => (daysUntil(a.anniversary) ?? 99) - (daysUntil(b.anniversary) ?? 99));
 
@@ -323,12 +498,14 @@ function DashboardTab({ clients, works, payments, onMarkDone, onQuickAction }: {
           <div className="text-pink-300 text-xs mt-1 uppercase tracking-wider">Anniv. (30d)</div>
         </div>
         <div data-testid="card-stat-today-income" className="bg-green-950/40 border border-green-800/50 rounded-xl p-4 text-center">
-          <div className="text-lg font-bold text-green-400 leading-tight">{fmtCur(todayIncome)}</div>
-          <div className="text-green-300 text-xs mt-1 uppercase tracking-wider">Today's Income</div>
+          <div className="text-sm font-bold text-green-400 leading-tight">{fmtCur(todayIncome)}</div>
+          <div className="text-zinc-500 text-xs">–{fmtCur(todayExpense)}</div>
+          <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Today's Income</div>
         </div>
-        <div data-testid="card-stat-monthly-income" className="bg-teal-950/40 border border-teal-800/50 rounded-xl p-4 text-center">
-          <div className="text-lg font-bold text-teal-400 leading-tight">{fmtCur(monthIncome)}</div>
-          <div className="text-teal-300 text-xs mt-1 uppercase tracking-wider">Monthly Income</div>
+        <div data-testid="card-stat-monthly-income" className={`border rounded-xl p-4 text-center ${monthProfit >= 0 ? "bg-teal-950/40 border-teal-800/50" : "bg-red-950/40 border-red-800/50"}`}>
+          <div className={`text-sm font-bold leading-tight ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
+          <div className="text-zinc-500 text-xs">{fmtCur(monthIncome)} – {fmtCur(monthExpense)}</div>
+          <div className={`text-xs mt-0.5 uppercase tracking-wider ${monthProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Monthly Profit</div>
         </div>
       </div>
 
@@ -338,7 +515,7 @@ function DashboardTab({ clients, works, payments, onMarkDone, onQuickAction }: {
         <button data-testid="button-quick-add-work" onClick={() => onQuickAction("work")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Work</button>
         <button data-testid="button-quick-record-payment" onClick={() => onQuickAction("payments")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Record Payment</button>
         {payments.length > 0 && (
-          <button data-testid="button-export-income" onClick={() => exportIncomeReport(payments)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">↓ Income Report</button>
+          <button data-testid="button-export-income" onClick={() => exportIncomeReport(payments, expenses)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">↓ Income Report</button>
         )}
       </div>
 
@@ -766,12 +943,13 @@ function HistoryTab({ works, onDeleteWork }: { works: CrmWork[]; onDeleteWork: (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-type Tab = "dashboard" | "clients" | "work" | "payments" | "history";
+type Tab = "dashboard" | "clients" | "work" | "payments" | "finance" | "history";
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "clients", label: "Clients" },
   { id: "work", label: "Work" },
   { id: "payments", label: "Payments" },
+  { id: "finance", label: "Income & Expenses" },
   { id: "history", label: "History" },
 ];
 
@@ -783,6 +961,7 @@ export default function AdminCRM() {
   const { data: clients = [] } = useQuery<CrmClient[]>({ queryKey: ["/api/crm/clients"], enabled: authed });
   const { data: works = [] } = useQuery<CrmWork[]>({ queryKey: ["/api/crm/works"], enabled: authed });
   const { data: payments = [] } = useQuery<CrmPayment[]>({ queryKey: ["/api/crm/payments"], enabled: authed });
+  const { data: expenses = [] } = useQuery<CrmExpense[]>({ queryKey: ["/api/crm/expenses"], enabled: authed });
 
   const inv = (keys: string[]) => keys.forEach(k => qc.invalidateQueries({ queryKey: [k] }));
 
@@ -797,7 +976,10 @@ export default function AdminCRM() {
   const createPayment = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/payments", d), onSuccess: () => inv(["/api/crm/payments"]) });
   const deletePayment = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/payments/${id}`), onSuccess: () => inv(["/api/crm/payments"]) });
 
-  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending;
+  const createExpense = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/expenses", d), onSuccess: () => inv(["/api/crm/expenses"]) });
+  const deleteExpense = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/expenses/${id}`), onSuccess: () => inv(["/api/crm/expenses"]) });
+
+  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending || createExpense.isPending || deleteExpense.isPending;
 
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
@@ -828,7 +1010,7 @@ export default function AdminCRM() {
       <div className="flex-1 max-w-5xl w-full mx-auto p-4 pb-8">
         {tab === "dashboard" && (
           <DashboardTab
-            clients={clients} works={works} payments={payments}
+            clients={clients} works={works} payments={payments} expenses={expenses}
             onMarkDone={w => updateWork.mutate({ id: w.id, d: { ...w, status: "done" } })}
             onQuickAction={t => setTab(t as Tab)}
           />
@@ -856,6 +1038,14 @@ export default function AdminCRM() {
             clients={clients} payments={payments}
             onCreatePayment={d => createPayment.mutate(d)}
             onDeletePayment={id => deletePayment.mutate(id)}
+            saving={anyMutSaving}
+          />
+        )}
+        {tab === "finance" && (
+          <FinanceTab
+            payments={payments} expenses={expenses}
+            onCreateExpense={d => createExpense.mutate(d)}
+            onDeleteExpense={id => deleteExpense.mutate(id)}
             saving={anyMutSaving}
           />
         )}

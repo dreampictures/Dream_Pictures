@@ -360,5 +360,43 @@ export async function registerRoutes(
     }
   });
 
+  // CRM — Expenses
+  app.get("/api/crm/expenses", async (req, res) => {
+    try {
+      const expenses = await storage.getCrmExpenses();
+      res.json(expenses);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch expenses" });
+    }
+  });
+
+  app.post("/api/crm/expenses", async (req, res) => {
+    try {
+      const { date, category, description, amount, paymentMethod, notes } = req.body;
+      if (!date || !description || !amount) return res.status(400).json({ message: "Date, description, and amount are required" });
+      const expense = await storage.createCrmExpense({
+        date,
+        category: category || "General",
+        description,
+        amount: Number(amount),
+        paymentMethod: paymentMethod || "Cash",
+        notes: notes || null,
+      });
+      res.status(201).json(expense);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+
+  app.delete("/api/crm/expenses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCrmExpense(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
   return httpServer;
 }

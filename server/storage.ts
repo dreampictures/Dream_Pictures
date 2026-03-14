@@ -7,6 +7,7 @@ import {
   crmClients, type CrmClient, type InsertCrmClient,
   crmWorks, type CrmWork, type InsertCrmWork,
   crmPayments, type CrmPayment, type InsertCrmPayment,
+  crmExpenses, type CrmExpense, type InsertCrmExpense,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -39,6 +40,9 @@ export interface IStorage {
   createCrmPayment(payment: InsertCrmPayment): Promise<CrmPayment>;
   updateCrmPayment(id: number, payment: Partial<InsertCrmPayment>): Promise<CrmPayment>;
   deleteCrmPayment(id: number): Promise<void>;
+  getCrmExpenses(): Promise<CrmExpense[]>;
+  createCrmExpense(expense: InsertCrmExpense): Promise<CrmExpense>;
+  deleteCrmExpense(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -188,6 +192,19 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCrmPayment(id: number): Promise<void> {
     await db.delete(crmPayments).where(eq(crmPayments.id, id));
+  }
+
+  async getCrmExpenses(): Promise<CrmExpense[]> {
+    return await db.select().from(crmExpenses).orderBy(desc(crmExpenses.date));
+  }
+
+  async createCrmExpense(expense: InsertCrmExpense): Promise<CrmExpense> {
+    const [e] = await db.insert(crmExpenses).values(expense).returning();
+    return e;
+  }
+
+  async deleteCrmExpense(id: number): Promise<void> {
+    await db.delete(crmExpenses).where(eq(crmExpenses.id, id));
   }
 }
 

@@ -87,6 +87,21 @@ export const crmPayments = pgTable("crm_payments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const crmExpenses = pgTable("crm_expenses", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull(),
+  category: text("category").notNull().default("General"),
+  description: text("description").notNull(),
+  amount: real("amount").notNull().default(0),
+  paymentMethod: text("payment_method").notNull().default("Cash"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCrmExpenseSchema = createInsertSchema(crmExpenses).omit({ id: true, createdAt: true });
+export type CrmExpense = typeof crmExpenses.$inferSelect;
+export type InsertCrmExpense = z.infer<typeof insertCrmExpenseSchema>;
+
 export const insertCrmClientSchema = createInsertSchema(crmClients).omit({ id: true, createdAt: true });
 export const insertCrmWorkSchema = createInsertSchema(crmWorks).omit({ id: true, createdAt: true });
 export const insertCrmPaymentSchema = createInsertSchema(crmPayments).omit({ id: true, createdAt: true });
