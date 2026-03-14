@@ -42,6 +42,7 @@ export interface IStorage {
   deleteCrmPayment(id: number): Promise<void>;
   getCrmExpenses(): Promise<CrmExpense[]>;
   createCrmExpense(expense: InsertCrmExpense): Promise<CrmExpense>;
+  updateCrmExpense(id: number, expense: Partial<InsertCrmExpense>): Promise<CrmExpense>;
   deleteCrmExpense(id: number): Promise<void>;
 }
 
@@ -200,6 +201,11 @@ export class DatabaseStorage implements IStorage {
 
   async createCrmExpense(expense: InsertCrmExpense): Promise<CrmExpense> {
     const [e] = await db.insert(crmExpenses).values(expense).returning();
+    return e;
+  }
+
+  async updateCrmExpense(id: number, expense: Partial<InsertCrmExpense>): Promise<CrmExpense> {
+    const [e] = await db.update(crmExpenses).set(expense).where(eq(crmExpenses.id, id)).returning();
     return e;
   }
 

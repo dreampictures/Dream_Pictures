@@ -7,7 +7,7 @@ const LS_KEY = "crm_auth";
 const WORK_TYPES = ["Album", "Shoot", "Editing", "Other"];
 const WORK_STAGES = ["Shoot Done", "Editing", "Album Designing", "Ready", "Delivered"];
 const PAYMENT_METHODS = ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"];
-const EXPENSE_CATEGORIES = ["Rent", "Equipment", "Fuel / Travel", "Printing", "Salary", "Food", "Marketing", "Utilities", "Other"];
+const EXPENSE_CATEGORIES = ["Studio Expense", "Album Printing", "Travel", "Electricity", "Internet", "Cyber Cafe Supplies", "Other"];
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 
@@ -274,12 +274,22 @@ function PaymentForm({ clients, onSave, onCancel, saving }: { clients: CrmClient
 
 // ─── Expense Form ─────────────────────────────────────────────────────────────
 
-function ExpenseForm({ onSave, onCancel, saving }: { onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
-  const [f, setF] = useState({ date: todayStr(), category: "General", description: "", amount: "", paymentMethod: "Cash", notes: "" });
+function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
+  onSave: (d: any) => void; onCancel: () => void; saving: boolean;
+  initial?: { date?: string; category?: string; description?: string; amount?: number | string; notes?: string | null };
+  editMode?: boolean;
+}) {
+  const [f, setF] = useState({
+    date: initial?.date ?? todayStr(),
+    category: initial?.category ?? EXPENSE_CATEGORIES[0],
+    description: initial?.description ?? "",
+    amount: initial?.amount?.toString() ?? "",
+    notes: initial?.notes ?? "",
+  });
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 mb-4">
-      <h3 className="text-white font-semibold mb-4 text-sm">Add Expense</h3>
+      <h3 className="text-white font-semibold mb-4 text-sm">{editMode ? "Edit Expense" : "Add Expense"}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className={lbl}>Date *</label><input data-testid="input-expense-date" type="date" className={inp} value={f.date} onChange={e => s("date", e.target.value)} /></div>
         <div>
@@ -288,18 +298,12 @@ function ExpenseForm({ onSave, onCancel, saving }: { onSave: (d: any) => void; o
             {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
         </div>
-        <div className="sm:col-span-2"><label className={lbl}>Description *</label><input data-testid="input-expense-description" className={inp} value={f.description} onChange={e => s("description", e.target.value)} /></div>
-        <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-expense-amount" type="number" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
-        <div>
-          <label className={lbl}>Payment Method</label>
-          <select data-testid="select-expense-method" className={sel} value={f.paymentMethod} onChange={e => s("paymentMethod", e.target.value)}>
-            {PAYMENT_METHODS.map(m => <option key={m}>{m}</option>)}
-          </select>
-        </div>
-        <div className="sm:col-span-2"><label className={lbl}>Notes</label><input data-testid="input-expense-notes" className={inp} value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
+        <div className="sm:col-span-2"><label className={lbl}>Expense Type *</label><input data-testid="input-expense-description" className={inp} placeholder="e.g. Monthly rent payment" value={f.description} onChange={e => s("description", e.target.value)} /></div>
+        <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-expense-amount" type="number" min="0" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
+        <div><label className={lbl}>Notes</label><input data-testid="input-expense-notes" className={inp} placeholder="Optional notes" value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-expense" onClick={() => onSave(f)} disabled={saving || !f.date || !f.description || !f.amount} className={btn("bg-red-700 hover:bg-red-600")}>{saving ? "Saving…" : "Save Expense"}</button>
+        <button data-testid="button-save-expense" onClick={() => onSave(f)} disabled={saving || !f.date || !f.description || !f.amount} className={btn("bg-amber-700 hover:bg-amber-600")}>{saving ? "Saving…" : editMode ? "Update Expense" : "Add Expense"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
@@ -308,21 +312,27 @@ function ExpenseForm({ onSave, onCancel, saving }: { onSave: (d: any) => void; o
 
 // ─── Finance Tab ──────────────────────────────────────────────────────────────
 
-function FinanceTab({ payments, expenses, onCreateExpense, onDeleteExpense, saving }: {
+function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDeleteExpense, saving }: {
   payments: CrmPayment[]; expenses: CrmExpense[];
-  onCreateExpense: (d: any) => void; onDeleteExpense: (id: number) => void;
+  onCreateExpense: (d: any) => void;
+  onUpdateExpense: (id: number, d: any) => void;
+  onDeleteExpense: (id: number) => void;
   saving: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<CrmExpense | null>(null);
+  const today = todayStr();
   const month = thisMonthStr();
 
-  const totalIncome = payments.reduce((s, p) => s + p.amount, 0);
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
-  const netProfit = totalIncome - totalExpenses;
+  const todayIncome = payments.filter(p => p.paymentDate === today).reduce((s, p) => s + p.amount, 0);
+  const todayExpenses = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
+  const todayProfit = todayIncome - todayExpenses;
 
   const monthIncome = payments.filter(p => p.paymentDate.startsWith(month)).reduce((s, p) => s + p.amount, 0);
   const monthExpenses = expenses.filter(e => e.date.startsWith(month)).reduce((s, e) => s + e.amount, 0);
   const monthProfit = monthIncome - monthExpenses;
+
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
 
   // Expenses by category
   const byCategory = expenses.reduce((acc: Record<string, number>, e) => {
@@ -331,47 +341,45 @@ function FinanceTab({ payments, expenses, onCreateExpense, onDeleteExpense, savi
   }, {});
   const topCategories = Object.entries(byCategory).sort(([, a], [, b]) => b - a);
 
+  function statCard(label: string, value: number, colorClass: string, borderClass: string, textClass: string) {
+    return (
+      <div className={`${colorClass} ${borderClass} border rounded-xl p-3 text-center`}>
+        <div className={`text-base font-bold leading-tight ${textClass}`}>{fmtCur(value)}</div>
+        <div className={`text-xs mt-0.5 uppercase tracking-wider opacity-80 ${textClass}`}>{label}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      {/* All-time summary */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-green-950/40 border border-green-800/40 rounded-xl p-4 text-center">
-          <div className="text-lg font-bold text-green-400">{fmtCur(totalIncome)}</div>
-          <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Total Income</div>
-        </div>
-        <div className="bg-red-950/40 border border-red-800/40 rounded-xl p-4 text-center">
-          <div className="text-lg font-bold text-red-400">{fmtCur(totalExpenses)}</div>
-          <div className="text-red-300 text-xs mt-0.5 uppercase tracking-wider">Total Expenses</div>
-        </div>
-        <div className={`border rounded-xl p-4 text-center ${netProfit >= 0 ? "bg-teal-950/40 border-teal-800/40" : "bg-red-950/40 border-red-800/40"}`}>
-          <div className={`text-lg font-bold ${netProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(netProfit)}</div>
-          <div className={`text-xs mt-0.5 uppercase tracking-wider ${netProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Net Profit</div>
+
+      {/* Today */}
+      <div>
+        <h3 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Today</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {statCard("Income", todayIncome, "bg-green-950/40", "border-green-800/40", "text-green-400")}
+          {statCard("Expense", todayExpenses, "bg-red-950/40", "border-red-800/40", "text-red-400")}
+          {statCard("Profit", todayProfit, todayProfit >= 0 ? "bg-teal-950/40" : "bg-red-950/40", todayProfit >= 0 ? "border-teal-800/40" : "border-red-800/40", todayProfit >= 0 ? "text-teal-400" : "text-red-400")}
         </div>
       </div>
 
-      {/* This month */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">This Month</h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-green-400 font-bold">{fmtCur(monthIncome)}</div>
-            <div className="text-zinc-500 text-xs mt-0.5">Income</div>
-          </div>
-          <div>
-            <div className="text-red-400 font-bold">{fmtCur(monthExpenses)}</div>
-            <div className="text-zinc-500 text-xs mt-0.5">Expenses</div>
-          </div>
-          <div>
-            <div className={`font-bold ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
-            <div className="text-zinc-500 text-xs mt-0.5">Profit</div>
-          </div>
+      {/* This Month */}
+      <div>
+        <h3 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">This Month</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {statCard("Income", monthIncome, "bg-green-950/40", "border-green-800/40", "text-green-400")}
+          {statCard("Expense", monthExpenses, "bg-red-950/40", "border-red-800/40", "text-red-400")}
+          {statCard("Profit", monthProfit, monthProfit >= 0 ? "bg-teal-950/40" : "bg-red-950/40", monthProfit >= 0 ? "border-teal-800/40" : "border-red-800/40", monthProfit >= 0 ? "text-teal-400" : "text-red-400")}
         </div>
       </div>
 
-      {/* Expense by category */}
+      {/* Category breakdown */}
       {topCategories.length > 0 && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">Expenses by Category</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold">By Category</h3>
+            <span className="text-zinc-600 text-xs">Total: {fmtCur(totalExpenses)}</span>
+          </div>
           <div className="space-y-2">
             {topCategories.map(([cat, total]) => (
               <div key={cat} className="flex items-center justify-between">
@@ -383,47 +391,74 @@ function FinanceTab({ payments, expenses, onCreateExpense, onDeleteExpense, savi
         </div>
       )}
 
-      {/* Add Expense + Export */}
-      <div className="flex items-center justify-between">
-        {!showForm && (
-          <button data-testid="button-add-expense" onClick={() => setShowForm(true)} className={btn("bg-red-700 hover:bg-red-600")}>+ Add Expense</button>
+      {/* Actions bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        {!showForm && !editingExpense && (
+          <button data-testid="button-add-expense" onClick={() => setShowForm(true)} className={btn("bg-amber-700 hover:bg-amber-600")}>+ Add Expense</button>
         )}
         {expenses.length > 0 && (
-          <button data-testid="button-export-expenses" onClick={() => exportExpenses(expenses)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors ml-auto">↓ Export Expenses</button>
+          <button data-testid="button-export-expenses" onClick={() => exportExpenses(expenses)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors">↓ Export Expenses</button>
         )}
       </div>
 
-      {showForm && <ExpenseForm onSave={d => { onCreateExpense(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
+      {/* Add form */}
+      {showForm && (
+        <ExpenseForm
+          onSave={d => { onCreateExpense(d); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+          saving={saving}
+        />
+      )}
+
+      {/* Edit form */}
+      {editingExpense && (
+        <ExpenseForm
+          editMode
+          initial={editingExpense}
+          onSave={d => { onUpdateExpense(editingExpense.id, d); setEditingExpense(null); }}
+          onCancel={() => setEditingExpense(null)}
+          saving={saving}
+        />
+      )}
 
       {/* Expense list */}
-      <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Expense History</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Expense History</h3>
+        <span className="text-zinc-600 text-xs">{expenses.length} record{expenses.length !== 1 ? "s" : ""}</span>
+      </div>
       {expenses.length === 0 ? (
-        <div className="text-zinc-600 text-sm text-center py-6">No expenses recorded yet.</div>
+        <div className="text-zinc-600 text-sm text-center py-8 bg-zinc-900/50 rounded-xl border border-zinc-800">No expenses recorded yet.</div>
       ) : (
         <div className="rounded-xl border border-zinc-800 overflow-hidden overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">Category</th>
-              <th className="text-left p-3 hidden sm:table-cell">Description</th>
-              <th className="text-right p-3">Amount</th>
-              <th className="text-left p-3 hidden sm:table-cell">Method</th>
-              <th className="p-3" />
-            </tr></thead>
+            <thead>
+              <tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
+                <th className="text-left p-3">Expense Type</th>
+                <th className="text-left p-3">Category</th>
+                <th className="text-right p-3">Amount</th>
+                <th className="text-left p-3 hidden sm:table-cell">Date</th>
+                <th className="text-left p-3 hidden md:table-cell">Notes</th>
+                <th className="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
             <tbody>
               {expenses.map(e => (
                 <tr key={e.id} data-testid={`row-expense-${e.id}`} className="border-t border-zinc-800 hover:bg-zinc-900/50">
-                  <td className="p-3 text-zinc-400 text-xs">{fmtDate(e.date)}</td>
                   <td className="p-3">
-                    <span className="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">{e.category}</span>
+                    <div className="text-white font-medium">{e.description}</div>
+                    <div className="text-zinc-500 text-xs sm:hidden">{fmtDate(e.date)}</div>
                   </td>
-                  <td className="p-3 text-zinc-400 hidden sm:table-cell">{e.description}
-                    {e.notes && <div className="text-zinc-600 text-xs">{e.notes}</div>}
+                  <td className="p-3">
+                    <span className="bg-amber-900/40 text-amber-300 text-xs px-2 py-0.5 rounded">{e.category}</span>
                   </td>
-                  <td className="p-3 text-right font-bold text-red-400">{fmtCur(e.amount)}</td>
-                  <td className="p-3 text-zinc-500 hidden sm:table-cell text-xs">{e.paymentMethod}</td>
+                  <td className="p-3 text-right font-bold text-red-400 whitespace-nowrap">{fmtCur(e.amount)}</td>
+                  <td className="p-3 text-zinc-400 text-xs hidden sm:table-cell whitespace-nowrap">{fmtDate(e.date)}</td>
+                  <td className="p-3 text-zinc-500 text-xs hidden md:table-cell">{e.notes || "—"}</td>
                   <td className="p-3 text-center">
-                    <button data-testid={`button-delete-expense-${e.id}`} onClick={() => { if (confirm("Delete this expense?")) onDeleteExpense(e.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button data-testid={`button-edit-expense-${e.id}`} onClick={() => { setEditingExpense(e); setShowForm(false); }} className="text-zinc-500 hover:text-amber-400 text-xs transition-colors">Edit</button>
+                      <button data-testid={`button-delete-expense-${e.id}`} onClick={() => { if (confirm("Delete this expense?")) onDeleteExpense(e.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">Delete</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -479,33 +514,57 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {/* Work & Business Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div data-testid="card-stat-pending" className="bg-red-950/40 border border-red-800/50 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-red-400">{pending.length}</div>
           <div className="text-red-300 text-xs mt-1 uppercase tracking-wider">Pending Work</div>
         </div>
         <div data-testid="card-stat-balance" className="bg-orange-950/40 border border-orange-800/50 rounded-xl p-4 text-center">
-          <div className="text-lg font-bold text-orange-400 leading-tight">{fmtCur(totalBalance)}</div>
-          <div className="text-orange-300 text-xs mt-1 uppercase tracking-wider">Pending Payments</div>
+          <div className="text-base font-bold text-orange-400 leading-tight">{fmtCur(totalBalance)}</div>
+          <div className="text-orange-300 text-xs mt-1 uppercase tracking-wider">Pending Pay</div>
         </div>
         <div data-testid="card-stat-birthdays" className="bg-blue-950/40 border border-blue-800/50 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-blue-400">{birthdays.length}</div>
-          <div className="text-blue-300 text-xs mt-1 uppercase tracking-wider">Birthdays (30d)</div>
+          <div className="text-blue-300 text-xs mt-1 uppercase tracking-wider">Birthdays 30d</div>
         </div>
         <div data-testid="card-stat-anniversaries" className="bg-pink-950/40 border border-pink-800/50 rounded-xl p-4 text-center">
           <div className="text-3xl font-bold text-pink-400">{anniversaries.length}</div>
-          <div className="text-pink-300 text-xs mt-1 uppercase tracking-wider">Anniv. (30d)</div>
+          <div className="text-pink-300 text-xs mt-1 uppercase tracking-wider">Anniv. 30d</div>
         </div>
-        <div data-testid="card-stat-today-income" className="bg-green-950/40 border border-green-800/50 rounded-xl p-4 text-center">
-          <div className="text-sm font-bold text-green-400 leading-tight">{fmtCur(todayIncome)}</div>
-          <div className="text-zinc-500 text-xs">–{fmtCur(todayExpense)}</div>
-          <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Today's Income</div>
+      </div>
+
+      {/* Finance Cards */}
+      <div>
+        <h2 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Today's Finance</h2>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div data-testid="card-stat-today-income" className="bg-green-950/40 border border-green-800/40 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-green-400">{fmtCur(todayIncome)}</div>
+            <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Income</div>
+          </div>
+          <div data-testid="card-stat-today-expense" className="bg-red-950/40 border border-red-800/40 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-red-400">{fmtCur(todayExpense)}</div>
+            <div className="text-red-300 text-xs mt-0.5 uppercase tracking-wider">Expense</div>
+          </div>
+          <div data-testid="card-stat-today-profit" className={`border rounded-xl p-3 text-center ${(todayIncome - todayExpense) >= 0 ? "bg-teal-950/40 border-teal-800/40" : "bg-red-950/40 border-red-800/40"}`}>
+            <div className={`text-base font-bold ${(todayIncome - todayExpense) >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(todayIncome - todayExpense)}</div>
+            <div className={`text-xs mt-0.5 uppercase tracking-wider ${(todayIncome - todayExpense) >= 0 ? "text-teal-300" : "text-red-300"}`}>Profit</div>
+          </div>
         </div>
-        <div data-testid="card-stat-monthly-income" className={`border rounded-xl p-4 text-center ${monthProfit >= 0 ? "bg-teal-950/40 border-teal-800/50" : "bg-red-950/40 border-red-800/50"}`}>
-          <div className={`text-sm font-bold leading-tight ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
-          <div className="text-zinc-500 text-xs">{fmtCur(monthIncome)} – {fmtCur(monthExpense)}</div>
-          <div className={`text-xs mt-0.5 uppercase tracking-wider ${monthProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Monthly Profit</div>
+        <h2 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Monthly Finance</h2>
+        <div className="grid grid-cols-3 gap-2">
+          <div data-testid="card-stat-monthly-income" className="bg-green-950/40 border border-green-800/40 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-green-400">{fmtCur(monthIncome)}</div>
+            <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Income</div>
+          </div>
+          <div data-testid="card-stat-monthly-expense" className="bg-red-950/40 border border-red-800/40 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-red-400">{fmtCur(monthExpense)}</div>
+            <div className="text-red-300 text-xs mt-0.5 uppercase tracking-wider">Expense</div>
+          </div>
+          <div data-testid="card-stat-monthly-profit" className={`border rounded-xl p-3 text-center ${monthProfit >= 0 ? "bg-teal-950/40 border-teal-800/40" : "bg-red-950/40 border-red-800/40"}`}>
+            <div className={`text-base font-bold ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
+            <div className={`text-xs mt-0.5 uppercase tracking-wider ${monthProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Profit</div>
+          </div>
         </div>
       </div>
 
@@ -949,7 +1008,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "clients", label: "Clients" },
   { id: "work", label: "Work" },
   { id: "payments", label: "Payments" },
-  { id: "finance", label: "Income & Expenses" },
+  { id: "finance", label: "Expenses" },
   { id: "history", label: "History" },
 ];
 
@@ -977,9 +1036,10 @@ export default function AdminCRM() {
   const deletePayment = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/payments/${id}`), onSuccess: () => inv(["/api/crm/payments"]) });
 
   const createExpense = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/expenses", d), onSuccess: () => inv(["/api/crm/expenses"]) });
+  const updateExpense = useMutation({ mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/expenses/${id}`, d), onSuccess: () => inv(["/api/crm/expenses"]) });
   const deleteExpense = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/expenses/${id}`), onSuccess: () => inv(["/api/crm/expenses"]) });
 
-  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending || createExpense.isPending || deleteExpense.isPending;
+  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending || createExpense.isPending || updateExpense.isPending || deleteExpense.isPending;
 
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
@@ -1045,6 +1105,7 @@ export default function AdminCRM() {
           <FinanceTab
             payments={payments} expenses={expenses}
             onCreateExpense={d => createExpense.mutate(d)}
+            onUpdateExpense={(id, d) => updateExpense.mutate({ id, d })}
             onDeleteExpense={id => deleteExpense.mutate(id)}
             saving={anyMutSaving}
           />

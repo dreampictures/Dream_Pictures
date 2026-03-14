@@ -388,6 +388,23 @@ export async function registerRoutes(
     }
   });
 
+  app.put("/api/crm/expenses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { date, category, description, amount, notes } = req.body;
+      const expense = await storage.updateCrmExpense(id, {
+        ...(date && { date }),
+        ...(category && { category }),
+        ...(description && { description }),
+        ...(amount !== undefined && { amount: Number(amount) }),
+        ...(notes !== undefined && { notes: notes || null }),
+      });
+      res.json(expense);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+
   app.delete("/api/crm/expenses/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
