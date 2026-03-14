@@ -42,12 +42,48 @@ function waLink(phone: string, msg: string) {
   const p = num.startsWith("91") ? num : `91${num}`;
   return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
 }
-function exportCSV(rows: CrmWork[]) {
-  const h = ["Client", "Work", "Type", "Stage", "Total", "Advance", "Balance", "Date"];
-  const r = rows.map(w => [w.clientName, w.description, w.workType, w.workStage, w.totalPrice, w.advancePaid, w.totalPrice - w.advancePaid, w.workDate]);
-  const csv = [h, ...r].map(row => row.map(c => `"${c}"`).join(",")).join("\n");
-  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv" })), download: "dream-pictures-work.csv" });
+function dlCSV(rows: (string | number)[][], filename: string) {
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv" })), download: filename });
   a.click();
+}
+
+function exportClients(clients: CrmClient[]) {
+  dlCSV(
+    [["Client Name", "Phone Number", "Date of Birth", "Marriage Anniversary", "Address", "Notes"],
+    ...clients.map(c => [c.name, c.phone, c.dob || "", c.anniversary || "", c.address || "", c.notes || ""])],
+    "clients_export.csv"
+  );
+}
+
+function exportWorkHistory(works: CrmWork[]) {
+  const done = works.filter(w => w.status === "done");
+  dlCSV(
+    [["Client Name", "Work Description", "Total Price", "Advance Paid", "Balance", "Completion Date"],
+    ...done.map(w => [w.clientName, w.description, w.totalPrice, w.advancePaid, w.totalPrice - w.advancePaid, w.workDate])],
+    "work_history_export.csv"
+  );
+}
+
+function exportPayments(payments: CrmPayment[]) {
+  dlCSV(
+    [["Client Name", "Payment Amount", "Payment Date", "Payment Method", "Notes"],
+    ...payments.map(p => [p.clientName, p.amount, p.paymentDate, p.paymentMethod, p.notes || ""])],
+    "payments_export.csv"
+  );
+}
+
+function exportIncomeReport(payments: CrmPayment[]) {
+  const byDate: Record<string, number> = {};
+  for (const p of payments) {
+    byDate[p.paymentDate] = (byDate[p.paymentDate] || 0) + p.amount;
+  }
+  const rows = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, total]) => [date, total]);
+  dlCSV(
+    [["Date", "Total Income"], ...rows],
+    "income_report.csv"
+  );
 }
 
 // ─── Input Helpers ──────────────────────────────────────────────────────────
@@ -301,6 +337,9 @@ function DashboardTab({ clients, works, payments, onMarkDone, onQuickAction }: {
         <button data-testid="button-quick-add-client" onClick={() => onQuickAction("clients")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Client</button>
         <button data-testid="button-quick-add-work" onClick={() => onQuickAction("work")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Work</button>
         <button data-testid="button-quick-record-payment" onClick={() => onQuickAction("payments")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Record Payment</button>
+        {payments.length > 0 && (
+          <button data-testid="button-export-income" onClick={() => exportIncomeReport(payments)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">↓ Income Report</button>
+        )}
       </div>
 
       {/* Pending Work */}
@@ -474,11 +513,14 @@ function ClientsTab({ clients, works, onCreateClient, onUpdateClient, onDeleteCl
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
         {!showForm && !editing && (
           <button data-testid="button-add-client" onClick={() => setShowForm(true)} className={btn("bg-amber-600 hover:bg-amber-500")}>+ Add Client</button>
         )}
-        <input placeholder="Search clients…" className={inp + " max-w-xs"} value={search} onChange={e => setSearch(e.target.value)} />
+        <input placeholder="Search clients…" className={inp + " max-w-xs flex-1"} value={search} onChange={e => setSearch(e.target.value)} />
+        {clients.length > 0 && (
+          <button data-testid="button-export-clients" onClick={() => exportClients(clients)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors whitespace-nowrap">↓ Export Clients</button>
+        )}
       </div>
       {showForm && <ClientForm onSave={d => { onCreateClient(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
       {editing && <ClientForm init={editing} onSave={d => { onUpdateClient(editing.id, d); setEditing(null); }} onCancel={() => setEditing(null)} saving={saving} />}
@@ -602,9 +644,14 @@ function PaymentsTab({ clients, payments, onCreatePayment, onDeletePayment, savi
 
   return (
     <div>
-      {!showForm && (
-        <button data-testid="button-record-payment" onClick={() => setShowForm(true)} className={`${btn("bg-green-700 hover:bg-green-600")} mb-4`}>+ Record Payment</button>
-      )}
+      <div className="flex items-center justify-between mb-4">
+        {!showForm && (
+          <button data-testid="button-record-payment" onClick={() => setShowForm(true)} className={btn("bg-green-700 hover:bg-green-600")}>+ Record Payment</button>
+        )}
+        {payments.length > 0 && (
+          <button data-testid="button-export-payments" onClick={() => exportPayments(payments)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors ml-auto">↓ Export Payments</button>
+        )}
+      </div>
       {showForm && <PaymentForm clients={clients} onSave={d => { onCreatePayment(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
 
       {/* Income Summary */}
@@ -670,7 +717,7 @@ function HistoryTab({ works, onDeleteWork }: { works: CrmWork[]; onDeleteWork: (
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-green-400 font-bold text-xs uppercase tracking-wider">Completed Work ({done.length})</h2>
         {done.length > 0 && (
-          <button data-testid="button-export-csv" onClick={() => exportCSV(works)} className="bg-zinc-700 hover:bg-zinc-600 text-white text-xs rounded-lg px-4 py-2 transition-colors">Export CSV</button>
+          <button data-testid="button-export-work-history" onClick={() => exportWorkHistory(works)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-4 py-2 transition-colors">↓ Export Completed Work</button>
         )}
       </div>
       {done.length > 0 && (
