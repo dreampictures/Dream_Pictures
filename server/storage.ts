@@ -10,7 +10,7 @@ import {
   crmExpenses, type CrmExpense, type InsertCrmExpense,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, ilike, or } from "drizzle-orm";
 
 export interface IStorage {
   getPortfolioItems(): Promise<PortfolioItem[]>;
@@ -44,6 +44,9 @@ export interface IStorage {
   createCrmExpense(expense: InsertCrmExpense): Promise<CrmExpense>;
   updateCrmExpense(id: number, expense: Partial<InsertCrmExpense>): Promise<CrmExpense>;
   deleteCrmExpense(id: number): Promise<void>;
+  searchCrm(q: string): Promise<{ clients: CrmClient[]; works: CrmWork[] }>;
+  getClientByPhone(phone: string): Promise<CrmClient | undefined>;
+  getPaymentsByWorkId(workId: number): Promise<CrmPayment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -211,6 +214,28 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCrmExpense(id: number): Promise<void> {
     await db.delete(crmExpenses).where(eq(crmExpenses.id, id));
+  }
+
+  async searchCrm(q: string): Promise<{ clients: CrmClient[]; works: CrmWork[] }> {
+    const pattern = `%${q}%`;
+    const [clients, works] = await Promise.all([
+      db.select().from(crmClients)
+        .where(or(ilike(crmClients.name, pattern), ilike(crmClients.phone, pattern)))
+        .limit(10),
+      db.select().from(crmWorks)
+        .where(or(ilike(crmWorks.description, pattern), ilike(crmWorks.clientName, pattern)))
+        .limit(10),
+    ]);
+    return { clients, works };
+  }
+
+  async getClientByPhone(phone: string): Promise<CrmClient | undefined> {
+    const [client] = await db.select().from(crmClients).where(eq(crmClients.phone, phone));
+    return client;
+  }
+
+  async getPaymentsByWorkId(workId: number): Promise<CrmPayment[]> {
+    return await db.select().from(crmPayments).where(eq(crmPayments.workId, workId));
   }
 }
 

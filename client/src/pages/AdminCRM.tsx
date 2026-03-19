@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { CrmClient, CrmWork, CrmPayment, CrmExpense } from "@shared/schema";
@@ -49,6 +49,17 @@ function dlCSV(rows: (string | number)[][], filename: string) {
   a.click();
 }
 
+function getWorkBalance(work: CrmWork, payments: CrmPayment[]): number {
+  const linked = payments.filter(p => p.workId === work.id).reduce((s, p) => s + p.amount, 0);
+  return Math.max(0, work.totalPrice - work.advancePaid - linked);
+}
+
+function thisWeekStart() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().slice(0, 10);
+}
+
 function exportClients(clients: CrmClient[]) {
   dlCSV(
     [["Client Name", "Phone Number", "Date of Birth", "Marriage Anniversary", "Address", "Notes"],
@@ -95,12 +106,125 @@ function exportExpenses(expenses: CrmExpense[]) {
   );
 }
 
+function exportAllData(clients: CrmClient[], works: CrmWork[], payments: CrmPayment[], expenses: CrmExpense[]) {
+  setTimeout(() => exportClients(clients), 0);
+  setTimeout(() => exportWorkHistory(works), 300);
+  setTimeout(() => exportPayments(payments), 600);
+  setTimeout(() => exportExpenses(expenses), 900);
+}
+
 // ─── Input Helpers ──────────────────────────────────────────────────────────
 
 const inp = "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors";
 const sel = inp;
 const lbl = "block text-zinc-400 text-xs uppercase tracking-wider mb-1";
 const btn = (color: string) => `${color} text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors disabled:opacity-50`;
+
+// ─── Date Filter ─────────────────────────────────────────────────────────────
+
+type DatePreset = "all" | "today" | "week" | "month" | "custom";
+interface DateFilterState { preset: DatePreset; from: string; to: string; }
+function useDateFilter(): [DateFilterState, (s: DateFilterState) => void] {
+  const [f, setF] = useState<DateFilterState>({ preset: "all", from: "", to: "" });
+  return [f, setF];
+}
+function applyDateFilter<T>(items: T[], getDate: (item: T) => string, f: DateFilterState): T[] {
+  if (f.preset === "all") return items;
+  const today = todayStr();
+  const weekStart = thisWeekStart();
+  const month = thisMonthStr();
+  return items.filter(item => {
+    const d = getDate(item);
+    if (f.preset === "today") return d === today;
+    if (f.preset === "week") return d >= weekStart && d <= today;
+    if (f.preset === "month") return d.startsWith(month);
+    if (f.preset === "custom") return (!f.from || d >= f.from) && (!f.to || d <= f.to);
+    return true;
+  });
+}
+function DateFilter({ value, onChange, label }: { value: DateFilterState; onChange: (s: DateFilterState) => void; label?: string }) {
+  const presets: { id: DatePreset; label: string }[] = [
+    { id: "all", label: "All" }, { id: "today", label: "Today" },
+    { id: "week", label: "This Week" }, { id: "month", label: "This Month" }, { id: "custom", label: "Custom" },
+  ];
+  return (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      {label && <span className="text-zinc-500 text-xs uppercase tracking-wider">{label}:</span>}
+      {presets.map(p => (
+        <button key={p.id} onClick={() => onChange({ ...value, preset: p.id })}
+          className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${value.preset === p.id ? "bg-amber-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}>
+          {p.label}
+        </button>
+      ))}
+      {value.preset === "custom" && (
+        <>
+          <input type="date" value={value.from} onChange={e => onChange({ ...value, from: e.target.value })} className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500" />
+          <span className="text-zinc-600 text-xs">to</span>
+          <input type="date" value={value.to} onChange={e => onChange({ ...value, to: e.target.value })} className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500" />
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Quick Payment Modal ──────────────────────────────────────────────────────
+
+function QuickPaymentModal({ work, balance, onSave, onClose, saving }: {
+  work: CrmWork; balance: number;
+  onSave: (d: any) => void; onClose: () => void; saving: boolean;
+}) {
+  const [amount, setAmount] = useState(balance.toString());
+  const [date, setDate] = useState(todayStr());
+  const [method, setMethod] = useState("Cash");
+  const [notes, setNotes] = useState("");
+  const [err, setErr] = useState("");
+  const numAmount = parseFloat(amount) || 0;
+
+  function submit() {
+    if (!amount || numAmount <= 0) { setErr("Enter a valid amount"); return; }
+    if (numAmount > balance + 0.01) { setErr(`Max allowed: ${fmtCur(balance)}`); return; }
+    onSave({ workId: work.id, clientId: work.clientId, clientName: work.clientName, amount: numAmount, paymentDate: date, paymentMethod: method, notes });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-white font-bold mb-1">Record Payment</h3>
+        <p className="text-zinc-400 text-sm mb-4">{work.clientName} · {work.description}</p>
+        <div className="space-y-3">
+          <div>
+            <label className={lbl}>Amount (₹) * <span className="text-zinc-600 normal-case">max {fmtCur(balance)}</span></label>
+            <input data-testid="input-quickpay-amount" type="number" min="1" max={balance} className={inp} value={amount} onChange={e => { setAmount(e.target.value); setErr(""); }} />
+          </div>
+          <div>
+            <label className={lbl}>Date *</label>
+            <input data-testid="input-quickpay-date" type="date" className={inp} value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div>
+            <label className={lbl}>Method</label>
+            <select data-testid="select-quickpay-method" className={sel} value={method} onChange={e => setMethod(e.target.value)}>
+              {PAYMENT_METHODS.map(m => <option key={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lbl}>Notes</label>
+            <input className={inp} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
+          </div>
+          {err && <p className="text-red-400 text-xs">{err}</p>}
+          {numAmount >= balance - 0.01 && balance > 0 && (
+            <div className="bg-green-950/40 border border-green-800/40 rounded-lg px-3 py-2 text-green-400 text-xs">
+              Full balance paid — work will be marked as Done automatically
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 mt-5">
+          <button data-testid="button-confirm-quickpay" onClick={submit} disabled={saving} className={btn("bg-green-700 hover:bg-green-600 flex-1")}>{saving ? "Saving…" : "Confirm Payment"}</button>
+          <button onClick={onClose} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Login ───────────────────────────────────────────────────────────────────
 
@@ -141,22 +265,27 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
 // ─── Client Form ─────────────────────────────────────────────────────────────
 
-function ClientForm({ init, onSave, onCancel, saving }: { init?: CrmClient | null; onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
+function ClientForm({ init, existingClients, onSave, onCancel, saving }: { init?: CrmClient | null; existingClients?: CrmClient[]; onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
   const [f, setF] = useState({ name: init?.name || "", phone: init?.phone || "", address: init?.address || "", dob: init?.dob || "", anniversary: init?.anniversary || "", notes: init?.notes || "" });
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
+  const phoneConflict = !init && existingClients?.find(c => c.phone.replace(/\D/g, "") === f.phone.replace(/\D/g, "") && f.phone.length > 5);
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 mb-4">
       <h3 className="text-white font-semibold mb-4 text-sm">{init ? "Edit Client" : "New Client"}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className={lbl}>Name *</label><input data-testid="input-client-name" className={inp} value={f.name} onChange={e => s("name", e.target.value)} /></div>
-        <div><label className={lbl}>Phone *</label><input data-testid="input-client-phone" className={inp} value={f.phone} onChange={e => s("phone", e.target.value)} /></div>
+        <div>
+          <label className={lbl}>Phone *</label>
+          <input data-testid="input-client-phone" className={inp + (phoneConflict ? " border-red-500" : "")} value={f.phone} onChange={e => s("phone", e.target.value)} />
+          {phoneConflict && <p className="text-red-400 text-xs mt-1">Phone already used by: {phoneConflict.name}</p>}
+        </div>
         <div className="sm:col-span-2"><label className={lbl}>Address</label><input data-testid="input-client-address" className={inp} value={f.address} onChange={e => s("address", e.target.value)} /></div>
         <div><label className={lbl}>Date of Birth</label><input data-testid="input-client-dob" type="date" className={inp} value={f.dob} onChange={e => s("dob", e.target.value)} /></div>
         <div><label className={lbl}>Anniversary</label><input data-testid="input-client-anniversary" type="date" className={inp} value={f.anniversary} onChange={e => s("anniversary", e.target.value)} /></div>
         <div className="sm:col-span-2"><label className={lbl}>Notes</label><textarea data-testid="input-client-notes" className={inp + " resize-none"} rows={2} value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-client" onClick={() => onSave(f)} disabled={saving || !f.name || !f.phone} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update" : "Save Client"}</button>
+        <button data-testid="button-save-client" onClick={() => onSave(f)} disabled={saving || !f.name || !f.phone || !!phoneConflict} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update" : "Save Client"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
@@ -321,6 +450,7 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<CrmExpense | null>(null);
+  const [expFilter, setExpFilter] = useDateFilter();
   const today = todayStr();
   const month = thisMonthStr();
 
@@ -422,27 +552,30 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
       )}
 
       {/* Expense list */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Expense History</h3>
         <span className="text-zinc-600 text-xs">{expenses.length} record{expenses.length !== 1 ? "s" : ""}</span>
       </div>
-      {expenses.length === 0 ? (
-        <div className="text-zinc-600 text-sm text-center py-8 bg-zinc-900/50 rounded-xl border border-zinc-800">No expenses recorded yet.</div>
-      ) : (
-        <div className="rounded-xl border border-zinc-800 overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
-                <th className="text-left p-3">Expense Type</th>
-                <th className="text-left p-3">Category</th>
-                <th className="text-right p-3">Amount</th>
-                <th className="text-left p-3 hidden sm:table-cell">Date</th>
-                <th className="text-left p-3 hidden md:table-cell">Notes</th>
-                <th className="p-3 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map(e => (
+      <DateFilter value={expFilter} onChange={setExpFilter} />
+      {(() => {
+        const filtered = applyDateFilter(expenses, e => e.date, expFilter).slice().sort((a, b) => b.date.localeCompare(a.date));
+        return filtered.length === 0 ? (
+          <div className="text-zinc-600 text-sm text-center py-8 bg-zinc-900/50 rounded-xl border border-zinc-800">No expenses for this period.</div>
+        ) : (
+          <div className="rounded-xl border border-zinc-800 overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
+                  <th className="text-left p-3">Expense Type</th>
+                  <th className="text-left p-3">Category</th>
+                  <th className="text-right p-3">Amount</th>
+                  <th className="text-left p-3 hidden sm:table-cell">Date</th>
+                  <th className="text-left p-3 hidden md:table-cell">Notes</th>
+                  <th className="p-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(e => (
                 <tr key={e.id} data-testid={`row-expense-${e.id}`} className="border-t border-zinc-800 hover:bg-zinc-900/50">
                   <td className="p-3">
                     <div className="text-white font-medium">{e.description}</div>
@@ -462,10 +595,11 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -485,14 +619,17 @@ function StageBadge({ stage }: { stage: string }) {
 
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
-function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickAction }: {
+function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickAction, onRecordPayment }: {
   clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[]; expenses: CrmExpense[];
   onMarkDone: (w: CrmWork) => void;
   onQuickAction: (tab: string) => void;
+  onRecordPayment: (d: any) => void;
 }) {
+  const [payingWork, setPayingWork] = useState<CrmWork | null>(null);
+  const [savingPayment, setSavingPayment] = useState(false);
   const pending = works.filter(w => w.status === "pending");
-  const pendingPay = works.filter(w => (w.totalPrice - w.advancePaid) > 0);
-  const totalBalance = pendingPay.reduce((s, w) => s + (w.totalPrice - w.advancePaid), 0);
+  const pendingPay = works.filter(w => getWorkBalance(w, payments) > 0);
+  const totalBalance = pendingPay.reduce((s, w) => s + getWorkBalance(w, payments), 0);
   const today = todayStr();
   const month = thisMonthStr();
   const todayIncome = payments.filter(p => p.paymentDate === today).reduce((s, p) => s + p.amount, 0);
@@ -514,6 +651,15 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
 
   return (
     <div className="space-y-6">
+      {payingWork && (
+        <QuickPaymentModal
+          work={payingWork}
+          balance={getWorkBalance(payingWork, payments)}
+          onSave={d => { onRecordPayment(d); setPayingWork(null); setSavingPayment(false); }}
+          onClose={() => setPayingWork(null)}
+          saving={savingPayment}
+        />
+      )}
       {/* Work & Business Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div data-testid="card-stat-pending" className="bg-red-950/40 border border-red-800/50 rounded-xl p-4 text-center">
@@ -573,6 +719,7 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
         <button data-testid="button-quick-add-client" onClick={() => onQuickAction("clients")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Client</button>
         <button data-testid="button-quick-add-work" onClick={() => onQuickAction("work")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Work</button>
         <button data-testid="button-quick-record-payment" onClick={() => onQuickAction("payments")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Record Payment</button>
+        <button data-testid="button-quick-add-expense" onClick={() => onQuickAction("expenses")} className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">+ Add Expense</button>
         {payments.length > 0 && (
           <button data-testid="button-export-income" onClick={() => exportIncomeReport(payments, expenses)} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-xl px-4 py-2 border border-zinc-700 transition-colors">↓ Income Report</button>
         )}
@@ -624,26 +771,30 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
               <thead><tr className="bg-zinc-900 text-zinc-400 text-xs uppercase">
                 <th className="text-left p-3">Client</th>
                 <th className="text-right p-3 hidden sm:table-cell">Total</th>
-                <th className="text-right p-3 hidden sm:table-cell">Advance</th>
                 <th className="text-right p-3">Balance</th>
-                <th className="p-3">WhatsApp</th>
+                <th className="p-3 text-center">Action</th>
               </tr></thead>
               <tbody>
                 {pendingPay.map(w => {
-                  const bal = w.totalPrice - w.advancePaid;
+                  const bal = getWorkBalance(w, payments);
                   const client = clients.find(c => c.id === w.clientId);
                   const phone = client?.phone || "";
                   const msg = `Hello,\nYour pending balance for Dream Pictures work is ${fmtCur(bal)}.\nKindly clear the payment.\nThank you.`;
                   return (
                     <tr key={w.id} data-testid={`row-payment-pending-${w.id}`} className="border-t border-zinc-800">
-                      <td className="p-3 text-white">{w.clientName}</td>
+                      <td className="p-3">
+                        <div className="text-white font-medium">{w.clientName}</div>
+                        <div className="text-zinc-500 text-xs">{w.description}</div>
+                      </td>
                       <td className="p-3 text-right text-zinc-400 hidden sm:table-cell">{fmtCur(w.totalPrice)}</td>
-                      <td className="p-3 text-right text-zinc-400 hidden sm:table-cell">{fmtCur(w.advancePaid)}</td>
                       <td className="p-3 text-right font-bold text-orange-400">{fmtCur(bal)}</td>
                       <td className="p-3 text-center">
-                        {phone ? (
-                          <a href={waLink(phone, msg)} target="_blank" rel="noreferrer" data-testid={`button-wa-payment-${w.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 inline-block transition-colors">WhatsApp</a>
-                        ) : <span className="text-zinc-600 text-xs">No phone</span>}
+                        <div className="flex items-center justify-center gap-2">
+                          <button data-testid={`button-pay-pending-${w.id}`} onClick={() => setPayingWork(w)} className="bg-orange-700 hover:bg-orange-600 text-white text-xs rounded-lg px-3 py-1.5 transition-colors font-semibold">💰 Pay</button>
+                          {phone && (
+                            <a href={waLink(phone, msg)} target="_blank" rel="noreferrer" data-testid={`button-wa-payment-${w.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-2 py-1.5 inline-block transition-colors">WA</a>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -758,8 +909,8 @@ function ClientsTab({ clients, works, onCreateClient, onUpdateClient, onDeleteCl
           <button data-testid="button-export-clients" onClick={() => exportClients(clients)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs rounded-lg px-3 py-2 transition-colors whitespace-nowrap">↓ Export Clients</button>
         )}
       </div>
-      {showForm && <ClientForm onSave={d => { onCreateClient(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
-      {editing && <ClientForm init={editing} onSave={d => { onUpdateClient(editing.id, d); setEditing(null); }} onCancel={() => setEditing(null)} saving={saving} />}
+      {showForm && <ClientForm existingClients={clients} onSave={d => { onCreateClient(d); setShowForm(false); }} onCancel={() => setShowForm(false)} saving={saving} />}
+      {editing && <ClientForm init={editing} existingClients={clients} onSave={d => { onUpdateClient(editing.id, d); setEditing(null); }} onCancel={() => setEditing(null)} saving={saving} />}
       {filtered.length === 0 ? (
         <div className="text-zinc-600 text-sm text-center py-10">No clients found.</div>
       ) : (
@@ -801,21 +952,30 @@ function ClientsTab({ clients, works, onCreateClient, onUpdateClient, onDeleteCl
 
 // ─── Work Tab ─────────────────────────────────────────────────────────────────
 
-function WorkTab({ clients, works, onCreateWork, onUpdateWork, onDeleteWork, saving }: {
-  clients: CrmClient[]; works: CrmWork[];
+function WorkTab({ clients, works, payments, onCreateWork, onUpdateWork, onDeleteWork, onRecordPayment, saving }: {
+  clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[];
   onCreateWork: (d: any) => void; onUpdateWork: (id: number, d: any) => void; onDeleteWork: (id: number) => void;
+  onRecordPayment: (d: any) => void;
   saving: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<CrmWork | null>(null);
+  const [payingWork, setPayingWork] = useState<CrmWork | null>(null);
+  const [dateFilter, setDateFilter] = useDateFilter();
   const pending = works.filter(w => w.status === "pending");
-
-  function markDone(w: CrmWork) {
-    onUpdateWork(w.id, { ...w, status: "done" });
-  }
+  const filtered = applyDateFilter(works.filter(w => w.status === "pending"), w => w.workDate, dateFilter);
 
   return (
     <div>
+      {payingWork && (
+        <QuickPaymentModal
+          work={payingWork}
+          balance={getWorkBalance(payingWork, payments)}
+          onSave={d => { onRecordPayment(d); setPayingWork(null); }}
+          onClose={() => setPayingWork(null)}
+          saving={saving}
+        />
+      )}
       {!showForm && !editing && (
         <button data-testid="button-add-work" onClick={() => setShowForm(true)} className={`${btn("bg-amber-600 hover:bg-amber-500")} mb-4`}>+ Add Work</button>
       )}
@@ -826,12 +986,13 @@ function WorkTab({ clients, works, onCreateWork, onUpdateWork, onDeleteWork, sav
         <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse inline-block" />
         <h2 className="text-red-400 font-bold text-xs uppercase tracking-wider">Pending Work ({pending.length})</h2>
       </div>
-      {pending.length === 0 ? (
-        <div className="text-zinc-600 text-sm text-center py-6">No pending work.</div>
+      <DateFilter value={dateFilter} onChange={setDateFilter} label="Date" />
+      {filtered.length === 0 ? (
+        <div className="text-zinc-600 text-sm text-center py-6">No pending work for this period.</div>
       ) : (
         <div className="space-y-3">
-          {pending.map(w => {
-            const bal = w.totalPrice - w.advancePaid;
+          {filtered.map(w => {
+            const bal = getWorkBalance(w, payments);
             return (
               <div key={w.id} data-testid={`card-work-${w.id}`} className="bg-red-950/20 border border-red-800/30 rounded-xl p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -845,13 +1006,16 @@ function WorkTab({ clients, works, onCreateWork, onUpdateWork, onDeleteWork, sav
                     <div className="flex flex-wrap gap-3 mt-2 text-xs">
                       <span>Total: <span className="text-white font-medium">{fmtCur(w.totalPrice)}</span></span>
                       <span>Advance: <span className="text-green-400 font-medium">{fmtCur(w.advancePaid)}</span></span>
-                      <span>Balance: <span className={`font-bold ${bal > 0 ? "text-red-400" : "text-zinc-400"}`}>{fmtCur(bal)}</span></span>
+                      <span>Balance: <span className={`font-bold ${bal > 0 ? "text-orange-400" : "text-green-400"}`}>{fmtCur(bal)}</span></span>
                       <span className="text-zinc-500">{fmtDate(w.workDate)}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button data-testid={`button-markdone-work-${w.id}`} onClick={() => markDone(w)} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Mark Done</button>
-                    <button data-testid={`button-edit-work-${w.id}`} onClick={() => { setEditing(w); setShowForm(false); }} className="bg-zinc-700 hover:bg-zinc-600 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Edit</button>
+                    {bal > 0 && (
+                      <button data-testid={`button-pay-work-${w.id}`} onClick={() => { setPayingWork(w); setShowForm(false); setEditing(null); }} className="bg-orange-700 hover:bg-orange-600 text-white text-xs rounded-lg px-3 py-1.5 transition-colors font-semibold">💰 Pay</button>
+                    )}
+                    <button data-testid={`button-markdone-work-${w.id}`} onClick={() => onUpdateWork(w.id, { ...w, status: "done" })} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Mark Done</button>
+                    <button data-testid={`button-edit-work-${w.id}`} onClick={() => { setEditing(w); setShowForm(false); setPayingWork(null); }} className="bg-zinc-700 hover:bg-zinc-600 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Edit</button>
                     <button data-testid={`button-delete-work-${w.id}`} onClick={() => { if (confirm("Delete this work?")) onDeleteWork(w.id); }} className="bg-red-900/50 hover:bg-red-800 text-red-300 text-xs rounded-lg px-2 py-1.5 transition-colors">✕</button>
                   </div>
                 </div>
@@ -866,17 +1030,19 @@ function WorkTab({ clients, works, onCreateWork, onUpdateWork, onDeleteWork, sav
 
 // ─── Payments Tab ─────────────────────────────────────────────────────────────
 
-function PaymentsTab({ clients, payments, onCreatePayment, onDeletePayment, saving }: {
-  clients: CrmClient[]; payments: CrmPayment[];
+function PaymentsTab({ clients, works, payments, onCreatePayment, onDeletePayment, saving }: {
+  clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[];
   onCreatePayment: (d: any) => void; onDeletePayment: (id: number) => void;
   saving: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [dateFilter, setDateFilter] = useDateFilter();
   const today = todayStr();
   const month = thisMonthStr();
   const todayIncome = payments.filter(p => p.paymentDate === today).reduce((s, p) => s + p.amount, 0);
   const monthIncome = payments.filter(p => p.paymentDate.startsWith(month)).reduce((s, p) => s + p.amount, 0);
   const totalIncome = payments.reduce((s, p) => s + p.amount, 0);
+  const filtered = applyDateFilter(payments, p => p.paymentDate, dateFilter).slice().sort((a, b) => b.paymentDate.localeCompare(a.paymentDate));
 
   return (
     <div>
@@ -907,8 +1073,9 @@ function PaymentsTab({ clients, payments, onCreatePayment, onDeletePayment, savi
       </div>
 
       <h2 className="text-zinc-300 font-bold text-xs uppercase tracking-wider mb-3">Payment History</h2>
-      {payments.length === 0 ? (
-        <div className="text-zinc-600 text-sm text-center py-8">No payments recorded yet.</div>
+      <DateFilter value={dateFilter} onChange={setDateFilter} />
+      {filtered.length === 0 ? (
+        <div className="text-zinc-600 text-sm text-center py-8">No payments for this period.</div>
       ) : (
         <div className="rounded-xl border border-zinc-800 overflow-hidden">
           <table className="w-full text-sm">
@@ -920,10 +1087,11 @@ function PaymentsTab({ clients, payments, onCreatePayment, onDeletePayment, savi
               <th className="p-3" />
             </tr></thead>
             <tbody>
-              {payments.map(p => (
+              {filtered.map(p => (
                 <tr key={p.id} data-testid={`row-payment-${p.id}`} className="border-t border-zinc-800 hover:bg-zinc-900/50">
                   <td className="p-3">
                     <div className="text-white">{p.clientName}</div>
+                    {p.workId && <div className="text-amber-600 text-xs">Work #{p.workId}</div>}
                     {p.notes && <div className="text-zinc-500 text-xs">{p.notes}</div>}
                   </td>
                   <td className="p-3 text-right font-semibold text-green-400">{fmtCur(p.amount)}</td>
@@ -1015,7 +1183,20 @@ const TABS: { id: Tab; label: string }[] = [
 export default function AdminCRM() {
   const [authed, setAuthed] = useState(() => localStorage.getItem(LS_KEY) === "true");
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [searchQ, setSearchQ] = useState("");
+  const [searchRes, setSearchRes] = useState<{ clients: CrmClient[]; works: CrmWork[] } | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (searchQ.length < 2) { setSearchRes(null); setShowSearch(false); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/crm/search?q=${encodeURIComponent(searchQ)}`, { credentials: "include" })
+        .then(r => r.json()).then(d => { setSearchRes(d); setShowSearch(true); });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQ]);
 
   const { data: clients = [] } = useQuery<CrmClient[]>({ queryKey: ["/api/crm/clients"], enabled: authed });
   const { data: works = [] } = useQuery<CrmWork[]>({ queryKey: ["/api/crm/works"], enabled: authed });
@@ -1032,7 +1213,7 @@ export default function AdminCRM() {
   const updateWork = useMutation({ mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/works/${id}`, d), onSuccess: () => inv(["/api/crm/works"]) });
   const deleteWork = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/works/${id}`), onSuccess: () => inv(["/api/crm/works"]) });
 
-  const createPayment = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/payments", d), onSuccess: () => inv(["/api/crm/payments"]) });
+  const createPayment = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/payments", d), onSuccess: () => inv(["/api/crm/payments", "/api/crm/works"]) });
   const deletePayment = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/payments/${id}`), onSuccess: () => inv(["/api/crm/payments"]) });
 
   const createExpense = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/expenses", d), onSuccess: () => inv(["/api/crm/expenses"]) });
@@ -1046,12 +1227,58 @@ export default function AdminCRM() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
       {/* Header */}
-      <div className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+      <div className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 sticky top-0 z-20">
         <div className="flex items-center gap-2">
-          <span className="text-amber-500 font-bold text-base tracking-widest">DREAM PICTURES</span>
-          <span className="text-zinc-600 text-xs hidden sm:inline">CRM</span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-amber-500 font-bold text-base tracking-widest">DREAM</span>
+            <span className="text-zinc-600 text-xs hidden sm:inline">CRM</span>
+          </div>
+          <div className="flex-1 relative mx-2" ref={searchRef}>
+            <input
+              data-testid="input-global-search"
+              type="text"
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
+              onFocus={() => searchRes && setShowSearch(true)}
+              placeholder="Search clients, work…"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-600"
+            />
+            {showSearch && searchRes && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+                {searchRes.clients.length === 0 && searchRes.works.length === 0 && (
+                  <div className="text-zinc-500 text-sm p-4 text-center">No results found</div>
+                )}
+                {searchRes.clients.length > 0 && (
+                  <div>
+                    <div className="text-zinc-600 text-xs uppercase px-3 pt-2 pb-1">Clients</div>
+                    {searchRes.clients.map(c => (
+                      <button key={c.id} onClick={() => { setTab("clients"); setShowSearch(false); setSearchQ(""); }} className="w-full text-left px-3 py-2 hover:bg-zinc-800 transition-colors">
+                        <div className="text-white text-sm">{c.name}</div>
+                        <div className="text-zinc-500 text-xs">{c.phone}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {searchRes.works.length > 0 && (
+                  <div>
+                    <div className="text-zinc-600 text-xs uppercase px-3 pt-2 pb-1">Works</div>
+                    {searchRes.works.map(w => (
+                      <button key={w.id} onClick={() => { setTab(w.status === "pending" ? "work" : "history"); setShowSearch(false); setSearchQ(""); }} className="w-full text-left px-3 py-2 hover:bg-zinc-800 transition-colors">
+                        <div className="text-white text-sm">{w.clientName} – {w.description}</div>
+                        <div className="text-zinc-500 text-xs">{w.workType} · {fmtDate(w.workDate)}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button onClick={() => setShowSearch(false)} className="w-full text-zinc-600 text-xs py-2 hover:text-zinc-400 transition-colors">Close</button>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button data-testid="button-export-all" onClick={() => exportAllData(clients, works, payments, expenses)} className="hidden sm:block text-zinc-500 hover:text-amber-400 text-xs transition-colors px-2 py-1 whitespace-nowrap">↓ All</button>
+            <button data-testid="button-crm-logout" onClick={() => { localStorage.removeItem(LS_KEY); setAuthed(false); }} className="text-zinc-500 hover:text-red-400 text-xs transition-colors px-2 py-1">Logout</button>
+          </div>
         </div>
-        <button data-testid="button-crm-logout" onClick={() => { localStorage.removeItem(LS_KEY); setAuthed(false); }} className="text-zinc-500 hover:text-red-400 text-xs transition-colors px-2 py-1">Logout</button>
       </div>
 
       {/* Tabs */}
@@ -1073,6 +1300,7 @@ export default function AdminCRM() {
             clients={clients} works={works} payments={payments} expenses={expenses}
             onMarkDone={w => updateWork.mutate({ id: w.id, d: { ...w, status: "done" } })}
             onQuickAction={t => setTab(t as Tab)}
+            onRecordPayment={d => createPayment.mutate(d)}
           />
         )}
         {tab === "clients" && (
@@ -1086,16 +1314,17 @@ export default function AdminCRM() {
         )}
         {tab === "work" && (
           <WorkTab
-            clients={clients} works={works}
+            clients={clients} works={works} payments={payments}
             onCreateWork={d => createWork.mutate(d)}
             onUpdateWork={(id, d) => updateWork.mutate({ id, d })}
             onDeleteWork={id => deleteWork.mutate(id)}
+            onRecordPayment={d => createPayment.mutate(d)}
             saving={anyMutSaving}
           />
         )}
         {tab === "payments" && (
           <PaymentsTab
-            clients={clients} payments={payments}
+            clients={clients} works={works} payments={payments}
             onCreatePayment={d => createPayment.mutate(d)}
             onDeletePayment={id => deletePayment.mutate(id)}
             saving={anyMutSaving}

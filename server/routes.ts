@@ -232,7 +232,9 @@ export async function registerRoutes(
     try {
       const { name, phone, dob, anniversary, address, notes } = req.body;
       if (!name || !phone) return res.status(400).json({ message: "Name and phone are required" });
-      const client = await storage.createCrmClient({ name, phone, dob: dob || null, anniversary: anniversary || null, address: address || null, notes: notes || null });
+      const existing = await storage.getClientByPhone(phone.trim());
+      if (existing) return res.status(409).json({ message: `A client with this phone already exists: ${existing.name}` });
+      const client = await storage.createCrmClient({ name, phone: phone.trim(), dob: dob || null, anniversary: anniversary || null, address: address || null, notes: notes || null });
       res.status(201).json(client);
     } catch (err) {
       res.status(500).json({ message: "Failed to create client" });
@@ -334,16 +336,47 @@ export async function registerRoutes(
 
   app.post("/api/crm/payments", async (req, res) => {
     try {
-      const { clientId, clientName, amount, paymentDate, paymentMethod, notes } = req.body;
+      const { clientId, workId, clientName, amount, paymentDate, paymentMethod, notes } = req.body;
       if (!clientName || !amount || !paymentDate) return res.status(400).json({ message: "Client, amount, and date are required" });
+      const numAmount = Number(amount);
+
+      // Overpayment prevention for work-linked payments
+      if (workId) {
+        const works = await storage.getCrmWorks();
+        const work = works.find(w => w.id === Number(workId));
+        if (work) {
+          const existingPayments = await storage.getPaymentsByWorkId(Number(workId));
+          const alreadyPaid = work.advancePaid + existingPayments.reduce((s, p) => s + p.amount, 0);
+          const remaining = work.totalPrice - alreadyPaid;
+          if (numAmount > remaining + 0.01) {
+            return res.status(400).json({ message: `Payment exceeds balance. Max allowed: ₹${remaining.toLocaleString("en-IN")}` });
+          }
+        }
+      }
+
       const payment = await storage.createCrmPayment({
         clientId: clientId || null,
+        workId: workId ? Number(workId) : null,
         clientName,
-        amount: Number(amount),
+        amount: numAmount,
         paymentDate,
         paymentMethod: paymentMethod || "Cash",
         notes: notes || null,
       });
+
+      // Auto-mark work as done if fully paid
+      if (workId) {
+        const works = await storage.getCrmWorks();
+        const work = works.find(w => w.id === Number(workId));
+        if (work && work.status === "pending") {
+          const allPayments = await storage.getPaymentsByWorkId(Number(workId));
+          const totalPaid = work.advancePaid + allPayments.reduce((s, p) => s + p.amount, 0);
+          if (totalPaid >= work.totalPrice - 0.01) {
+            await storage.updateCrmWork(Number(workId), { ...work, status: "done" });
+          }
+        }
+      }
+
       res.status(201).json(payment);
     } catch (err) {
       res.status(500).json({ message: "Failed to create payment" });
@@ -412,6 +445,18 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
+  // CRM — Global Search
+  app.get("/api/crm/search", async (req, res) => {
+    try {
+      const q = (req.query.q as string || "").trim();
+      if (q.length < 2) return res.json({ clients: [], works: [] });
+      const results = await storage.searchCrm(q);
+      res.json(results);
+    } catch (err) {
+      res.status(500).json({ message: "Search failed" });
     }
   });
 

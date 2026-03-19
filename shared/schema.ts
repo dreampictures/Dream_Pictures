@@ -79,6 +79,7 @@ export const crmWorks = pgTable("crm_works", {
 export const crmPayments = pgTable("crm_payments", {
   id: serial("id").primaryKey(),
   clientId: integer("client_id").references(() => crmClients.id),
+  workId: integer("work_id").references(() => crmWorks.id),
   clientName: text("client_name").notNull(),
   amount: real("amount").notNull().default(0),
   paymentDate: text("payment_date").notNull(),
