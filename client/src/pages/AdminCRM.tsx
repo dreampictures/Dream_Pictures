@@ -414,8 +414,10 @@ function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
     description: initial?.description ?? "",
     amount: initial?.amount?.toString() ?? "",
     notes: initial?.notes ?? "",
+    pin: "",
   });
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
+  const canSave = !!f.date && !!f.description && !!f.amount && (!editMode || !!f.pin);
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 mb-4">
       <h3 className="text-white font-semibold mb-4 text-sm">{editMode ? "Edit Expense" : "Add Expense"}</h3>
@@ -430,9 +432,15 @@ function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
         <div className="sm:col-span-2"><label className={lbl}>Expense Type *</label><input data-testid="input-expense-description" className={inp} placeholder="e.g. Monthly rent payment" value={f.description} onChange={e => s("description", e.target.value)} /></div>
         <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-expense-amount" type="number" min="0" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
         <div><label className={lbl}>Notes</label><input data-testid="input-expense-notes" className={inp} placeholder="Optional notes" value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
+        {editMode && (
+          <div className="sm:col-span-2">
+            <label className={lbl}>Admin PIN * <span className="normal-case text-zinc-600">(required to edit)</span></label>
+            <input data-testid="input-expense-edit-pin" type="password" inputMode="numeric" placeholder="Enter PIN" className={inp} value={f.pin} onChange={e => s("pin", e.target.value)} />
+          </div>
+        )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-expense" onClick={() => onSave(f)} disabled={saving || !f.date || !f.description || !f.amount} className={btn("bg-amber-700 hover:bg-amber-600")}>{saving ? "Saving…" : editMode ? "Update Expense" : "Add Expense"}</button>
+        <button data-testid="button-save-expense" onClick={() => onSave(editMode ? { ...f, adminPin: f.pin } : f)} disabled={saving || !canSave} className={btn("bg-amber-700 hover:bg-amber-600")}>{saving ? "Saving…" : editMode ? "Update Expense" : "Add Expense"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
@@ -445,11 +453,12 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
   payments: CrmPayment[]; expenses: CrmExpense[];
   onCreateExpense: (d: any) => void;
   onUpdateExpense: (id: number, d: any) => void;
-  onDeleteExpense: (id: number) => void;
+  onDeleteExpense: (id: number, pin: string) => void;
   saving: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<CrmExpense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<CrmExpense | null>(null);
   const [expFilter, setExpFilter] = useDateFilter();
   const today = todayStr();
   const month = thisMonthStr();
@@ -482,6 +491,14 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
 
   return (
     <div className="space-y-5">
+      {deletingExpense && (
+        <PinDeleteModal
+          prompt={`Delete expense "${deletingExpense.description}" (${fmtCur(deletingExpense.amount)})?`}
+          onConfirm={pin => { onDeleteExpense(deletingExpense.id, pin); setDeletingExpense(null); }}
+          onClose={() => setDeletingExpense(null)}
+          saving={saving}
+        />
+      )}
 
       {/* Today */}
       <div>
@@ -590,7 +607,7 @@ function FinanceTab({ payments, expenses, onCreateExpense, onUpdateExpense, onDe
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button data-testid={`button-edit-expense-${e.id}`} onClick={() => { setEditingExpense(e); setShowForm(false); }} className="text-zinc-500 hover:text-amber-400 text-xs transition-colors">Edit</button>
-                      <button data-testid={`button-delete-expense-${e.id}`} onClick={() => { if (confirm("Delete this expense?")) onDeleteExpense(e.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">Delete</button>
+                      <button data-testid={`button-delete-expense-${e.id}`} onClick={() => setDeletingExpense(e)} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -1028,14 +1045,165 @@ function WorkTab({ clients, works, payments, onCreateWork, onUpdateWork, onDelet
   );
 }
 
+// ─── PIN Components ──────────────────────────────────────────────────────────
+
+function PinDeleteModal({ prompt, onConfirm, onClose, saving }: {
+  prompt: string;
+  onConfirm: (pin: string) => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+  function submit() {
+    if (!pin) { setError("Enter PIN"); return; }
+    setError("");
+    onConfirm(pin);
+  }
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-xs shadow-2xl">
+        <h3 className="text-white font-bold mb-1">Admin PIN Required</h3>
+        <p className="text-zinc-400 text-sm mb-4">{prompt}</p>
+        <input
+          data-testid="input-pin-delete"
+          type="password"
+          inputMode="numeric"
+          autoFocus
+          placeholder="Enter PIN"
+          className={inp}
+          value={pin}
+          onChange={e => setPin(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && submit()}
+        />
+        {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+        <div className="flex gap-2 mt-4">
+          <button data-testid="button-pin-confirm" onClick={submit} disabled={saving}
+            className={btn("bg-red-700 hover:bg-red-600 flex-1")}>{saving ? "…" : "Confirm"}</button>
+          <button onClick={onClose} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentEditModal({ payment, onSave, onClose, saving }: {
+  payment: CrmPayment;
+  onSave: (data: any) => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const [f, setF] = useState({
+    amount: payment.amount.toString(),
+    paymentDate: payment.paymentDate,
+    paymentMethod: payment.paymentMethod,
+    notes: payment.notes || "",
+    pin: "",
+  });
+  const [error, setError] = useState("");
+  const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
+
+  function submit() {
+    if (!f.amount || !f.paymentDate) { setError("Amount and date are required"); return; }
+    if (!f.pin) { setError("Enter Admin PIN"); return; }
+    setError("");
+    onSave({ amount: Number(f.amount), paymentDate: f.paymentDate, paymentMethod: f.paymentMethod, notes: f.notes || null, adminPin: f.pin });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-white font-bold mb-1">Edit Payment</h3>
+        <p className="text-zinc-400 text-sm mb-4">{payment.clientName}</p>
+        <div className="space-y-3">
+          <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-edit-pay-amount" type="number" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
+          <div><label className={lbl}>Date *</label><input data-testid="input-edit-pay-date" type="date" className={inp} value={f.paymentDate} onChange={e => s("paymentDate", e.target.value)} /></div>
+          <div><label className={lbl}>Method</label>
+            <select data-testid="select-edit-pay-method" className={sel} value={f.paymentMethod} onChange={e => s("paymentMethod", e.target.value)}>
+              {PAYMENT_METHODS.map(m => <option key={m}>{m}</option>)}
+            </select>
+          </div>
+          <div><label className={lbl}>Notes</label><input className={inp} value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
+          <div><label className={lbl}>Admin PIN *</label>
+            <input data-testid="input-edit-pay-pin" type="password" inputMode="numeric" placeholder="Enter PIN" className={inp} value={f.pin} onChange={e => s("pin", e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} />
+          </div>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+        </div>
+        <div className="flex gap-2 mt-5">
+          <button data-testid="button-save-edit-payment" onClick={submit} disabled={saving} className={btn("bg-amber-600 hover:bg-amber-500 flex-1")}>{saving ? "Saving…" : "Save Changes"}</button>
+          <button onClick={onClose} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HistoryEditModal({ work, onSave, onClose, saving }: {
+  work: CrmWork;
+  onSave: (data: any) => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const [f, setF] = useState({
+    description: work.description,
+    totalPrice: work.totalPrice.toString(),
+    advancePaid: work.advancePaid.toString(),
+    pin: "",
+  });
+  const [error, setError] = useState("");
+  const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
+  const balance = Math.max(0, (parseFloat(f.totalPrice) || 0) - (parseFloat(f.advancePaid) || 0));
+
+  function submit() {
+    if (!f.description) { setError("Description is required"); return; }
+    if (!f.pin) { setError("Enter Admin PIN"); return; }
+    setError("");
+    onSave({ description: f.description, totalPrice: parseFloat(f.totalPrice) || 0, advancePaid: parseFloat(f.advancePaid) || 0, adminPin: f.pin });
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-white font-bold mb-1">Edit Completed Work</h3>
+        <p className="text-zinc-400 text-sm mb-1">{work.clientName}</p>
+        <p className="text-zinc-600 text-xs mb-4">Client name cannot be changed here</p>
+        <div className="space-y-3">
+          <div><label className={lbl}>Description *</label><input data-testid="input-edit-hist-desc" className={inp} value={f.description} onChange={e => s("description", e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className={lbl}>Total Price (₹)</label><input data-testid="input-edit-hist-total" type="number" className={inp} value={f.totalPrice} onChange={e => s("totalPrice", e.target.value)} /></div>
+            <div><label className={lbl}>Advance Paid (₹)</label><input data-testid="input-edit-hist-advance" type="number" className={inp} value={f.advancePaid} onChange={e => s("advancePaid", e.target.value)} /></div>
+          </div>
+          <div className="bg-zinc-800 rounded-lg px-3 py-2 flex justify-between items-center">
+            <span className="text-zinc-400 text-xs">Balance</span>
+            <span className={`font-bold text-sm ${balance > 0 ? "text-orange-400" : "text-green-400"}`}>{fmtCur(balance)}</span>
+          </div>
+          <div><label className={lbl}>Admin PIN *</label>
+            <input data-testid="input-edit-hist-pin" type="password" inputMode="numeric" placeholder="Enter PIN" className={inp} value={f.pin} onChange={e => s("pin", e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} />
+          </div>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+        </div>
+        <div className="flex gap-2 mt-5">
+          <button data-testid="button-save-hist-edit" onClick={submit} disabled={saving} className={btn("bg-amber-600 hover:bg-amber-500 flex-1")}>{saving ? "Saving…" : "Save Changes"}</button>
+          <button onClick={onClose} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Payments Tab ─────────────────────────────────────────────────────────────
 
-function PaymentsTab({ clients, works, payments, onCreatePayment, onDeletePayment, saving }: {
+function PaymentsTab({ clients, works, payments, onCreatePayment, onUpdatePayment, onDeletePayment, saving }: {
   clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[];
-  onCreatePayment: (d: any) => void; onDeletePayment: (id: number) => void;
+  onCreatePayment: (d: any) => void;
+  onUpdatePayment: (id: number, data: any) => void;
+  onDeletePayment: (id: number, pin: string) => void;
   saving: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<CrmPayment | null>(null);
+  const [deletingPayment, setDeletingPayment] = useState<CrmPayment | null>(null);
+  const [pinError, setPinError] = useState("");
   const [dateFilter, setDateFilter] = useDateFilter();
   const today = todayStr();
   const month = thisMonthStr();
@@ -1046,6 +1214,22 @@ function PaymentsTab({ clients, works, payments, onCreatePayment, onDeletePaymen
 
   return (
     <div>
+      {editingPayment && (
+        <PaymentEditModal
+          payment={editingPayment}
+          onSave={data => { onUpdatePayment(editingPayment.id, data); setEditingPayment(null); setPinError(""); }}
+          onClose={() => { setEditingPayment(null); setPinError(""); }}
+          saving={saving}
+        />
+      )}
+      {deletingPayment && (
+        <PinDeleteModal
+          prompt={`Delete payment of ${fmtCur(deletingPayment.amount)} from ${deletingPayment.clientName}?`}
+          onConfirm={pin => { onDeletePayment(deletingPayment.id, pin); setDeletingPayment(null); setPinError(""); }}
+          onClose={() => { setDeletingPayment(null); setPinError(""); }}
+          saving={saving}
+        />
+      )}
       <div className="flex items-center justify-between mb-4">
         {!showForm && (
           <button data-testid="button-record-payment" onClick={() => setShowForm(true)} className={btn("bg-green-700 hover:bg-green-600")}>+ Record Payment</button>
@@ -1098,7 +1282,10 @@ function PaymentsTab({ clients, works, payments, onCreatePayment, onDeletePaymen
                   <td className="p-3 text-zinc-400 hidden sm:table-cell">{p.paymentMethod}</td>
                   <td className="p-3 text-zinc-500 text-xs">{fmtDate(p.paymentDate)}</td>
                   <td className="p-3 text-center">
-                    <button data-testid={`button-delete-payment-${p.id}`} onClick={() => { if (confirm("Delete this payment record?")) onDeletePayment(p.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button data-testid={`button-edit-payment-${p.id}`} onClick={() => { setEditingPayment(p); setShowForm(false); }} className="text-zinc-500 hover:text-amber-400 text-xs transition-colors">Edit</button>
+                      <button data-testid={`button-delete-payment-${p.id}`} onClick={() => setDeletingPayment(p)} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1112,12 +1299,26 @@ function PaymentsTab({ clients, works, payments, onCreatePayment, onDeletePaymen
 
 // ─── History Tab ──────────────────────────────────────────────────────────────
 
-function HistoryTab({ works, onDeleteWork }: { works: CrmWork[]; onDeleteWork: (id: number) => void }) {
+function HistoryTab({ works, onDeleteWork, onUpdateWork, saving }: {
+  works: CrmWork[];
+  onDeleteWork: (id: number) => void;
+  onUpdateWork: (id: number, data: any) => void;
+  saving: boolean;
+}) {
   const done = works.filter(w => w.status === "done");
   const totalRevenue = done.reduce((s, w) => s + w.totalPrice, 0);
+  const [editingWork, setEditingWork] = useState<CrmWork | null>(null);
 
   return (
     <div>
+      {editingWork && (
+        <HistoryEditModal
+          work={editingWork}
+          onSave={data => { onUpdateWork(editingWork.id, data); setEditingWork(null); }}
+          onClose={() => setEditingWork(null)}
+          saving={saving}
+        />
+      )}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-green-400 font-bold text-xs uppercase tracking-wider">Completed Work ({done.length})</h2>
         {done.length > 0 && (
@@ -1143,7 +1344,7 @@ function HistoryTab({ works, onDeleteWork }: { works: CrmWork[]; onDeleteWork: (
               <th className="text-right p-3 hidden sm:table-cell">Advance</th>
               <th className="text-right p-3 hidden sm:table-cell">Balance</th>
               <th className="text-left p-3">Date</th>
-              <th className="p-3" />
+              <th className="p-3 text-center">Actions</th>
             </tr></thead>
             <tbody>
               {done.map(w => (
@@ -1156,7 +1357,10 @@ function HistoryTab({ works, onDeleteWork }: { works: CrmWork[]; onDeleteWork: (
                   <td className="p-3 text-right text-zinc-400 hidden sm:table-cell">{fmtCur(w.totalPrice - w.advancePaid)}</td>
                   <td className="p-3 text-zinc-500 text-xs">{fmtDate(w.workDate)}</td>
                   <td className="p-3 text-center">
-                    <button data-testid={`button-delete-history-${w.id}`} onClick={() => { if (confirm("Delete this record?")) onDeleteWork(w.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button data-testid={`button-edit-history-${w.id}`} onClick={() => setEditingWork(w)} className="text-zinc-500 hover:text-amber-400 text-xs transition-colors">Edit</button>
+                      <button data-testid={`button-delete-history-${w.id}`} onClick={() => { if (confirm("Delete this record?")) onDeleteWork(w.id); }} className="text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1214,13 +1418,15 @@ export default function AdminCRM() {
   const deleteWork = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/works/${id}`), onSuccess: () => inv(["/api/crm/works"]) });
 
   const createPayment = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/payments", d), onSuccess: () => inv(["/api/crm/payments", "/api/crm/works"]) });
-  const deletePayment = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/payments/${id}`), onSuccess: () => inv(["/api/crm/payments"]) });
+  const deletePayment = useMutation({ mutationFn: ({ id, adminPin }: { id: number; adminPin: string }) => apiRequest("DELETE", `/api/crm/payments/${id}`, { adminPin }), onSuccess: () => inv(["/api/crm/payments"]) });
+  const updatePayment = useMutation({ mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/crm/payments/${id}`, data), onSuccess: () => { inv(["/api/crm/payments"]); inv(["/api/crm/works"]); } });
 
   const createExpense = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/expenses", d), onSuccess: () => inv(["/api/crm/expenses"]) });
   const updateExpense = useMutation({ mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/expenses/${id}`, d), onSuccess: () => inv(["/api/crm/expenses"]) });
-  const deleteExpense = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/expenses/${id}`), onSuccess: () => inv(["/api/crm/expenses"]) });
+  const deleteExpense = useMutation({ mutationFn: ({ id, adminPin }: { id: number; adminPin: string }) => apiRequest("DELETE", `/api/crm/expenses/${id}`, { adminPin }), onSuccess: () => inv(["/api/crm/expenses"]) });
+  const updateHistoryWork = useMutation({ mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/crm/works/${id}/history-edit`, data), onSuccess: () => inv(["/api/crm/works"]) });
 
-  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending || createExpense.isPending || updateExpense.isPending || deleteExpense.isPending;
+  const anyMutSaving = createClient.isPending || updateClient.isPending || deleteClient.isPending || createWork.isPending || updateWork.isPending || deleteWork.isPending || createPayment.isPending || deletePayment.isPending || updatePayment.isPending || createExpense.isPending || updateExpense.isPending || deleteExpense.isPending || updateHistoryWork.isPending;
 
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
@@ -1326,7 +1532,8 @@ export default function AdminCRM() {
           <PaymentsTab
             clients={clients} works={works} payments={payments}
             onCreatePayment={d => createPayment.mutate(d)}
-            onDeletePayment={id => deletePayment.mutate(id)}
+            onUpdatePayment={(id, data) => updatePayment.mutate({ id, data })}
+            onDeletePayment={(id, adminPin) => deletePayment.mutate({ id, adminPin })}
             saving={anyMutSaving}
           />
         )}
@@ -1335,12 +1542,17 @@ export default function AdminCRM() {
             payments={payments} expenses={expenses}
             onCreateExpense={d => createExpense.mutate(d)}
             onUpdateExpense={(id, d) => updateExpense.mutate({ id, d })}
-            onDeleteExpense={id => deleteExpense.mutate(id)}
+            onDeleteExpense={(id, adminPin) => deleteExpense.mutate({ id, adminPin })}
             saving={anyMutSaving}
           />
         )}
         {tab === "history" && (
-          <HistoryTab works={works} onDeleteWork={id => deleteWork.mutate(id)} />
+          <HistoryTab
+            works={works}
+            onDeleteWork={id => deleteWork.mutate(id)}
+            onUpdateWork={(id, data) => updateHistoryWork.mutate({ id, data })}
+            saving={anyMutSaving}
+          />
         )}
       </div>
     </div>

@@ -7,6 +7,16 @@ import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 const CDN_BASE_URL = "https://cdn.thedreampictures.com";
 
+function validatePin(body: any, res: any): boolean {
+  const expected = process.env.ADMIN_PIN;
+  if (!expected) return true; // no PIN configured — allow
+  if (body?.adminPin !== expected) {
+    res.status(403).json({ message: "Invalid PIN" });
+    return false;
+  }
+  return true;
+}
+
 function getR2Client() {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -383,8 +393,27 @@ export async function registerRoutes(
     }
   });
 
+  app.put("/api/crm/payments/:id", async (req, res) => {
+    try {
+      if (!validatePin(req.body, res)) return;
+      const id = parseInt(req.params.id);
+      const { amount, paymentDate, paymentMethod, notes } = req.body;
+      if (!amount || !paymentDate) return res.status(400).json({ message: "Amount and date are required" });
+      const payment = await storage.updateCrmPayment(id, {
+        amount: Number(amount),
+        paymentDate,
+        paymentMethod: paymentMethod || "Cash",
+        notes: notes || null,
+      });
+      res.json(payment);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update payment" });
+    }
+  });
+
   app.delete("/api/crm/payments/:id", async (req, res) => {
     try {
+      if (!validatePin(req.body, res)) return;
       const id = parseInt(req.params.id);
       await storage.deleteCrmPayment(id);
       res.json({ success: true });
@@ -423,6 +452,7 @@ export async function registerRoutes(
 
   app.put("/api/crm/expenses/:id", async (req, res) => {
     try {
+      if (!validatePin(req.body, res)) return;
       const id = parseInt(req.params.id);
       const { date, category, description, amount, notes } = req.body;
       const expense = await storage.updateCrmExpense(id, {
@@ -440,11 +470,34 @@ export async function registerRoutes(
 
   app.delete("/api/crm/expenses/:id", async (req, res) => {
     try {
+      if (!validatePin(req.body, res)) return;
       const id = parseInt(req.params.id);
       await storage.deleteCrmExpense(id);
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
+  // History work edit (PIN required, only description/price/advance)
+  app.put("/api/crm/works/:id/history-edit", async (req, res) => {
+    try {
+      if (!validatePin(req.body, res)) return;
+      const id = parseInt(req.params.id);
+      const { description, totalPrice, advancePaid } = req.body;
+      if (!description) return res.status(400).json({ message: "Description is required" });
+      const works = await storage.getCrmWorks();
+      const existing = works.find(w => w.id === id);
+      if (!existing) return res.status(404).json({ message: "Work not found" });
+      const updated = await storage.updateCrmWork(id, {
+        ...existing,
+        description,
+        totalPrice: Number(totalPrice) || existing.totalPrice,
+        advancePaid: Number(advancePaid) || 0,
+      });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update work" });
     }
   });
 

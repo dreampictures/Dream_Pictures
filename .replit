@@ -40,3 +40,8 @@ waitForPort = 5000
 
 [agent]
 expertMode = true
+
+[userenv]
+
+[userenv.shared]
+ADMIN_PIN = "1103"
