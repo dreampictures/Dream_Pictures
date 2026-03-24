@@ -11,6 +11,10 @@ import Home from "@/pages/Home";
 import Portfolio from "@/pages/Portfolio";
 import About from "@/pages/About";
 import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import Refund from "@/pages/Refund";
+import Disclaimer from "@/pages/Disclaimer";
+import Delivery from "@/pages/Delivery";
 import AlbumDetail from "@/pages/AlbumDetail";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -41,6 +45,10 @@ function Router() {
           <Route path="/portfolio" component={Portfolio} />
           <Route path="/about" component={About} />
           <Route path="/terms" component={Terms} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/refund" component={Refund} />
+          <Route path="/disclaimer" component={Disclaimer} />
+          <Route path="/delivery" component={Delivery} />
           <Route path="/albums/:id" component={AlbumDetail} />
           <Route path="/admin" component={AdminLogin} />
           <Route path="/admin/dashboard" component={AdminDashboard} />

@@ -46,7 +46,7 @@ export default function Terms() {
     {
       num: "9",
       title: "Data Storage & Delivery Policy",
-      content: "Final data will be delivered via one of the following methods:\n\n• Google Drive download link\n• Client provided Pendrive\n• External Hard Drive (recommended for premium clients)\n\nFor lower budget packages, clients must provide their own Pendrive.\n\nDream Pictures retains project backup data for up to 30 days after final delivery. After this period, data may be permanently deleted."
+      content: "Final data will be delivered via one of the following methods:\n\n• Google Drive download link\n• Client provided Pendrive\n• External Hard Drive (recommended for premium clients)\n\nFor lower budget packages, clients must provide their own Pendrive.\n\nDream Pictures retains project backup data for up to 90 days after final delivery. After this period, data may be permanently deleted.\n\nDATA LOSS & NO LIABILITY DISCLAIMER: Dream Pictures is not liable for any data loss, corruption, or accidental deletion of files after the 90-day backup retention period has lapsed. Clients are solely responsible for maintaining their own permanent backups of all delivered media. Dream Pictures makes no warranties — express or implied — regarding data availability beyond the stated retention window. No legal claims for data recovery or compensation for data loss will be entertained after the retention period expires."
     },
     {
       num: "10",

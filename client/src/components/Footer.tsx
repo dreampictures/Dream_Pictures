@@ -8,16 +8,22 @@ export default function Footer() {
   return (
     <footer className="bg-black border-t border-white/5 pt-24 pb-12 overflow-hidden relative text-center md:text-left">
       <div className="absolute bottom-0 left-0 w-full h-[300px] bg-primary/5 blur-[120px] -z-10 translate-y-1/2" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+
+          {/* Column 1: Branding */}
           <div className="lg:col-span-1 space-y-8 flex flex-col items-center md:items-start">
             <Link href="/" className="flex items-center gap-3">
               <img src={logoImg} alt="Dream Pictures" className="h-12 w-auto" />
             </Link>
-            <p className="text-muted-foreground font-light leading-relaxed max-w-sm">
-              Crafting visual poems of your most profound human experiences. Cinematic storytelling for the discerning couple.
-            </p>
+            <div>
+              <p className="text-white font-serif text-lg mb-1">Dream Pictures</p>
+              <p className="text-muted-foreground text-sm mb-1">Fine Art Photography & Films</p>
+              <p className="text-muted-foreground font-light leading-relaxed text-sm max-w-xs">
+                Capturing the Poetry of Your Moments
+              </p>
+            </div>
             <div className="flex items-center gap-6">
               <a
                 href="https://www.instagram.com/its_bakhshish_singh"
@@ -49,16 +55,31 @@ export default function Footer() {
             </div>
           </div>
 
+          {/* Column 2: Navigation */}
           <div className="space-y-8">
             <h4 className="font-serif text-xl">Navigation</h4>
             <nav className="flex flex-col gap-4 items-center md:items-start">
+              <Link href="/" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Home</Link>
               <Link href="/portfolio" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Portfolio</Link>
-              <Link href="/albums" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Digital Albums</Link>
-              <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">About Studio</Link>
-              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Terms & Conditions</Link>
+              <Link href="/albums" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Albums</Link>
+              <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">About</Link>
+              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Terms</Link>
+              <Link href="/#contact" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Contact</Link>
             </nav>
           </div>
 
+          {/* Column 3: Legal */}
+          <div className="space-y-8">
+            <h4 className="font-serif text-xl">Legal</h4>
+            <nav className="flex flex-col gap-4 items-center md:items-start">
+              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Privacy Policy</Link>
+              <Link href="/refund" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Refund Policy</Link>
+              <Link href="/disclaimer" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Disclaimer</Link>
+              <Link href="/delivery" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Delivery Policy</Link>
+            </nav>
+          </div>
+
+          {/* Column 4: Contact */}
           <div className="space-y-8">
             <h4 className="font-serif text-xl">Contact</h4>
             <div className="space-y-4 flex flex-col items-center md:items-start">
@@ -77,47 +98,18 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="space-y-8">
-            <h4 className="font-serif text-xl">Bakhshish Singh</h4>
-            <div className="space-y-4 flex flex-col items-center md:items-start">
-              <a
-                href="https://www.instagram.com/its_bakhshish_singh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-              >
-                <Instagram className="w-4 h-4 text-primary/50" />
-                @its_bakhshish_singh
-              </a>
-              <a
-                href="https://www.facebook.com/itsbs.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-              >
-                <Facebook className="w-4 h-4 text-primary/50" />
-                facebook.com/itsbs.in
-              </a>
-              <a
-                href="https://www.youtube.com/@dreampicturess"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-              >
-                <Youtube className="w-4 h-4 text-primary/50" />
-                @dreampicturess
-              </a>
-            </div>
-          </div>
         </div>
 
+        {/* Bottom Bar */}
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-white/20 text-[10px] uppercase tracking-[0.3em]">
-            © {year} Dream Pictures Photography & Films. All Rights Reserved.
+            © {year} Dream Pictures. All Rights Reserved.
           </p>
           <div className="flex gap-8">
-            <Link href="/terms" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Cookie Policy</Link>
+            <Link href="/privacy" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/refund" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Refund Policy</Link>
+            <Link href="/disclaimer" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Disclaimer</Link>
+            <Link href="/delivery" className="text-white/20 text-[10px] uppercase tracking-[0.3em] hover:text-white transition-colors">Delivery</Link>
           </div>
         </div>
       </div>
