@@ -64,7 +64,7 @@ export default function Footer() {
               <Link href="/albums" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Albums</Link>
               <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">About</Link>
               <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Terms</Link>
-              <Link href="/#contact" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Contact</Link>
+              <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors text-sm uppercase tracking-widest">Contact</Link>
             </nav>
           </div>
 

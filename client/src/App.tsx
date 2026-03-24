@@ -15,6 +15,8 @@ import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
 import Disclaimer from "@/pages/Disclaimer";
 import Delivery from "@/pages/Delivery";
+import Contact from "@/pages/Contact";
+import Inquire from "@/pages/Inquire";
 import AlbumDetail from "@/pages/AlbumDetail";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -49,6 +51,8 @@ function Router() {
           <Route path="/refund" component={Refund} />
           <Route path="/disclaimer" component={Disclaimer} />
           <Route path="/delivery" component={Delivery} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/inquire" component={Inquire} />
           <Route path="/albums/:id" component={AlbumDetail} />
           <Route path="/admin" component={AdminLogin} />
           <Route path="/admin/dashboard" component={AdminDashboard} />

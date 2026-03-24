@@ -63,7 +63,7 @@ export default function Home() {
             <Link href="/portfolio" className="px-10 py-4 bg-primary text-primary-foreground uppercase tracking-widest text-sm hover:bg-white transition-colors duration-500 w-full sm:w-auto">
               View Portfolio
             </Link>
-            <Link href="/#contact" className="px-10 py-4 border border-white/30 text-white uppercase tracking-widest text-sm hover:border-primary hover:text-primary transition-colors duration-500 w-full sm:w-auto">
+            <Link href="/inquire" className="px-10 py-4 border border-white/30 text-white uppercase tracking-widest text-sm hover:border-primary hover:text-primary transition-colors duration-500 w-full sm:w-auto">
               Inquire Now
             </Link>
           </motion.div>
