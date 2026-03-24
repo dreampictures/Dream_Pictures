@@ -8,6 +8,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentHash, setCurrentHash] = useState(window.location.hash);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +17,23 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => setCurrentHash(window.location.hash);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    setCurrentHash(window.location.hash);
+  }, [location]);
+
+  const isActive = (href: string) => {
+    if (href.includes("#")) {
+      return currentHash === `#${href.split("#")[1]}`;
+    }
+    return location === href && !currentHash;
+  };
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -73,7 +91,7 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   className={`text-sm tracking-widest uppercase transition-colors duration-300 ${
-                    location === link.href ? "text-primary font-medium" : "text-foreground/80 hover:text-primary"
+                    isActive(link.href) ? "text-primary font-medium" : "text-foreground/80 hover:text-primary"
                   }`}
                 >
                   {link.name}
