@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { usePortfolio } from "@/hooks/use-portfolio";
+import type { PortfolioItemResponse } from "@shared/routes";
 import { Loader2, Image as ImageIcon } from "lucide-react";
 
 import veniceImg from "@/assets/images/venice.jpg";
@@ -76,7 +77,7 @@ export default function Portfolio() {
           <div className="grid grid-cols-1 md:grid-cols-3 md:auto-rows-[300px] gap-4 md:gap-6">
             {hasDbData ? (
               // Map DB Items
-              portfolioItems.map((item, idx) => (
+              (portfolioItems as PortfolioItemResponse).map((item, idx) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, scale: 0.95 }}

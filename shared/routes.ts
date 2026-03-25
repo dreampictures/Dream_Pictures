@@ -118,3 +118,5 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
 }
 
 export type ContactMessageInput = z.infer<typeof api.contact.create.input>;
+export type ContactMessageResponse = typeof contactMessages.$inferSelect;
+export type PortfolioItemResponse = (typeof portfolioItems.$inferSelect)[];
