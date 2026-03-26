@@ -19,6 +19,9 @@ import {
   EyeOff,
   ExternalLink,
   BookOpen,
+  Trash2,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -268,6 +271,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("messages");
+  const [inboxView, setInboxView] = useState<"active" | "trash">("active");
 
   useEffect(() => {
     if (localStorage.getItem("admin_auth") !== "true") {
@@ -277,6 +281,11 @@ export default function AdminDashboard() {
 
   const { data: messages } = useQuery<ContactMessage[]>({
     queryKey: ["/api/admin/contacts"],
+  });
+
+  const { data: trashMessages, refetch: refetchTrash } = useQuery<ContactMessage[]>({
+    queryKey: ["/api/admin/contacts/trash"],
+    enabled: inboxView === "trash",
   });
 
   const { data: portfolio } = useQuery<PortfolioItem[]>({
@@ -304,6 +313,31 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/contacts"] });
       toast({ title: "Updated", description: "Follow-up status changed" });
+    },
+  });
+
+  const deleteMsgMutation = useMutation({
+    mutationFn: async (id: number) => apiRequest("DELETE", `/api/admin/contacts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contacts"] });
+      toast({ title: "Moved to Trash", description: "Message moved to trash. Auto-deletes after 30 days." });
+    },
+  });
+
+  const restoreMsgMutation = useMutation({
+    mutationFn: async (id: number) => apiRequest("POST", `/api/admin/contacts/${id}/restore`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contacts/trash"] });
+      toast({ title: "Restored", description: "Message restored to inbox." });
+    },
+  });
+
+  const permDeleteMsgMutation = useMutation({
+    mutationFn: async (id: number) => apiRequest("DELETE", `/api/admin/contacts/${id}/permanent`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contacts/trash"] });
+      toast({ title: "Deleted", description: "Message permanently deleted.", variant: "destructive" });
     },
   });
 
@@ -359,55 +393,124 @@ export default function AdminDashboard() {
 
           {/* ── INQUIRIES ── */}
           <TabsContent value="messages" className="space-y-6">
-            <div className="grid grid-cols-1 gap-4">
-              {messages?.map((msg) => (
-                <Card key={msg.id} className="bg-white/[0.02] border-white/5">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row justify-between gap-6">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-serif text-xl">{msg.name}</h3>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-tighter ${
-                              msg.status === "new"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-green-500/20 text-green-500 border border-green-500/30"
-                            }`}
-                          >
-                            {msg.status}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground text-sm">
-                          {msg.email} • {msg.phone}
-                        </p>
-                        <p className="text-primary text-xs uppercase tracking-widest font-medium">
-                          {msg.service}
-                        </p>
-                        <p className="mt-4 text-white/80 font-light italic leading-relaxed">
-                          "{msg.message}"
-                        </p>
-                      </div>
-                      <div className="flex flex-row md:flex-col gap-2 shrink-0">
-                        {msg.status === "new" && (
-                          <Button
-                            size="sm"
-                            className="gap-2"
-                            onClick={() =>
-                              updateStatusMutation.mutate({ id: msg.id, status: "followed-up" })
-                            }
-                          >
-                            <CheckCircle className="w-4 h-4" /> Mark Followed Up
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" className="gap-2 border-white/10">
-                          <Clock className="w-4 h-4" /> Archive
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {/* Active / Trash toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setInboxView("active")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${inboxView === "active" ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white"}`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                Inbox
+                {messages && messages.length > 0 && (
+                  <span className="bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{messages.length}</span>
+                )}
+              </button>
+              <button
+                onClick={() => { setInboxView("trash"); refetchTrash(); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${inboxView === "trash" ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white"}`}
+              >
+                <Trash2 className="w-4 h-4" />
+                Trash
+                {trashMessages && trashMessages.length > 0 && (
+                  <span className="bg-red-500/80 text-white text-[10px] rounded-full px-1.5 py-0.5">{trashMessages.length}</span>
+                )}
+              </button>
             </div>
+
+            {/* ACTIVE INBOX */}
+            {inboxView === "active" && (
+              <div className="grid grid-cols-1 gap-4">
+                {messages?.length === 0 && (
+                  <p className="text-muted-foreground text-sm text-center py-10">No inquiries yet.</p>
+                )}
+                {messages?.map((msg) => (
+                  <Card key={msg.id} className="bg-white/[0.02] border-white/5">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-serif text-xl">{msg.name}</h3>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-tighter ${msg.status === "new" ? "bg-primary text-primary-foreground" : "bg-green-500/20 text-green-500 border border-green-500/30"}`}>
+                              {msg.status}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground text-sm">{msg.email}{msg.phone ? ` • ${msg.phone}` : ""}</p>
+                          <p className="text-primary text-xs uppercase tracking-widest font-medium">{msg.service}</p>
+                          <p className="mt-4 text-white/80 font-light italic leading-relaxed">"{msg.message}"</p>
+                        </div>
+                        <div className="flex flex-row md:flex-col gap-2 shrink-0">
+                          {msg.status === "new" && (
+                            <Button size="sm" className="gap-2" onClick={() => updateStatusMutation.mutate({ id: msg.id, status: "followed-up" })}>
+                              <CheckCircle className="w-4 h-4" /> Mark Followed Up
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline" size="sm"
+                            className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                            onClick={() => deleteMsgMutation.mutate(msg.id)}
+                            disabled={deleteMsgMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4" /> Move to Trash
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* TRASH */}
+            {inboxView === "trash" && (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">Messages in trash are automatically deleted after 30 days.</p>
+                {(!trashMessages || trashMessages.length === 0) && (
+                  <p className="text-muted-foreground text-sm text-center py-10">Trash is empty.</p>
+                )}
+                {trashMessages?.map((msg) => {
+                  const deletedAt = msg.deletedAt ? new Date(msg.deletedAt) : new Date();
+                  const daysUsed = Math.floor((Date.now() - deletedAt.getTime()) / (1000 * 60 * 60 * 24));
+                  const daysLeft = Math.max(0, 30 - daysUsed);
+                  return (
+                    <Card key={msg.id} className="bg-red-950/10 border-red-900/20 opacity-80">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row justify-between gap-6">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-serif text-lg text-white/70">{msg.name}</h3>
+                              <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] uppercase tracking-tighter px-2 py-0.5 rounded-full">
+                                Deletes in {daysLeft}d
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground text-sm">{msg.email}{msg.phone ? ` • ${msg.phone}` : ""}</p>
+                            <p className="text-primary/60 text-xs uppercase tracking-widest">{msg.service}</p>
+                            <p className="mt-3 text-white/50 font-light italic text-sm leading-relaxed">"{msg.message}"</p>
+                          </div>
+                          <div className="flex flex-row md:flex-col gap-2 shrink-0">
+                            <Button
+                              size="sm" variant="outline"
+                              className="gap-2 border-white/10 text-white/70 hover:text-white"
+                              onClick={() => restoreMsgMutation.mutate(msg.id)}
+                              disabled={restoreMsgMutation.isPending}
+                            >
+                              <RotateCcw className="w-4 h-4" /> Restore
+                            </Button>
+                            <Button
+                              size="sm" variant="outline"
+                              className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              onClick={() => { if (confirm("Permanently delete this message? This cannot be undone.")) permDeleteMsgMutation.mutate(msg.id); }}
+                              disabled={permDeleteMsgMutation.isPending}
+                            >
+                              <X className="w-4 h-4" /> Delete Forever
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           {/* ── PORTFOLIO ── */}

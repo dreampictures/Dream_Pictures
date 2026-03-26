@@ -228,6 +228,42 @@ export async function registerRoutes(
     res.json(messages);
   });
 
+  app.get("/api/admin/contacts/trash", async (req, res) => {
+    try {
+      const messages = await storage.getTrashMessages();
+      res.json(messages);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch trash" });
+    }
+  });
+
+  app.delete("/api/admin/contacts/:id", async (req, res) => {
+    try {
+      await storage.softDeleteMessage(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
+  app.post("/api/admin/contacts/:id/restore", async (req, res) => {
+    try {
+      await storage.restoreMessage(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to restore message" });
+    }
+  });
+
+  app.delete("/api/admin/contacts/:id/permanent", async (req, res) => {
+    try {
+      await storage.permanentDeleteMessage(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to permanently delete message" });
+    }
+  });
+
   // CRM — Clients
   app.get("/api/crm/clients", async (req, res) => {
     try {

@@ -10,14 +10,19 @@ import {
   crmExpenses, type CrmExpense, type InsertCrmExpense,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ilike, or } from "drizzle-orm";
+import { eq, desc, ilike, or, isNull, isNotNull, lt } from "drizzle-orm";
 
 export interface IStorage {
   getPortfolioItems(): Promise<PortfolioItem[]>;
   createPortfolioItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   getContactMessages(): Promise<ContactMessage[]>;
+  getTrashMessages(): Promise<ContactMessage[]>;
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   updateContactMessageStatus(id: number, status: string): Promise<ContactMessage>;
+  softDeleteMessage(id: number): Promise<void>;
+  restoreMessage(id: number): Promise<void>;
+  permanentDeleteMessage(id: number): Promise<void>;
+  cleanupOldTrash(): Promise<number>;
   getAlbums(): Promise<Album[]>;
   createAlbum(album: InsertAlbum): Promise<Album>;
   getAlbumCache(code: string): Promise<AlbumCache | undefined>;
@@ -60,7 +65,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getContactMessages(): Promise<ContactMessage[]> {
-    return await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+    return await db.select().from(contactMessages)
+      .where(isNull(contactMessages.deletedAt))
+      .orderBy(desc(contactMessages.createdAt));
+  }
+
+  async getTrashMessages(): Promise<ContactMessage[]> {
+    await this.cleanupOldTrash();
+    return await db.select().from(contactMessages)
+      .where(isNotNull(contactMessages.deletedAt))
+      .orderBy(desc(contactMessages.deletedAt));
   }
 
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
@@ -74,6 +88,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(contactMessages.id, id))
       .returning();
     return updated;
+  }
+
+  async softDeleteMessage(id: number): Promise<void> {
+    await db.update(contactMessages)
+      .set({ deletedAt: new Date() })
+      .where(eq(contactMessages.id, id));
+  }
+
+  async restoreMessage(id: number): Promise<void> {
+    await db.update(contactMessages)
+      .set({ deletedAt: null })
+      .where(eq(contactMessages.id, id));
+  }
+
+  async permanentDeleteMessage(id: number): Promise<void> {
+    await db.delete(contactMessages).where(eq(contactMessages.id, id));
+  }
+
+  async cleanupOldTrash(): Promise<number> {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const deleted = await db.delete(contactMessages)
+      .where(lt(contactMessages.deletedAt, thirtyDaysAgo))
+      .returning();
+    return deleted.length;
   }
 
   async getAlbums(): Promise<Album[]> {

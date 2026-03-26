@@ -20,6 +20,7 @@ export const contactMessages = pgTable("contact_messages", {
   message: text("message").notNull(),
   status: text("status").default("new"),
   createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const albums = pgTable("albums", {
@@ -117,7 +118,7 @@ export type InsertCrmPayment = z.infer<typeof insertCrmPaymentSchema>;
 export const insertAlbumPasswordSchema = createInsertSchema(albumPasswords);
 
 export const insertPortfolioSchema = createInsertSchema(portfolioItems).omit({ id: true });
-export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({ id: true, createdAt: true });
+export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({ id: true, createdAt: true, deletedAt: true });
 export const insertAlbumSchema = createInsertSchema(albums).omit({ id: true, createdAt: true });
 export const insertAlbumCacheSchema = createInsertSchema(albumsCache).omit({ id: true, lastChecked: true });
 
