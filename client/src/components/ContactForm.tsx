@@ -28,8 +28,15 @@ import {
 export default function ContactForm() {
   const { mutate: submitContact, isPending } = useContact();
 
+  const contactFormSchema = insertContactMessageSchema.extend({
+    name: insertContactMessageSchema.shape.name.min(1, "Full name is required"),
+    email: insertContactMessageSchema.shape.email.min(1, "Email is required").email("Please enter a valid email"),
+    service: insertContactMessageSchema.shape.service.min(1, "Please select a service"),
+    message: insertContactMessageSchema.shape.message.min(1, "Message is required"),
+  });
+
   const form = useForm<ContactMessageInput>({
-    resolver: zodResolver(insertContactMessageSchema),
+    resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
       email: "",
