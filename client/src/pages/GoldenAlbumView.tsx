@@ -58,7 +58,7 @@ export default function Home() {
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="e.g. nirmalsingh"
+                  placeholder="e.g. mr_singh"
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-center text-white placeholder:text-white/30 outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-sans text-lg tracking-wider gold-glow"
                   required
                   disabled={isSubmitting}
@@ -86,10 +86,10 @@ export default function Home() {
       >
         <div className="flex flex-col items-center gap-1">
           <p className="text-white/80 uppercase tracking-[0.4em] text-sm font-medium font-sans">
-            Dream Pictures`
+            
           </p>
           <p className="text-white/40 uppercase tracking-[0.2em] text-xs font-light font-sans">
-            Photography & Films
+            
           </p>
         </div>
       </motion.div>
