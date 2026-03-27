@@ -278,6 +278,7 @@ export default function AdminDashboard() {
   const portfolioFormRef = useRef<HTMLFormElement>(null);
 
   function compressImage(file: File, maxPx = 1920, quality = 0.82): Promise<Blob> {
+    if (file.size < 100 * 1024) return Promise.resolve(file);
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => {
