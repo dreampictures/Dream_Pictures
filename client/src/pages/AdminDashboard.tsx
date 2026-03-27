@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -272,6 +272,30 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("messages");
   const [inboxView, setInboxView] = useState<"active" | "trash">("active");
+  const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null);
+  const [portfolioUploading, setPortfolioUploading] = useState(false);
+  const portfolioFileRef = useRef<File | null>(null);
+  const portfolioFormRef = useRef<HTMLFormElement>(null);
+
+  function compressImage(file: File, maxPx = 1920, quality = 0.82): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxPx || height > maxPx) {
+          if (width >= height) { height = Math.round(height * maxPx / width); width = maxPx; }
+          else { width = Math.round(width * maxPx / height); height = maxPx; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Compression failed")), "image/jpeg", quality);
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
 
   useEffect(() => {
     if (localStorage.getItem("admin_auth") !== "true") {
@@ -522,30 +546,81 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <form
+                    ref={portfolioFormRef}
                     className="space-y-4"
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
-                      addPortfolioMutation.mutate({
-                        title: formData.get("title"),
-                        category: formData.get("category"),
-                        imageUrl: formData.get("imageUrl"),
-                        featured: formData.get("featured") === "true",
-                      });
-                      (e.target as HTMLFormElement).reset();
+                      const file = portfolioFileRef.current;
+                      if (!file) { toast({ title: "No image selected", description: "Please pick an image to upload.", variant: "destructive" }); return; }
+                      try {
+                        setPortfolioUploading(true);
+                        const compressed = await compressImage(file);
+                        const fd = new FormData();
+                        fd.append("image", compressed, "portfolio.jpg");
+                        const res = await fetch("/api/admin/portfolio/upload-image", { method: "POST", body: fd, credentials: "include" });
+                        if (!res.ok) throw new Error("Upload failed");
+                        const { url } = await res.json();
+                        addPortfolioMutation.mutate({
+                          title: formData.get("title"),
+                          category: formData.get("category"),
+                          imageUrl: url,
+                          featured: formData.get("featured") === "true",
+                        });
+                        portfolioFormRef.current?.reset();
+                        portfolioFileRef.current = null;
+                        setPortfolioPreview(null);
+                      } catch {
+                        toast({ title: "Upload failed", description: "Could not upload image. Try again.", variant: "destructive" });
+                      } finally {
+                        setPortfolioUploading(false);
+                      }
                     }}
                   >
                     <Input name="title" placeholder="Project Title" className="bg-black/20" required />
                     <Input name="category" placeholder="Category (e.g. Wedding)" className="bg-black/20" required />
-                    <Input name="imageUrl" placeholder="Image URL" className="bg-black/20" required />
+
+                    {/* Image picker */}
+                    <div
+                      className="relative border border-dashed border-white/20 rounded-lg overflow-hidden cursor-pointer hover:border-white/40 transition-colors"
+                      onClick={() => document.getElementById("portfolio-img-input")?.click()}
+                    >
+                      {portfolioPreview ? (
+                        <img src={portfolioPreview} alt="Preview" className="w-full h-40 object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-2 h-40 text-muted-foreground text-sm">
+                          <ImageIcon className="w-8 h-8 opacity-40" />
+                          <span>Click to choose image</span>
+                          <span className="text-xs opacity-60">Auto-compressed before upload</span>
+                        </div>
+                      )}
+                      <input
+                        id="portfolio-img-input"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          portfolioFileRef.current = f;
+                          setPortfolioPreview(URL.createObjectURL(f));
+                        }}
+                      />
+                    </div>
+                    {portfolioPreview && (
+                      <button type="button" className="text-xs text-muted-foreground hover:text-white underline" onClick={() => { portfolioFileRef.current = null; setPortfolioPreview(null); }}>
+                        Remove image
+                      </button>
+                    )}
+
                     <div className="flex items-center gap-2 px-2 py-2">
                       <input type="checkbox" name="featured" value="true" id="featured" />
                       <label htmlFor="featured" className="text-xs uppercase tracking-widest text-muted-foreground">
                         Featured on Home
                       </label>
                     </div>
-                    <Button type="submit" className="w-full gap-2">
-                      <Plus className="w-4 h-4" /> Publish Item
+                    <Button type="submit" className="w-full gap-2" disabled={portfolioUploading || addPortfolioMutation.isPending}>
+                      {portfolioUploading ? "Uploading & Compressing…" : <><Plus className="w-4 h-4" /> Publish Item</>}
                     </Button>
                   </form>
                 </CardContent>

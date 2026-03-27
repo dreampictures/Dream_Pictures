@@ -1,9 +1,12 @@
-import type { Express } from "express";
+import type { Express, Request, Response as ExpressResponse } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
+import multer from "multer";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 const CDN_BASE_URL = "https://cdn.thedreampictures.com";
 
@@ -69,6 +72,33 @@ export async function registerRoutes(
       res.status(201).json(item);
     } catch (err) {
       res.status(400).json({ message: "Invalid input" });
+    }
+  });
+
+  // Portfolio image upload → R2 (portfolio/ folder)
+  app.post("/api/admin/portfolio/upload-image", upload.single("image"), async (req: Request, res: ExpressResponse) => {
+    try {
+      const client = getR2Client();
+      if (!client) return res.status(500).json({ message: "R2 not configured" });
+      if (!req.file) return res.status(400).json({ message: "No file provided" });
+
+      const bucket = process.env.R2_BUCKET_NAME || "albums";
+      const ext = req.file.originalname.split(".").pop()?.toLowerCase() || "jpg";
+      const key = `portfolio/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      await client.send(new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+        CacheControl: "public, max-age=31536000",
+      }));
+
+      const url = `${CDN_BASE_URL}/${key}`;
+      res.json({ url });
+    } catch (err) {
+      console.error("Portfolio upload error:", err);
+      res.status(500).json({ message: "Upload failed" });
     }
   });
 
