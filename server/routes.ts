@@ -665,8 +665,9 @@ export async function registerRoutes(
         note: note || "",
       });
       res.json(tx);
-    } catch (err) {
-      res.status(500).json({ message: "Failed to add transaction" });
+    } catch (err: any) {
+      console.error("[dailyamount] createDailyTransaction error:", err?.message || err);
+      res.status(500).json({ message: err?.message || "Failed to add transaction" });
     }
   });
 
