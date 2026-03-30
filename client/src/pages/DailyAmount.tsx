@@ -287,31 +287,57 @@ export default function DailyAmount() {
     return () => window.removeEventListener("beforeunload", handleUnload);
   }, [pin, date, fields]);
 
+  const currentDate = date; // capture for closures
+
   const addTxMutation = useMutation({
     mutationFn: async () => {
       if (!pin) throw new Error("No PIN");
+      const amount = parseFloat(txAmount);
+      if (!amount || amount <= 0) throw new Error("Invalid amount");
       const res = await fetch("/api/dailyamount/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-da-pin": pin },
-        body: JSON.stringify({ date, type: txType, amount: parseFloat(txAmount) || 0, note: txNote }),
+        body: JSON.stringify({ date: currentDate, type: txType, amount, note: txNote }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server error ${res.status}`);
+      }
       return res.json();
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/dailyamount/transactions", date] });
+    onSuccess: (newTx: any) => {
+      // Directly insert the new tx into the cache — no refetch needed
+      qc.setQueryData(
+        ["/api/dailyamount/transactions", currentDate],
+        (old: any[] | undefined) => [newTx, ...(Array.isArray(old) ? old : [])],
+      );
       setTxAmount("");
       setTxNote("");
+    },
+    onError: (err: any) => {
+      alert(`Could not add transaction: ${err.message}`);
     },
   });
 
   const deleteTxMutation = useMutation({
     mutationFn: async (id: number) => {
       if (!pin) throw new Error("No PIN");
-      await fetch(`/api/dailyamount/transactions/${id}`, { method: "DELETE", headers: dapiHeaders(pin) });
+      const res = await fetch(`/api/dailyamount/transactions/${id}`, {
+        method: "DELETE",
+        headers: dapiHeaders(pin),
+      });
+      if (!res.ok) throw new Error(`Delete failed ${res.status}`);
+      return id;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/dailyamount/transactions", date] });
+    onSuccess: (deletedId: any) => {
+      // Remove the deleted tx from cache directly
+      qc.setQueryData(
+        ["/api/dailyamount/transactions", currentDate],
+        (old: any[] | undefined) => (Array.isArray(old) ? old.filter((tx) => tx.id !== deletedId) : []),
+      );
+    },
+    onError: (err: any) => {
+      alert(`Could not delete transaction: ${err.message}`);
     },
   });
 
