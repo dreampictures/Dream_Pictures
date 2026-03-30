@@ -173,6 +173,7 @@ export default function DailyAmount() {
   const [txAmount, setTxAmount] = useState("");
   const [txNote, setTxNote] = useState("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadedDateRef = useRef<string>("");
   const qc = useQueryClient();
 
   const [fields, setFields] = useState({
@@ -205,7 +206,13 @@ export default function DailyAmount() {
   });
 
   useEffect(() => {
+    if (entryLoading) return;
+
+    const isNewDate = loadedDateRef.current !== date;
+    loadedDateRef.current = date;
+
     if (entry) {
+      // Always load server data when available (new date load or refetch returned data)
       setFields({
         openingBalance: entry.openingBalance || 0,
         notes10: entry.notes10 || 0,
@@ -226,27 +233,37 @@ export default function DailyAmount() {
         aepsPayworld: entry.aepsPayworld || 0,
         aepsDigipay: entry.aepsDigipay || 0,
       });
-    } else if (!entryLoading) {
+    } else if (isNewDate) {
+      // Only clear fields when navigating to a new date with no entry.
+      // Do NOT reset if it's just a background refetch returning null
+      // (that would erase the user's unsaved typing).
       setFields({ openingBalance: 0, notes10: 0, notes20: 0, notes50: 0, notes100: 0, notes200: 0, notes500: 0, coins: 0, bobSaving: 0, bobCurrent: 0, hdfc: 0, kotak: 0, au: 0, sbi: 0, aepsBob: 0, aepsFino: 0, aepsPayworld: 0, aepsDigipay: 0 });
     }
-  }, [entry, entryLoading]);
+  }, [entry, entryLoading, date]);
 
   const saveEntry = useCallback(async (data: typeof fields) => {
     if (!pin) return;
     setSaveStatus("saving");
     try {
-      await fetch(`/api/dailyamount/entry/${date}`, {
+      const res = await fetch(`/api/dailyamount/entry/${date}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-da-pin": pin },
         body: JSON.stringify(data),
       });
+      if (res.ok) {
+        const saved = await res.json();
+        // Update the query cache with the saved data so background refetches
+        // don't overwrite the user's current fields with stale/null data.
+        qc.setQueryData(["/api/dailyamount/entry", date], saved);
+        loadedDateRef.current = date;
+      }
       setSaveStatus("saved");
       setLastSaved(new Date());
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch {
       setSaveStatus("idle");
     }
-  }, [pin, date]);
+  }, [pin, date, qc]);
 
   const debouncedSave = useCallback((data: typeof fields) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
