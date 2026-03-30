@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { db } from "./db";
+import { db, pool } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,6 +61,42 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure required tables exist (safe to run on every startup)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "daily_entries" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "date" text NOT NULL UNIQUE,
+      "opening_balance" real NOT NULL DEFAULT 0,
+      "notes_10" real NOT NULL DEFAULT 0,
+      "notes_20" real NOT NULL DEFAULT 0,
+      "notes_50" real NOT NULL DEFAULT 0,
+      "notes_100" real NOT NULL DEFAULT 0,
+      "notes_200" real NOT NULL DEFAULT 0,
+      "notes_500" real NOT NULL DEFAULT 0,
+      "coins" real NOT NULL DEFAULT 0,
+      "bob_saving" real NOT NULL DEFAULT 0,
+      "bob_current" real NOT NULL DEFAULT 0,
+      "hdfc" real NOT NULL DEFAULT 0,
+      "kotak" real NOT NULL DEFAULT 0,
+      "au" real NOT NULL DEFAULT 0,
+      "sbi" real NOT NULL DEFAULT 0,
+      "aeps_bob" real NOT NULL DEFAULT 0,
+      "aeps_fino" real NOT NULL DEFAULT 0,
+      "aeps_payworld" real NOT NULL DEFAULT 0,
+      "aeps_digipay" real NOT NULL DEFAULT 0,
+      "updated_at" timestamp DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS "daily_transactions" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "date" text NOT NULL,
+      "type" text NOT NULL,
+      "amount" real NOT NULL DEFAULT 0,
+      "note" text NOT NULL DEFAULT '',
+      "created_at" timestamp DEFAULT now()
+    );
+  `);
+  log("Database tables verified");
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
