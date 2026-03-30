@@ -115,6 +115,51 @@ export type InsertCrmWork = z.infer<typeof insertCrmWorkSchema>;
 export type CrmPayment = typeof crmPayments.$inferSelect;
 export type InsertCrmPayment = z.infer<typeof insertCrmPaymentSchema>;
 
+// Daily Amount / Reconciliation Tables
+export const dailyEntries = pgTable("daily_entries", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(),
+  openingBalance: real("opening_balance").notNull().default(0),
+  // Cash denomination counts
+  notes10: real("notes_10").notNull().default(0),
+  notes20: real("notes_20").notNull().default(0),
+  notes50: real("notes_50").notNull().default(0),
+  notes100: real("notes_100").notNull().default(0),
+  notes200: real("notes_200").notNull().default(0),
+  notes500: real("notes_500").notNull().default(0),
+  coins: real("coins").notNull().default(0),
+  // Bank balances
+  bobSaving: real("bob_saving").notNull().default(0),
+  bobCurrent: real("bob_current").notNull().default(0),
+  hdfc: real("hdfc").notNull().default(0),
+  kotak: real("kotak").notNull().default(0),
+  au: real("au").notNull().default(0),
+  sbi: real("sbi").notNull().default(0),
+  // AEPS wallets
+  aepsBob: real("aeps_bob").notNull().default(0),
+  aepsFino: real("aeps_fino").notNull().default(0),
+  aepsPayworld: real("aeps_payworld").notNull().default(0),
+  aepsDigipay: real("aeps_digipay").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dailyTransactions = pgTable("daily_transactions", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull(),
+  type: text("type").notNull(),
+  amount: real("amount").notNull().default(0),
+  note: text("note").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDailyEntrySchema = createInsertSchema(dailyEntries).omit({ id: true, updatedAt: true });
+export const insertDailyTransactionSchema = createInsertSchema(dailyTransactions).omit({ id: true, createdAt: true });
+
+export type DailyEntry = typeof dailyEntries.$inferSelect;
+export type InsertDailyEntry = z.infer<typeof insertDailyEntrySchema>;
+export type DailyTransaction = typeof dailyTransactions.$inferSelect;
+export type InsertDailyTransaction = z.infer<typeof insertDailyTransactionSchema>;
+
 export const insertAlbumPasswordSchema = createInsertSchema(albumPasswords);
 
 export const insertPortfolioSchema = createInsertSchema(portfolioItems).omit({ id: true });

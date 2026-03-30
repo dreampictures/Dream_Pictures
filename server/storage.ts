@@ -8,6 +8,8 @@ import {
   crmWorks, type CrmWork, type InsertCrmWork,
   crmPayments, type CrmPayment, type InsertCrmPayment,
   crmExpenses, type CrmExpense, type InsertCrmExpense,
+  dailyEntries, type DailyEntry, type InsertDailyEntry,
+  dailyTransactions, type DailyTransaction, type InsertDailyTransaction,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, isNull, isNotNull, lt } from "drizzle-orm";
@@ -52,6 +54,13 @@ export interface IStorage {
   searchCrm(q: string): Promise<{ clients: CrmClient[]; works: CrmWork[] }>;
   getClientByPhone(phone: string): Promise<CrmClient | undefined>;
   getPaymentsByWorkId(workId: number): Promise<CrmPayment[]>;
+  // Daily Amount
+  getDailyEntry(date: string): Promise<DailyEntry | undefined>;
+  upsertDailyEntry(entry: InsertDailyEntry): Promise<DailyEntry>;
+  getDailyTransactions(date: string): Promise<DailyTransaction[]>;
+  createDailyTransaction(tx: InsertDailyTransaction): Promise<DailyTransaction>;
+  deleteDailyTransaction(id: number): Promise<void>;
+  getDailyHistory(): Promise<DailyEntry[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -274,6 +283,62 @@ export class DatabaseStorage implements IStorage {
 
   async getPaymentsByWorkId(workId: number): Promise<CrmPayment[]> {
     return await db.select().from(crmPayments).where(eq(crmPayments.workId, workId));
+  }
+
+  // Daily Amount
+  async getDailyEntry(date: string): Promise<DailyEntry | undefined> {
+    const [entry] = await db.select().from(dailyEntries).where(eq(dailyEntries.date, date));
+    return entry;
+  }
+
+  async upsertDailyEntry(entry: InsertDailyEntry): Promise<DailyEntry> {
+    const [result] = await db.insert(dailyEntries)
+      .values({ ...entry, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: dailyEntries.date,
+        set: {
+          openingBalance: entry.openingBalance,
+          notes10: entry.notes10,
+          notes20: entry.notes20,
+          notes50: entry.notes50,
+          notes100: entry.notes100,
+          notes200: entry.notes200,
+          notes500: entry.notes500,
+          coins: entry.coins,
+          bobSaving: entry.bobSaving,
+          bobCurrent: entry.bobCurrent,
+          hdfc: entry.hdfc,
+          kotak: entry.kotak,
+          au: entry.au,
+          sbi: entry.sbi,
+          aepsBob: entry.aepsBob,
+          aepsFino: entry.aepsFino,
+          aepsPayworld: entry.aepsPayworld,
+          aepsDigipay: entry.aepsDigipay,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async getDailyTransactions(date: string): Promise<DailyTransaction[]> {
+    return await db.select().from(dailyTransactions)
+      .where(eq(dailyTransactions.date, date))
+      .orderBy(desc(dailyTransactions.createdAt));
+  }
+
+  async createDailyTransaction(tx: InsertDailyTransaction): Promise<DailyTransaction> {
+    const [result] = await db.insert(dailyTransactions).values(tx).returning();
+    return result;
+  }
+
+  async deleteDailyTransaction(id: number): Promise<void> {
+    await db.delete(dailyTransactions).where(eq(dailyTransactions.id, id));
+  }
+
+  async getDailyHistory(): Promise<DailyEntry[]> {
+    return await db.select().from(dailyEntries).orderBy(desc(dailyEntries.date));
   }
 }
 

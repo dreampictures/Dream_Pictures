@@ -23,6 +23,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import GoldenAlbumView from "@/pages/GoldenAlbumView";
 import GoldenAlbum from "@/pages/GoldenAlbum";
 import AdminCRM from "@/pages/AdminCRM";
+import DailyAmount from "@/pages/DailyAmount";
+import DailyAmountHistory from "@/pages/DailyAmountHistory";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -33,6 +35,17 @@ function Router() {
     return (
       <Switch>
         <Route path="/admin-work-secret" component={AdminCRM} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  // Daily Amount — completely hidden, no navbar or footer
+  if (location.startsWith("/dailyamount")) {
+    return (
+      <Switch>
+        <Route path="/dailyamount" component={DailyAmount} />
+        <Route path="/dailyamount/history" component={DailyAmountHistory} />
         <Route component={NotFound} />
       </Switch>
     );

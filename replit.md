@@ -30,12 +30,20 @@ Deployed at: `https://dream-pictures-2026.fly.dev`
 - `album_passwords` — per-album password protection
 - `crm_clients` — CRM client personal info (name, phone, dob, anniversary, address, notes)
 - `crm_works` — CRM work/payment tracking (client, description, price, advance, status)
+- `daily_entries` — Daily reconciliation entries (one per date): opening balance, cash denominations, bank balances, AEPS wallets
+- `daily_transactions` — Income/expense transactions linked by date
 
 ## Features
 - **Public site**: Home, Portfolio, About, Terms, Contact
 - **Golden Album flipbook**: `/golden-album/:code` with CDN image viewer
 - **Admin dashboard**: R2 album auto-discovery, QR generation, password management, contacts
 - **CRM dashboard** (`/admin-work-secret`): Client management, work tracking, billing, birthday/anniversary alerts, CSV export
+- **Daily Amount** (`/dailyamount`, hidden): PIN-protected banking reconciliation system with cash counting, bank/AEPS balances, transactions, auto-save, and history page at `/dailyamount/history`. Uses `ADMIN_PIN` env var.
+
+## Hidden Routes (not in nav/footer/sitemap)
+- `/admin-work-secret` — CRM system (admin credentials required)
+- `/dailyamount` — Daily reconciliation (PIN: `ADMIN_PIN` env var)
+- `/dailyamount/history` — Reconciliation history
 
 ## CDN Path Format
 `cdn.thedreampictures.com/{code}/001.jpg` (NO `/albums/` prefix)

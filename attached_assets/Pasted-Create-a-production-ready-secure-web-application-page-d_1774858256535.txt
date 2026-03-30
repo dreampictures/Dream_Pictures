@@ -1,0 +1,262 @@
+Create a **production-ready secure web application page** `/dailyamount` and integrate it into an existing PHP website ([www.thedreampictures.com](http://www.thedreampictures.com)) that already uses a PostgreSQL database (Neon).
+
+---
+
+# 🔐 ACCESS CONTROL (VERY IMPORTANT)
+
+* The `/dailyamount` page must be **completely hidden from public navigation**
+
+Rules:
+
+* Do NOT add this page to:
+
+  * Navbar
+  * Footer
+  * Sitemap
+  * Any internal links
+* Page should ONLY open via **direct/manual URL access**
+* If someone does not know the URL, they should NOT discover it
+
+---
+
+# 🔐 AUTHENTICATION SYSTEM (MANDATORY)
+
+* Implement **PIN-based login system**
+* Store PIN using `password_hash`
+* Verify using `password_verify`
+* Use PHP sessions:
+
+  * Once logged in → do NOT ask again
+  * Stay logged in until manual logout
+* If not logged in:
+
+  * Show centered PIN screen
+* Add Logout button
+* Protect page from unauthorized access
+
+---
+
+# 🔒 EDIT PROTECTION
+
+* Editing disabled by default
+* Add button: **Unlock to Edit**
+* Ask for second PIN
+* Enable editing only after correct PIN
+
+---
+
+# 💼 CORE SYSTEM (BANK-STYLE RECONCILIATION)
+
+---
+
+## Opening Balance
+
+* Input field
+
+---
+
+## Cash Counting
+
+* ₹10, 20, 50, 100, 200, 500 notes
+* Coins
+* Auto total
+
+---
+
+## Bank Balances
+
+* BOB Saving
+* BOB Current
+* HDFC
+* Kotak
+* AU
+* SBI
+
+---
+
+## AEPS Wallet
+
+* BOB, Fino, Payworld, Digipay
+
+---
+
+## System Balance
+
+Cash + Bank + AEPS
+
+---
+
+## Transactions
+
+* Add Income
+* Add Expense
+
+Each transaction:
+
+* Type
+* Amount
+* Note
+* Date
+
+---
+
+## Expected Balance
+
+Opening + Income - Expense
+
+---
+
+## Difference
+
+System Balance - Expected Balance
+
+---
+
+## Status
+
+* 0 → Balanced
+* Else → Mismatch
+
+---
+
+# 💾 AUTO SAVE SYSTEM
+
+* Auto save on:
+
+  * Input change (500ms debounce)
+  * Transaction change
+  * Page unload
+
+---
+
+# 🔢 DEFAULT ZERO HANDLING
+
+* Empty fields → auto convert to 0
+* No NULL values allowed
+
+---
+
+# 💾 DATABASE (Neon)
+
+Use existing DB connection
+
+Tables:
+
+* daily_entries
+* transactions
+
+Rules:
+
+* One entry per date
+* Update if exists, else insert
+* No duplicates
+
+---
+
+# 📊 HISTORY PAGE
+
+* `/dailyamount/history`
+* List entries by date
+* View + edit (after unlock)
+
+---
+
+# 🎨 UI DESIGN
+
+* Dark glassmorphism fintech style
+* Smooth animations
+* Mobile responsive
+* Sticky bottom summary
+
+---
+
+# 🔄 AUTO SAVE FEEDBACK
+
+* Show:
+
+  * Saving...
+  * Saved ✓
+* Show last saved time
+
+---
+
+# 🛡 SECURITY
+
+* Sanitize inputs
+* Prevent SQL injection
+* Secure session handling
+
+---
+
+# 🚀 FLY.IO DEPLOYMENT READY (CRITICAL)
+
+* Code must be fully compatible with Fly.io
+
+* No runtime errors
+
+* No missing dependencies
+
+* Use standard PHP setup
+
+* Ensure:
+
+  * Proper routing
+  * Environment variables support
+  * Database connection works in production
+
+* Avoid:
+
+  * Hardcoded local paths
+  * Debug errors
+  * Unhandled exceptions
+
+---
+
+# ⚠️ EXISTING WEBSITE SAFETY (VERY IMPORTANT)
+
+* Do NOT modify existing pages
+
+* Do NOT change existing database structure
+
+* Do NOT break any current functionality
+
+* Only add new isolated page:
+  `/dailyamount`
+
+* Keep everything else untouched
+
+---
+
+# 🔌 INTEGRATION
+
+* Use existing Neon DB connection file
+* Match existing project structure
+* Clean separation from other modules
+
+---
+
+# 🎯 FINAL GOAL
+
+Build a **hidden, secure, production-ready banking-style reconciliation system** that:
+
+* Works only via direct link
+* Is fully automated (auto-save)
+* Has zero data errors
+* Is safe for deployment
+* Does not affect existing website
+
+---
+
+Generate full working code:
+
+* PHP
+* HTML
+* CSS
+* JavaScript
+* SQL
+
+Ensure:
+
+* Clean code
+* No bugs
+* Production-ready quality

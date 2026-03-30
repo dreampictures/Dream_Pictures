@@ -579,5 +579,116 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Daily Amount Routes ──────────────────────────────────────────
+  function validateDaPin(req: Request, res: any): boolean {
+    const pin = req.headers["x-da-pin"] as string || req.body?.daPin as string || req.query?.daPin as string;
+    const expected = process.env.ADMIN_PIN;
+    if (!expected) return true;
+    if (pin !== expected) {
+      res.status(403).json({ message: "Invalid PIN" });
+      return false;
+    }
+    return true;
+  }
+
+  app.post("/api/dailyamount/verify-pin", (req, res) => {
+    const { pin } = req.body;
+    const expected = process.env.ADMIN_PIN;
+    if (!expected || pin === expected) {
+      res.json({ ok: true });
+    } else {
+      res.status(403).json({ message: "Invalid PIN" });
+    }
+  });
+
+  app.get("/api/dailyamount/entry/:date", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const entry = await storage.getDailyEntry(req.params.date);
+      res.json(entry || null);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch entry" });
+    }
+  });
+
+  app.put("/api/dailyamount/entry/:date", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const date = req.params.date;
+      const n = (v: any) => Number(v) || 0;
+      const entry = await storage.upsertDailyEntry({
+        date,
+        openingBalance: n(req.body.openingBalance),
+        notes10: n(req.body.notes10),
+        notes20: n(req.body.notes20),
+        notes50: n(req.body.notes50),
+        notes100: n(req.body.notes100),
+        notes200: n(req.body.notes200),
+        notes500: n(req.body.notes500),
+        coins: n(req.body.coins),
+        bobSaving: n(req.body.bobSaving),
+        bobCurrent: n(req.body.bobCurrent),
+        hdfc: n(req.body.hdfc),
+        kotak: n(req.body.kotak),
+        au: n(req.body.au),
+        sbi: n(req.body.sbi),
+        aepsBob: n(req.body.aepsBob),
+        aepsFino: n(req.body.aepsFino),
+        aepsPayworld: n(req.body.aepsPayworld),
+        aepsDigipay: n(req.body.aepsDigipay),
+      });
+      res.json(entry);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to save entry" });
+    }
+  });
+
+  app.get("/api/dailyamount/transactions/:date", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const txs = await storage.getDailyTransactions(req.params.date);
+      res.json(txs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  app.post("/api/dailyamount/transactions", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const { date, type, amount, note } = req.body;
+      if (!date || !type || !amount) return res.status(400).json({ message: "Missing fields" });
+      const tx = await storage.createDailyTransaction({
+        date,
+        type,
+        amount: Number(amount) || 0,
+        note: note || "",
+      });
+      res.json(tx);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to add transaction" });
+    }
+  });
+
+  app.delete("/api/dailyamount/transactions/:id", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      await storage.deleteDailyTransaction(parseInt(req.params.id));
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete transaction" });
+    }
+  });
+
+  app.get("/api/dailyamount/history", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const history = await storage.getDailyHistory();
+      res.json(history);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch history" });
+    }
+  });
+
   return httpServer;
 }
