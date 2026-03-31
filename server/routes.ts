@@ -681,6 +681,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/dailyamount/prev-balance/:date", async (req, res) => {
+    if (!validateDaPin(req, res)) return;
+    try {
+      const balance = await storage.getPrevDaySystemBalance(req.params.date);
+      res.json({ balance });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch previous balance" });
+    }
+  });
+
   app.get("/api/dailyamount/history", async (req, res) => {
     if (!validateDaPin(req, res)) return;
     try {

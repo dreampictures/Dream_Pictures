@@ -61,6 +61,7 @@ export interface IStorage {
   createDailyTransaction(tx: InsertDailyTransaction): Promise<DailyTransaction>;
   deleteDailyTransaction(id: number): Promise<void>;
   getDailyHistory(): Promise<DailyEntry[]>;
+  getPrevDaySystemBalance(date: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -339,6 +340,25 @@ export class DatabaseStorage implements IStorage {
 
   async getDailyHistory(): Promise<DailyEntry[]> {
     return await db.select().from(dailyEntries).orderBy(desc(dailyEntries.date));
+  }
+
+  async getPrevDaySystemBalance(date: string): Promise<number> {
+    const [prev] = await db.select().from(dailyEntries)
+      .where(lt(dailyEntries.date, date))
+      .orderBy(desc(dailyEntries.date))
+      .limit(1);
+    if (!prev) return 0;
+    const cash =
+      (prev.notes10 || 0) * 10 + (prev.notes20 || 0) * 20 + (prev.notes50 || 0) * 50 +
+      (prev.notes100 || 0) * 100 + (prev.notes200 || 0) * 200 + (prev.notes500 || 0) * 500 +
+      (prev.coins || 0);
+    const bank =
+      (prev.bobSaving || 0) + (prev.bobCurrent || 0) + (prev.hdfc || 0) +
+      (prev.kotak || 0) + (prev.au || 0) + (prev.sbi || 0);
+    const aeps =
+      (prev.aepsBob || 0) + (prev.aepsFino || 0) +
+      (prev.aepsPayworld || 0) + (prev.aepsDigipay || 0);
+    return cash + bank + aeps;
   }
 }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff } from "lucide-react";
+import { Trash2, Plus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Sparkles } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -15,6 +15,11 @@ function fmt(n: number) {
 
 function dapiHeaders(pin: string) {
   return { "x-da-pin": pin };
+}
+
+function pf(v: any): number {
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
 }
 
 // ─── PIN Screen ───────────────────────────────────────────────────────────────
@@ -114,11 +119,12 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
       <span className="text-slate-600 text-xs shrink-0">×</span>
       <input
         type="number"
+        step="0.01"
+        min="0"
         value={count || ""}
-        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        onChange={(e) => onChange(pf(e.target.value))}
         disabled={disabled}
         placeholder="0"
-        min="0"
         className="w-20 bg-transparent text-white text-right rounded-md px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-40"
         style={{ border: "1px solid rgba(255,255,255,0.1)" }}
       />
@@ -128,7 +134,7 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
   );
 }
 
-// ─── Bank / AEPS Amount Row ───────────────────────────────────────────────────
+// ─── Amount Row ───────────────────────────────────────────────────────────────
 function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "focus:ring-yellow-500" }: {
   label: string; fieldKey: string; value: number; onChange: (v: number) => void; disabled?: boolean; accentColor?: string;
 }) {
@@ -140,8 +146,10 @@ function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "
         <input
           data-testid={`input-${fieldKey}`}
           type="number"
+          step="0.01"
+          min="0"
           value={value || ""}
-          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+          onChange={(e) => onChange(pf(e.target.value))}
           disabled={disabled}
           placeholder="0"
           className={`w-28 bg-transparent text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 ${accentColor} disabled:opacity-40 disabled:cursor-not-allowed`}
@@ -176,17 +184,29 @@ export default function DailyAmount() {
   const [txType, setTxType] = useState<"income" | "expense">("income");
   const [txAmount, setTxAmount] = useState("");
   const [txNote, setTxNote] = useState("");
+  const [autoFilledBalance, setAutoFilledBalance] = useState(false);
+
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedDateRef = useRef<string>("");
+  // Tracks if user is actively editing — prevents server re-renders from overwriting keystrokes
+  const userEditingRef = useRef(false);
+  const editingResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks if we've already auto-filled opening balance for this date
+  const autoFilledRef = useRef(false);
+
   const qc = useQueryClient();
 
-  const [fields, setFields] = useState({
+  const emptyFields = {
     openingBalance: 0,
     notes10: 0, notes20: 0, notes50: 0, notes100: 0, notes200: 0, notes500: 0, coins: 0,
     bobSaving: 0, bobCurrent: 0, hdfc: 0, kotak: 0, au: 0, sbi: 0,
     aepsBob: 0, aepsFino: 0, aepsPayworld: 0, aepsDigipay: 0,
-  });
+  };
 
+  const [fields, setFields] = useState(emptyFields);
+
+  // ── Queries ───────────────────────────────────────────────────────────────
   const { data: entry, isLoading: entryLoading } = useQuery({
     queryKey: ["/api/dailyamount/entry", date],
     queryFn: async () => {
@@ -196,6 +216,21 @@ export default function DailyAmount() {
       return res.json();
     },
     enabled: !!pin,
+    // Prevent background refetches from interrupting active typing
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: prevBalanceData } = useQuery({
+    queryKey: ["/api/dailyamount/prev-balance", date],
+    queryFn: async () => {
+      if (!pin) return null;
+      const res = await fetch(`/api/dailyamount/prev-balance/${date}`, { headers: dapiHeaders(pin) });
+      if (!res.ok) return null;
+      return res.json() as Promise<{ balance: number }>;
+    },
+    enabled: !!pin,
+    staleTime: 60 * 1000,
   });
 
   const { data: transactions = [], isLoading: txLoading } = useQuery<any[]>({
@@ -207,61 +242,113 @@ export default function DailyAmount() {
       return res.json();
     },
     enabled: !!pin,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
   });
 
+  // ── Reset auto-fill tracking when date changes ────────────────────────────
+  useEffect(() => {
+    autoFilledRef.current = false;
+    setAutoFilledBalance(false);
+    userEditingRef.current = false;
+  }, [date]);
+
+  // ── Load entry from server (guarded — won't overwrite active typing) ───────
   useEffect(() => {
     if (entryLoading) return;
+
     const isNewDate = loadedDateRef.current !== date;
     loadedDateRef.current = date;
+
     if (entry) {
+      // If user is actively typing and it's not a date navigation, preserve their input
+      if (userEditingRef.current && !isNewDate) return;
+
+      setAutoFilledBalance(false);
       setFields({
-        openingBalance: entry.openingBalance || 0,
-        notes10: entry.notes10 || 0, notes20: entry.notes20 || 0, notes50: entry.notes50 || 0,
-        notes100: entry.notes100 || 0, notes200: entry.notes200 || 0, notes500: entry.notes500 || 0,
-        coins: entry.coins || 0, bobSaving: entry.bobSaving || 0, bobCurrent: entry.bobCurrent || 0,
-        hdfc: entry.hdfc || 0, kotak: entry.kotak || 0, au: entry.au || 0, sbi: entry.sbi || 0,
-        aepsBob: entry.aepsBob || 0, aepsFino: entry.aepsFino || 0,
-        aepsPayworld: entry.aepsPayworld || 0, aepsDigipay: entry.aepsDigipay || 0,
+        openingBalance: pf(entry.openingBalance),
+        notes10: pf(entry.notes10), notes20: pf(entry.notes20), notes50: pf(entry.notes50),
+        notes100: pf(entry.notes100), notes200: pf(entry.notes200), notes500: pf(entry.notes500),
+        coins: pf(entry.coins), bobSaving: pf(entry.bobSaving), bobCurrent: pf(entry.bobCurrent),
+        hdfc: pf(entry.hdfc), kotak: pf(entry.kotak), au: pf(entry.au), sbi: pf(entry.sbi),
+        aepsBob: pf(entry.aepsBob), aepsFino: pf(entry.aepsFino),
+        aepsPayworld: pf(entry.aepsPayworld), aepsDigipay: pf(entry.aepsDigipay),
       });
     } else if (isNewDate) {
-      setFields({ openingBalance: 0, notes10: 0, notes20: 0, notes50: 0, notes100: 0, notes200: 0, notes500: 0, coins: 0, bobSaving: 0, bobCurrent: 0, hdfc: 0, kotak: 0, au: 0, sbi: 0, aepsBob: 0, aepsFino: 0, aepsPayworld: 0, aepsDigipay: 0 });
+      // Clear fields when navigating to a new date with no entry
+      setFields(emptyFields);
     }
   }, [entry, entryLoading, date]);
 
+  // ── Auto-fill opening balance from previous day ───────────────────────────
+  useEffect(() => {
+    // Only auto-fill if:
+    // 1. No existing entry for this date
+    // 2. Previous balance data is ready
+    // 3. We haven't already auto-filled for this date
+    // 4. User isn't manually editing the opening balance
+    if (entryLoading) return;
+    if (entry) return;                      // existing entry — don't override
+    if (!prevBalanceData) return;           // prev data not ready
+    if (autoFilledRef.current) return;      // already auto-filled
+    if (userEditingRef.current) return;     // user is typing
+
+    autoFilledRef.current = true;
+    const prevBal = pf(prevBalanceData.balance);
+    setFields((prev) => ({ ...prev, openingBalance: prevBal }));
+    setAutoFilledBalance(prevBal > 0);
+  }, [prevBalanceData, entry, entryLoading]);
+
+  // ── Save entry to server ──────────────────────────────────────────────────
   const saveEntry = useCallback(async (data: typeof fields) => {
     if (!pin) return;
     setSaveStatus("saving");
     try {
-      const res = await fetch(`/api/dailyamount/entry/${date}`, {
+      await fetch(`/api/dailyamount/entry/${date}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-da-pin": pin },
         body: JSON.stringify(data),
       });
-      if (res.ok) {
-        const saved = await res.json();
-        qc.setQueryData(["/api/dailyamount/entry", date], saved);
-        loadedDateRef.current = date;
-      }
       setSaveStatus("saved");
       setLastSaved(new Date());
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch {
       setSaveStatus("idle");
     }
-  }, [pin, date, qc]);
+    // NOTE: We deliberately do NOT call qc.setQueryData here.
+    // Updating the cache would trigger the entry useEffect, which would
+    // call setFields and overwrite any in-progress keystrokes (e.g. "100." → "100").
+  }, [pin, date]);
 
+  // ── Debounced save — 800ms after last keystroke ───────────────────────────
   const debouncedSave = useCallback((data: typeof fields) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => saveEntry(data), 500);
+    saveTimer.current = setTimeout(() => saveEntry(data), 800);
   }, [saveEntry]);
 
+  // ── Update a field: mark user as editing, update state, schedule save ─────
   function updateField(key: keyof typeof fields, value: number) {
     if (!editUnlocked) return;
+
+    // Mark user as actively editing — blocks server data from overwriting state
+    userEditingRef.current = true;
+    if (editingResetTimer.current) clearTimeout(editingResetTimer.current);
+    editingResetTimer.current = setTimeout(() => {
+      userEditingRef.current = false;
+    }, 2000); // 2s after last keystroke, allow server updates again
+
+    // If user manually edits opening balance, clear the auto-filled label
+    if (key === "openingBalance") {
+      setAutoFilledBalance(false);
+      autoFilledRef.current = true; // prevent re-auto-fill
+    }
+
     const updated = { ...fields, [key]: value };
     setFields(updated);
     debouncedSave(updated);
   }
 
+  // ── Flush on page unload ──────────────────────────────────────────────────
   useEffect(() => {
     const handleUnload = () => {
       if (!pin) return;
@@ -272,12 +359,13 @@ export default function DailyAmount() {
     return () => window.removeEventListener("beforeunload", handleUnload);
   }, [pin, date, fields]);
 
+  // ── Transaction mutations ─────────────────────────────────────────────────
   const currentDate = date;
 
   const addTxMutation = useMutation({
     mutationFn: async () => {
       if (!pin) throw new Error("No PIN");
-      const amount = parseFloat(txAmount);
+      const amount = pf(txAmount);
       if (!amount || amount <= 0) throw new Error("Invalid amount");
       const res = await fetch("/api/dailyamount/transactions", {
         method: "POST",
@@ -350,7 +438,7 @@ export default function DailyAmount() {
     setEditUnlocked(false);
   }
 
-  // ── Calculations ─────────────────────────────────────────────────────────
+  // ── Calculations (all decimal-safe with parseFloat) ───────────────────────
   const cashTotal =
     fields.notes10 * 10 + fields.notes20 * 20 + fields.notes50 * 50 +
     fields.notes100 * 100 + fields.notes200 * 200 + fields.notes500 * 500 + fields.coins;
@@ -358,8 +446,8 @@ export default function DailyAmount() {
   const aepsTotal = fields.aepsBob + fields.aepsFino + fields.aepsPayworld + fields.aepsDigipay;
   const systemBalance = cashTotal + bankTotal + aepsTotal;
   const txArray = Array.isArray(transactions) ? transactions : [];
-  const incomeTotal = txArray.filter((t) => t.type === "income").reduce((s, t) => s + (t.amount || 0), 0);
-  const expenseTotal = txArray.filter((t) => t.type === "expense").reduce((s, t) => s + (t.amount || 0), 0);
+  const incomeTotal = txArray.filter((t) => t.type === "income").reduce((s, t) => s + pf(t.amount), 0);
+  const expenseTotal = txArray.filter((t) => t.type === "expense").reduce((s, t) => s + pf(t.amount), 0);
   const expectedBalance = fields.openingBalance + incomeTotal - expenseTotal;
   const difference = systemBalance - expectedBalance;
   const isBalanced = Math.abs(difference) < 0.01;
@@ -378,7 +466,6 @@ export default function DailyAmount() {
         className="shrink-0 flex items-center gap-3 px-4 h-12"
         style={{ background: "rgba(10,14,26,0.95)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
       >
-        {/* Title */}
         <span className="text-white font-bold text-sm shrink-0 hidden sm:block">Daily Reconciliation</span>
         <div className="hidden sm:block w-px h-4 bg-white/10 shrink-0" />
 
@@ -404,7 +491,7 @@ export default function DailyAmount() {
         </div>
 
         {/* Save Status */}
-        <div className="shrink-0 hidden md:flex items-center">
+        <div className="shrink-0 hidden md:flex items-center min-w-[100px] justify-end">
           {saveStatus === "saving" && <span className="text-xs text-yellow-400 flex items-center gap-1"><Loader2 size={10} className="animate-spin" />Saving…</span>}
           {saveStatus === "saved" && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle size={10} />Saved</span>}
           {saveStatus === "idle" && lastSaved && <span className="text-xs text-slate-600">{lastSaved.toLocaleTimeString()}</span>}
@@ -431,7 +518,6 @@ export default function DailyAmount() {
       </header>
 
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
-      {/* Mobile: normal scroll. Desktop: fixed height 3-col grid */}
       <div className="flex-1 overflow-y-auto lg:overflow-hidden p-2.5 lg:p-3">
         <div className="h-full flex flex-col gap-2.5 lg:grid lg:gap-3" style={{ gridTemplateColumns: "1fr 1fr 1.05fr" }}>
 
@@ -452,7 +538,7 @@ export default function DailyAmount() {
                   );
                 })}
 
-                {/* Coins row */}
+                {/* Coins */}
                 <div className="flex items-center gap-2 py-1 mt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="w-14 shrink-0 text-center">
                     <span className="text-xs font-bold text-slate-200 bg-slate-700/80 rounded px-1.5 py-0.5">Coins</span>
@@ -463,8 +549,10 @@ export default function DailyAmount() {
                     <input
                       data-testid="input-coins"
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={fields.coins || ""}
-                      onChange={(e) => updateField("coins", parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateField("coins", pf(e.target.value))}
                       disabled={!editUnlocked}
                       placeholder="0"
                       className="w-20 bg-transparent text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-40"
@@ -488,28 +576,36 @@ export default function DailyAmount() {
             </Card>
           </div>
 
-          {/* ══ COLUMN 2 — Opening / Banks / AEPS / System Balance ════════ */}
+          {/* ══ COLUMN 2 — Opening Balance / Banks / AEPS / System Balance ═ */}
           <div className="lg:h-full lg:overflow-y-auto lg:overflow-x-hidden flex flex-col gap-2.5 lg:gap-3">
 
-            {/* Opening Balance */}
+            {/* Opening Balance — with auto-fill indicator */}
             <div className="rounded-xl overflow-hidden shrink-0" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <div className="px-3 py-2 flex items-center gap-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}>
                 <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#d4af37" }} />
                 <h3 className="text-xs font-bold text-white tracking-widest uppercase flex-1">Opening Balance</h3>
-                <div className="relative">
+                <div className="relative shrink-0">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
                   <input
                     data-testid="input-opening-balance"
                     type="number"
+                    step="0.01"
+                    min="0"
                     value={fields.openingBalance || ""}
-                    onChange={(e) => updateField("openingBalance", parseFloat(e.target.value) || 0)}
+                    onChange={(e) => updateField("openingBalance", pf(e.target.value))}
                     disabled={!editUnlocked}
                     placeholder="0"
                     className="w-32 bg-transparent text-yellow-400 text-right rounded-lg px-2 pl-6 py-1 text-sm font-bold outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ border: "1px solid rgba(212,175,55,0.25)" }}
+                    style={{ border: `1px solid ${autoFilledBalance ? "rgba(212,175,55,0.4)" : "rgba(212,175,55,0.25)"}` }}
                   />
                 </div>
               </div>
+              {autoFilledBalance && (
+                <div className="px-3 py-1.5 flex items-center gap-1.5" style={{ background: "rgba(212,175,55,0.06)", borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
+                  <Sparkles size={10} className="text-yellow-500 shrink-0" />
+                  <span className="text-xs text-yellow-600">Auto-filled from previous day</span>
+                </div>
+              )}
             </div>
 
             {/* Bank Balances */}
@@ -586,7 +682,7 @@ export default function DailyAmount() {
           {/* ══ COLUMN 3 — Transactions + Reconciliation ══════════════════ */}
           <div className="lg:h-full lg:overflow-hidden flex flex-col gap-2.5 lg:gap-3">
 
-            {/* Transactions card — flex-1 so it fills remaining space */}
+            {/* Transactions card */}
             <div className="flex-1 rounded-xl overflow-hidden flex flex-col min-h-0" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <div className="px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}>
                 <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#f97316" }} />
@@ -628,6 +724,8 @@ export default function DailyAmount() {
                         <input
                           data-testid="input-tx-amount"
                           type="number"
+                          step="0.01"
+                          min="0"
                           value={txAmount}
                           onChange={(e) => setTxAmount(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && txAmount && addTxMutation.mutate()}
@@ -689,7 +787,7 @@ export default function DailyAmount() {
                             <p className="text-slate-600 text-xs">{new Date(tx.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
                           </div>
                           <span className={`text-xs font-bold font-mono shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
-                            {tx.type === "income" ? "+" : "−"}₹{fmt(tx.amount)}
+                            {tx.type === "income" ? "+" : "−"}₹{fmt(pf(tx.amount))}
                           </span>
                           {editUnlocked && (
                             <button
@@ -710,7 +808,7 @@ export default function DailyAmount() {
 
             {/* Reconciliation Summary */}
             <div className="shrink-0 rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="grid grid-cols-2 divide-x" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              <div className="grid grid-cols-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="p-3">
                   <p className="text-xs text-slate-500 mb-0.5">Expected Balance</p>
                   <p className="text-sm font-bold text-white font-mono">₹{fmt(expectedBalance)}</p>
@@ -724,7 +822,10 @@ export default function DailyAmount() {
               </div>
               <div
                 className="px-3 py-2.5 flex items-center justify-between"
-                style={{ background: isBalanced ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", borderTop: `1px solid ${isBalanced ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}` }}
+                style={{
+                  background: isBalanced ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
+                  borderTop: `1px solid ${isBalanced ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`,
+                }}
               >
                 <div>
                   <p className="text-xs text-slate-500">Difference</p>
@@ -742,6 +843,7 @@ export default function DailyAmount() {
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
