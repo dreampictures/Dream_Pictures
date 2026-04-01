@@ -654,6 +654,10 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
   const todayExpense = expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
   const monthExpense = expenses.filter(e => e.date.startsWith(month)).reduce((s, e) => s + e.amount, 0);
   const monthProfit = monthIncome - monthExpense;
+  const year = new Date().getFullYear().toString();
+  const yearIncome = payments.filter(p => p.paymentDate.startsWith(year)).reduce((s, p) => s + p.amount, 0);
+  const yearExpense = expenses.filter(e => e.date.startsWith(year)).reduce((s, e) => s + e.amount, 0);
+  const yearProfit = yearIncome - yearExpense;
   const birthdays = clients.filter(c => { const d = daysUntil(c.dob); return d !== null && d <= 30; }).sort((a, b) => (daysUntil(a.dob) ?? 99) - (daysUntil(b.dob) ?? 99));
   const anniversaries = clients.filter(c => { const d = daysUntil(c.anniversary); return d !== null && d <= 30; }).sort((a, b) => (daysUntil(a.anniversary) ?? 99) - (daysUntil(b.anniversary) ?? 99));
 
@@ -715,7 +719,7 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
           </div>
         </div>
         <h2 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Monthly Finance</h2>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <div data-testid="card-stat-monthly-income" className="bg-green-950/40 border border-green-800/40 rounded-xl p-3 text-center">
             <div className="text-base font-bold text-green-400">{fmtCur(monthIncome)}</div>
             <div className="text-green-300 text-xs mt-0.5 uppercase tracking-wider">Income</div>
@@ -727,6 +731,21 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
           <div data-testid="card-stat-monthly-profit" className={`border rounded-xl p-3 text-center ${monthProfit >= 0 ? "bg-teal-950/40 border-teal-800/40" : "bg-red-950/40 border-red-800/40"}`}>
             <div className={`text-base font-bold ${monthProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>{fmtCur(monthProfit)}</div>
             <div className={`text-xs mt-0.5 uppercase tracking-wider ${monthProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>Profit</div>
+          </div>
+        </div>
+        <h2 className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Yearly Finance ({year})</h2>
+        <div className="grid grid-cols-3 gap-2">
+          <div data-testid="card-stat-yearly-income" className="bg-green-950/60 border border-green-700/50 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-green-300">{fmtCur(yearIncome)}</div>
+            <div className="text-green-400 text-xs mt-0.5 uppercase tracking-wider">Income</div>
+          </div>
+          <div data-testid="card-stat-yearly-expense" className="bg-red-950/60 border border-red-700/50 rounded-xl p-3 text-center">
+            <div className="text-base font-bold text-red-300">{fmtCur(yearExpense)}</div>
+            <div className="text-red-400 text-xs mt-0.5 uppercase tracking-wider">Expense</div>
+          </div>
+          <div data-testid="card-stat-yearly-profit" className={`border rounded-xl p-3 text-center ${yearProfit >= 0 ? "bg-teal-950/60 border-teal-700/50" : "bg-red-950/60 border-red-700/50"}`}>
+            <div className={`text-base font-bold ${yearProfit >= 0 ? "text-teal-300" : "text-red-300"}`}>{fmtCur(yearProfit)}</div>
+            <div className={`text-xs mt-0.5 uppercase tracking-wider ${yearProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>Profit</div>
           </div>
         </div>
       </div>
