@@ -1327,8 +1327,9 @@ function PaymentsTab({ clients, works, payments, onCreatePayment, onUpdatePaymen
 
 // ─── History Tab ──────────────────────────────────────────────────────────────
 
-function HistoryTab({ works, onDeleteWork, onUpdateWork, saving }: {
+function HistoryTab({ works, payments, onDeleteWork, onUpdateWork, saving }: {
   works: CrmWork[];
+  payments: CrmPayment[];
   onDeleteWork: (id: number) => void;
   onUpdateWork: (id: number, data: any) => void;
   saving: boolean;
@@ -1382,7 +1383,14 @@ function HistoryTab({ works, onDeleteWork, onUpdateWork, saving }: {
                   <td className="p-3 hidden sm:table-cell"><StageBadge stage={w.workStage} /></td>
                   <td className="p-3 text-right text-zinc-200">{fmtCur(w.totalPrice)}</td>
                   <td className="p-3 text-right text-green-400 hidden sm:table-cell">{fmtCur(w.advancePaid)}</td>
-                  <td className="p-3 text-right text-zinc-400 hidden sm:table-cell">{fmtCur(w.totalPrice - w.advancePaid)}</td>
+                  <td className="p-3 text-right hidden sm:table-cell">
+                    {(() => {
+                      const bal = getWorkBalance(w, payments);
+                      return bal === 0
+                        ? <span className="text-green-500 font-semibold text-xs">✓ Cleared</span>
+                        : <span className="text-orange-400 font-semibold">{fmtCur(bal)}</span>;
+                    })()}
+                  </td>
                   <td className="p-3 text-zinc-500 text-xs">{fmtDate(w.workDate)}</td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -1577,6 +1585,7 @@ export default function AdminCRM() {
         {tab === "history" && (
           <HistoryTab
             works={works}
+            payments={payments}
             onDeleteWork={id => deleteWork.mutate(id)}
             onUpdateWork={(id, data) => updateHistoryWork.mutate({ id, data })}
             saving={anyMutSaving}
