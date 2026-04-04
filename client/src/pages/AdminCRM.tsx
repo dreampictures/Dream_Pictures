@@ -676,7 +676,16 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
         <QuickPaymentModal
           work={payingWork}
           balance={getWorkBalance(payingWork, payments)}
-          onSave={d => { onRecordPayment(d); setPayingWork(null); setSavingPayment(false); }}
+          onSave={d => {
+            const bal = getWorkBalance(payingWork, payments);
+            onRecordPayment(d);
+            // Auto-mark as done when full balance is cleared and work is still pending
+            if (d.amount >= bal - 0.01 && payingWork.status === "pending") {
+              onMarkDone(payingWork);
+            }
+            setPayingWork(null);
+            setSavingPayment(false);
+          }}
           onClose={() => setPayingWork(null)}
           saving={savingPayment}
         />
