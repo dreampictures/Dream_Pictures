@@ -6,10 +6,282 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Oxanium:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Oxanium:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,opsz,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <style>
+      /* ═══════════════════════════════════════════════════════
+         PRELOADER — DREAM PICTURES
+         Layer order (back → front):
+           1. #preloader-bg   full black background
+           2. #shutter-top    top sliding panel
+           3. #shutter-bottom bottom sliding panel
+           4. #preloader-content  brand text (always on top)
+         ═══════════════════════════════════════════════════════ */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      #preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        overflow: hidden;
+      }
+
+      /* ── Solid black background ─────────────────────────── */
+      #preloader-bg {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        z-index: 1;
+      }
+
+      /* ── Shutter panels (slide on top of bg, under text) ── */
+      #shutter-top,
+      #shutter-bottom {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 50%;
+        background: #000;
+        z-index: 2;
+        transition: transform 0.7s cubic-bezier(0.77, 0, 0.18, 1);
+        will-change: transform;
+      }
+      #shutter-top    { top: 0;    transform: translateY(0); }
+      #shutter-bottom { bottom: 0; transform: translateY(0); }
+
+      /* open state — triggered by JS */
+      #preloader.open #shutter-top    { transform: translateY(-100%); }
+      #preloader.open #shutter-bottom { transform: translateY(100%); }
+
+      /* ── Brand content (always above panels) ───────────── */
+      #preloader-content {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.35s ease;
+      }
+      #preloader.open #preloader-content {
+        opacity: 0;
+      }
+
+      /* ── Aperture ring ──────────────────────────────────── */
+      .dp-aperture {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(212,175,55,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 26px;
+        position: relative;
+        opacity: 0;
+        animation: dp-fadein 0.7s ease 0.15s forwards;
+      }
+      .dp-aperture::before {
+        content: '';
+        position: absolute;
+        inset: 7px;
+        border-radius: 50%;
+        border: 1px solid rgba(212,175,55,0.12);
+      }
+      .dp-aperture-dot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #f0c040, #a07820);
+        box-shadow: 0 0 20px 6px rgba(212,175,55,0.5);
+        animation: dp-pulse 2.2s ease-in-out 0.85s infinite;
+      }
+      /* Spinning ring decoration */
+      .dp-spin-ring {
+        position: absolute;
+        inset: -1px;
+        border-radius: 50%;
+        animation: dp-spin 10s linear infinite;
+      }
+      .dp-spin-ring::before,
+      .dp-spin-ring::after {
+        content: '';
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #d4af37;
+        opacity: 0.5;
+      }
+      .dp-spin-ring::before { top: 2px; left: 50%; transform: translateX(-50%); }
+      .dp-spin-ring::after  { bottom: 2px; left: 50%; transform: translateX(-50%); }
+
+      /* ── Brand name ─────────────────────────────────────── */
+      .dp-brand {
+        text-align: center;
+        opacity: 0;
+        transform: scale(0.86) translateY(6px);
+        animation: dp-reveal 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.38s forwards;
+      }
+      .dp-dream {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: clamp(2.8rem, 9vw, 4.8rem);
+        letter-spacing: 0.2em;
+        line-height: 1;
+        background: linear-gradient(135deg, #f5d060 0%, #d4af37 45%, #9a6e10 75%, #d4af37 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 22px rgba(212,175,55,0.6));
+      }
+      .dp-pictures {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-weight: 300;
+        font-size: clamp(0.75rem, 2.2vw, 0.95rem);
+        letter-spacing: 0.58em;
+        color: rgba(255,255,255,0.65);
+        margin-top: 6px;
+        text-transform: uppercase;
+        padding-left: 0.58em; /* compensate for letter-spacing so it centers */
+      }
+
+      /* ── Divider line ───────────────────────────────────── */
+      .dp-line {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%);
+        margin-top: 16px;
+        animation: dp-linegrow 1.1s ease 0.85s forwards;
+      }
+
+      /* ── Tagline ────────────────────────────────────────── */
+      .dp-tagline {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-size: clamp(0.58rem, 1.4vw, 0.68rem);
+        letter-spacing: 0.26em;
+        color: rgba(212,175,55,0.4);
+        text-transform: uppercase;
+        margin-top: 14px;
+        opacity: 0;
+        animation: dp-fadein 0.8s ease 1.05s forwards;
+      }
+
+      /* ── Progress bar ───────────────────────────────────── */
+      .dp-progress-track {
+        width: clamp(120px, 28vw, 200px);
+        height: 1.5px;
+        background: rgba(255,255,255,0.07);
+        border-radius: 2px;
+        margin-top: 26px;
+        overflow: hidden;
+        opacity: 0;
+        animation: dp-fadein 0.5s ease 0.75s forwards;
+      }
+      .dp-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #9a6e10, #f0c040, #d4af37);
+        animation: dp-progress 2.1s cubic-bezier(0.4, 0, 0.2, 1) 0.75s forwards;
+      }
+
+      /* ── Keyframes ──────────────────────────────────────── */
+      @keyframes dp-fadein {
+        to { opacity: 1; }
+      }
+      @keyframes dp-reveal {
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      @keyframes dp-pulse {
+        0%, 100% { box-shadow: 0 0 20px 6px rgba(212,175,55,0.5); }
+        50%       { box-shadow: 0 0 36px 12px rgba(212,175,55,0.75); }
+      }
+      @keyframes dp-spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes dp-linegrow {
+        0%   { width: 0;    opacity: 0; }
+        30%  { opacity: 1; }
+        100% { width: clamp(160px, 36vw, 260px); opacity: 0.7; }
+      }
+      @keyframes dp-progress {
+        0%   { width: 0%; }
+        55%  { width: 72%; }
+        80%  { width: 90%; }
+        100% { width: 100%; }
+      }
+    </style>
   </head>
   <body>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PRELOADER
+         ═══════════════════════════════════════════════════════ -->
+    <div id="preloader">
+      <div id="preloader-bg"></div>
+      <div id="shutter-top"></div>
+      <div id="shutter-bottom"></div>
+
+      <div id="preloader-content">
+        <!-- Aperture -->
+        <div class="dp-aperture">
+          <div class="dp-spin-ring"></div>
+          <div class="dp-aperture-dot"></div>
+        </div>
+
+        <!-- Brand -->
+        <div class="dp-brand">
+          <div class="dp-dream">DREAM</div>
+          <div class="dp-pictures">P &nbsp; I &nbsp; C &nbsp; T &nbsp; U &nbsp; R &nbsp; E &nbsp; S</div>
+        </div>
+
+        <!-- Divider -->
+        <div class="dp-line"></div>
+
+        <!-- Tagline -->
+        <div class="dp-tagline">Capturing Moments &nbsp;·&nbsp; Creating Memories</div>
+
+        <!-- Progress -->
+        <div class="dp-progress-track">
+          <div class="dp-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         APP ROOT
+         ═══════════════════════════════════════════════════════ -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <script>
+      (function () {
+        var el = document.getElementById('preloader');
+        if (!el) return;
+
+        // Trigger shutter + fade after 2.5s
+        var t1 = setTimeout(function () {
+          el.classList.add('open');
+
+          // Remove from DOM after shutter transition (0.7s)
+          var t2 = setTimeout(function () {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+          }, 750);
+        }, 2500);
+
+        // Safety fallback: always remove by 5s
+        setTimeout(function () {
+          clearTimeout(t1);
+          if (el) {
+            el.classList.add('open');
+            setTimeout(function () {
+              if (el && el.parentNode) el.parentNode.removeChild(el);
+            }, 750);
+          }
+        }, 5000);
+      })();
+    </script>
+
   </body>
 </html>
