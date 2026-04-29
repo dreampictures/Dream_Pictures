@@ -43,6 +43,22 @@ function waLink(phone: string, msg: string) {
   const p = num.startsWith("91") ? num : `91${num}`;
   return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
 }
+function safeName(name: string | null | undefined) {
+  const n = (name || "").trim();
+  return n.length > 0 ? n : "Dear Client";
+}
+function birthdayMsg(name: string | null | undefined) {
+  return `🎉Happy Birthday ${safeName(name)}! 
+Wishing you success, happiness & a great year ahead.
+Thanks for your trust! 🙏 
+From: Dream Pictures`;
+}
+function anniversaryMsg(name: string | null | undefined) {
+  return `💐Happy Anniversary ${safeName(name)}! 
+Wishing you love, joy & many beautiful years together.
+Thanks for your trust! 🙏 
+From: Dream Pictures`;
+}
 function dlCSV(rows: (string | number)[][], filename: string) {
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv" })), download: filename });
@@ -865,7 +881,7 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-blue-400 font-bold text-sm">{d === 0 ? "Today!" : `${d}d`}</div>
-                    <a href={waLink(c.phone, `Happy Birthday from Dream Pictures 🎉`)} target="_blank" rel="noreferrer" data-testid={`button-wa-birthday-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
+                    <a href={waLink(c.phone, birthdayMsg(c.name))} target="_blank" rel="noreferrer" data-testid={`button-wa-birthday-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
                   </div>
                 </div>
               );
@@ -889,7 +905,7 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-pink-400 font-bold text-sm">{d === 0 ? "Today!" : `${d}d`}</div>
-                    <a href={waLink(c.phone, `Happy Anniversary from Dream Pictures 💐`)} target="_blank" rel="noreferrer" data-testid={`button-wa-anniversary-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
+                    <a href={waLink(c.phone, anniversaryMsg(c.name))} target="_blank" rel="noreferrer" data-testid={`button-wa-anniversary-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
                   </div>
                 </div>
               );
