@@ -137,22 +137,98 @@ export async function registerRoutes(
   });
 
   app.get(api.albums.get.path, async (req, res) => {
-    const code = req.params.code;
+    const requestedCode = req.params.code;
+    const r2Client = getR2Client();
+    const bucket = process.env.R2_BUCKET_NAME || "albums";
+
     try {
+      // Preferred path: query R2 directly so we work regardless of
+      // case, file-naming scheme, or CDN HEAD-request quirks.
+      if (r2Client) {
+        // 1. Find the actual folder name (case-insensitive match)
+        const folderListRes = await r2Client.send(
+          new ListObjectsV2Command({ Bucket: bucket, Delimiter: "/" })
+        );
+        const folders = (folderListRes.CommonPrefixes || [])
+          .map((p) => p.Prefix?.replace(/\/$/, "") || "")
+          .filter(Boolean);
+
+        const actualFolder =
+          folders.find((f) => f === requestedCode) ||
+          folders.find(
+            (f) => f.toLowerCase() === requestedCode.toLowerCase()
+          );
+
+        if (!actualFolder) {
+          return res.status(404).json({
+            message:
+              "Your album is being prepared. Please contact Dream Pictures.",
+          });
+        }
+
+        // 2. List every image inside that folder
+        const objectsRes = await r2Client.send(
+          new ListObjectsV2Command({
+            Bucket: bucket,
+            Prefix: `${actualFolder}/`,
+          })
+        );
+
+        const imageKeys = (objectsRes.Contents || [])
+          .map((obj) => obj.Key || "")
+          .filter((k) => /\.(jpe?g|png|webp|avif)$/i.test(k));
+
+        if (imageKeys.length === 0) {
+          return res.status(404).json({
+            message:
+              "Your album is being prepared. Please contact Dream Pictures.",
+          });
+        }
+
+        // 3. Natural-sort by trailing number so 1,2,…,10 work as well as 001,002,…,010
+        imageKeys.sort((a, b) => {
+          const getNum = (s: string) => {
+            const m = s.match(/(\d+)\.[A-Za-z]+$/);
+            return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+          };
+          const nA = getNum(a);
+          const nB = getNum(b);
+          if (nA !== nB) return nA - nB;
+          return a.localeCompare(b);
+        });
+
+        const pages = imageKeys.map((key) => `${CDN_BASE_URL}/${key}`);
+        return res.json({
+          code: actualFolder.toLowerCase(),
+          pages,
+          totalPages: pages.length,
+        });
+      }
+
+      // ─── Fallback: CDN HEAD-probe (only if R2 isn't configured) ────
+      const code = requestedCode.toLowerCase();
       const firstUrl = `${CDN_BASE_URL}/${code}/001.jpg`;
       let firstResponse: Response;
       try {
         firstResponse = await fetch(firstUrl, {
-          method: 'HEAD',
+          method: "HEAD",
           signal: AbortSignal.timeout(8000),
         });
       } catch (fetchErr: any) {
-        console.error(`Album CDN fetch failed for "${code}":`, fetchErr?.message ?? fetchErr);
-        return res.status(503).json({ message: "Could not reach the image server. Please try again." });
+        console.error(
+          `Album CDN fetch failed for "${code}":`,
+          fetchErr?.message ?? fetchErr
+        );
+        return res
+          .status(503)
+          .json({ message: "Could not reach the image server. Please try again." });
       }
 
       if (!firstResponse.ok) {
-        return res.status(404).json({ message: "Your album is being prepared. Please contact Dream Pictures." });
+        return res.status(404).json({
+          message:
+            "Your album is being prepared. Please contact Dream Pictures.",
+        });
       }
 
       let pageCount = 1;
@@ -168,8 +244,8 @@ export async function registerRoutes(
           if (checkNum > MAX_PAGES) break;
           const url = `${CDN_BASE_URL}/${code}/${padPageNumber(checkNum)}.jpg`;
           promises.push(
-            fetch(url, { method: 'HEAD' })
-              .then(r => ({ num: checkNum, ok: r.ok }))
+            fetch(url, { method: "HEAD" })
+              .then((r) => ({ num: checkNum, ok: r.ok }))
               .catch(() => ({ num: checkNum, ok: false }))
           );
         }
@@ -185,8 +261,9 @@ export async function registerRoutes(
         currentCheck += batchSize;
       }
 
-      const pages = Array.from({ length: pageCount }, (_, i) => 
-        `${CDN_BASE_URL}/${code}/${padPageNumber(i + 1)}.jpg`
+      const pages = Array.from(
+        { length: pageCount },
+        (_, i) => `${CDN_BASE_URL}/${code}/${padPageNumber(i + 1)}.jpg`
       );
       res.json({ code, pages, totalPages: pageCount });
     } catch (error) {
