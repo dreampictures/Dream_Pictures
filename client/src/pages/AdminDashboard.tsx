@@ -724,7 +724,7 @@ export default function AdminDashboard() {
                 In-memory · resets on deploy · no personal data stored
               </p>
             </div>
-            <AnalyticsPanel />
+            <AnalyticsPanel isActive={activeTab === "analytics"} />
           </TabsContent>
         </Tabs>
       </div>
@@ -743,10 +743,11 @@ interface AnalyticsData {
   startedAt: string;
 }
 
-function AnalyticsPanel() {
+function AnalyticsPanel({ isActive }: { isActive: boolean }) {
   const { data, isLoading, refetch } = useQuery<AnalyticsData>({
     queryKey: ["/api/admin/analytics"],
-    refetchInterval: 30000,
+    enabled: isActive,
+    refetchInterval: isActive ? 30000 : false,
   });
 
   if (isLoading || !data) {
