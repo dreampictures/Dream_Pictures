@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { BarChart2 } from "lucide-react";
 import {
   Users,
   MessageSquare,
@@ -414,6 +415,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="albums" className="gap-2">
               <Users className="w-4 h-4" /> Album Manager
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart2 className="w-4 h-4" /> Analytics
+            </TabsTrigger>
           </TabsList>
 
           {/* ── INQUIRIES ── */}
@@ -711,8 +715,188 @@ export default function AdminDashboard() {
               </div>
             )}
           </TabsContent>
+
+          {/* ── ANALYTICS ── */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div>
+              <h2 className="font-serif text-2xl">Website Analytics</h2>
+              <p className="text-white/40 text-xs uppercase tracking-widest mt-1">
+                In-memory · resets on deploy · no personal data stored
+              </p>
+            </div>
+            <AnalyticsPanel />
+          </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+// ─── Analytics Panel ──────────────────────────────────────────────────────────
+
+interface AnalyticsData {
+  totalVisits: number;
+  activeUsers: number;
+  pageVisits: Record<string, number>;
+  albumVisits: { code: string; visits: number }[];
+  scrollDepth: { scroll_25: number; scroll_50: number; scroll_75: number; scroll_100: number };
+  startedAt: string;
+}
+
+function AnalyticsPanel() {
+  const { data, isLoading, refetch } = useQuery<AnalyticsData>({
+    queryKey: ["/api/admin/analytics"],
+    refetchInterval: 30000,
+  });
+
+  if (isLoading || !data) {
+    return (
+      <div className="text-center py-16 text-white/30">
+        <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin opacity-40" />
+        <p className="text-sm uppercase tracking-widest">Loading analytics…</p>
+      </div>
+    );
+  }
+
+  const sinceDate = (() => {
+    try {
+      return new Date(data.startedAt).toLocaleDateString("en-IN", {
+        day: "2-digit", month: "short", year: "numeric",
+      });
+    } catch { return ""; }
+  })();
+
+  const pageEntries = Object.entries(data.pageVisits).sort((a, b) => b[1] - a[1]);
+  const maxPage = pageEntries[0]?.[1] || 1;
+  const maxScroll = data.scrollDepth.scroll_25 || 1;
+  const scrollPct = (n: number) => Math.round((n / maxScroll) * 100);
+
+  return (
+    <div className="space-y-6">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <p className="text-white/30 text-xs">
+          Tracking since {sinceDate}
+        </p>
+        <Button
+          variant="outline" size="sm"
+          className="gap-2 border-white/10 hover:border-primary/40 text-white/50 hover:text-white text-xs"
+          onClick={() => refetch()}
+          data-testid="button-refresh-analytics"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Refresh
+        </Button>
+      </div>
+
+      {/* Top stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="bg-violet-950/20 border-violet-800/30" data-testid="card-analytics-visits">
+          <CardContent className="p-6 text-center">
+            <p className="text-4xl font-serif text-violet-300">{data.totalVisits.toLocaleString()}</p>
+            <p className="text-[11px] uppercase tracking-widest text-violet-400/70 mt-2">Total Visits</p>
+            <p className="text-white/20 text-xs mt-1">unique page loads</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-emerald-950/20 border-emerald-800/30" data-testid="card-analytics-active">
+          <CardContent className="p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <p className="text-4xl font-serif text-emerald-300">{data.activeUsers}</p>
+            </div>
+            <p className="text-[11px] uppercase tracking-widest text-emerald-400/70 mt-1">Active Now</p>
+            <p className="text-white/20 text-xs mt-1">last 5 minutes</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-white/[0.02] border-white/5" data-testid="card-analytics-pages">
+          <CardContent className="p-6 text-center">
+            <p className="text-4xl font-serif text-white/70">{pageEntries.length}</p>
+            <p className="text-[11px] uppercase tracking-widest text-white/30 mt-2">Pages Tracked</p>
+            <p className="text-white/20 text-xs mt-1">distinct paths visited</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Page visits + Scroll depth side by side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Page visits */}
+        <Card className="bg-white/[0.02] border-white/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-white/60 uppercase tracking-widest">
+              Page Visits
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pageEntries.length === 0 ? (
+              <p className="text-white/20 text-sm text-center py-4">No visits recorded yet.</p>
+            ) : pageEntries.slice(0, 8).map(([page, count]) => (
+              <div key={page} className="flex items-center gap-3">
+                <span className="text-white/50 text-xs w-20 truncate shrink-0">{page}</span>
+                <div className="flex-1 bg-white/5 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all"
+                    style={{ width: `${Math.round((count / maxPage) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-white/40 text-xs w-6 text-right shrink-0">{count}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Scroll depth */}
+        <Card className="bg-white/[0.02] border-white/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-white/60 uppercase tracking-widest">
+              Scroll Depth
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {([
+              { label: "25%", key: "scroll_25", color: "#a78bfa" },
+              { label: "50%", key: "scroll_50", color: "#818cf8" },
+              { label: "75%", key: "scroll_75", color: "#6366f1" },
+              { label: "100%", key: "scroll_100", color: "#4f46e5" },
+            ] as const).map(({ label, key, color }) => {
+              const count = data.scrollDepth[key];
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <span className="text-white/40 text-xs w-10 shrink-0">{label}</span>
+                  <div className="flex-1 bg-white/5 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${scrollPct(count)}%`, background: color }}
+                    />
+                  </div>
+                  <span className="text-white/40 text-xs w-6 text-right shrink-0">{count}</span>
+                </div>
+              );
+            })}
+            <p className="text-white/20 text-xs pt-1">Unique sessions reaching each scroll depth</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top albums */}
+      {data.albumVisits.length > 0 && (
+        <Card className="bg-white/[0.02] border-white/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-white/60 uppercase tracking-widest">
+              Top Albums Visited
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {data.albumVisits.map((a, i) => (
+                <div key={a.code} className="bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <span className="text-white/20 text-xs w-5 shrink-0">{i + 1}.</span>
+                  <span className="text-white text-sm font-medium truncate flex-1 capitalize">{a.code}</span>
+                  <span className="text-primary text-sm font-bold shrink-0">{a.visits}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
