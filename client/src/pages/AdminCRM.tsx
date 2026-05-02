@@ -939,10 +939,144 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
         </section>
       )}
 
+      {/* Website Analytics */}
+      <AnalyticsSection />
+
       {pending.length === 0 && pendingPay.length === 0 && birthdays.length === 0 && anniversaries.length === 0 && (
         <div className="text-center py-12 text-zinc-600">All clear — no alerts today.</div>
       )}
     </div>
+  );
+}
+
+// ─── Analytics Section ────────────────────────────────────────────────────────
+
+interface AnalyticsData {
+  totalVisits: number;
+  activeUsers: number;
+  pageVisits: Record<string, number>;
+  albumVisits: { code: string; visits: number }[];
+  scrollDepth: { scroll_25: number; scroll_50: number; scroll_75: number; scroll_100: number };
+  startedAt: string;
+}
+
+function AnalyticsSection() {
+  const { data, isLoading } = useQuery<AnalyticsData>({
+    queryKey: ["/api/admin/analytics"],
+    refetchInterval: 30000,
+  });
+
+  if (isLoading || !data) {
+    return (
+      <section>
+        <h2 className="text-violet-400 font-bold text-xs uppercase tracking-wider mb-3">Website Analytics</h2>
+        <div className="text-zinc-600 text-sm text-center py-6 bg-zinc-900/40 rounded-xl border border-zinc-800">Loading analytics…</div>
+      </section>
+    );
+  }
+
+  const sinceDate = (() => {
+    try { return new Date(data.startedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); }
+    catch { return ""; }
+  })();
+
+  const totalScrollReached = data.scrollDepth.scroll_25;
+  const scrollPct = (n: number) => totalScrollReached > 0 ? Math.round((n / totalScrollReached) * 100) : 0;
+
+  const pageEntries = Object.entries(data.pageVisits).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <section>
+      <h2 className="text-violet-400 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+        <span className="w-2 h-2 bg-violet-500 rounded-full animate-pulse inline-block" />
+        Website Analytics
+        <span className="text-zinc-600 font-normal normal-case tracking-normal">· since {sinceDate} · resets on deploy</span>
+      </h2>
+
+      {/* Top stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+        <div data-testid="card-analytics-visits" className="bg-violet-950/30 border border-violet-800/40 rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-violet-400">{data.totalVisits.toLocaleString()}</div>
+          <div className="text-violet-300 text-xs mt-1 uppercase tracking-wider">Total Visits</div>
+        </div>
+        <div data-testid="card-analytics-active" className="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-emerald-400">{data.activeUsers}</div>
+          <div className="text-emerald-300 text-xs mt-1 uppercase tracking-wider">Active Now</div>
+          <div className="text-zinc-600 text-xs mt-0.5">last 5 min</div>
+        </div>
+        <div data-testid="card-analytics-pages" className="bg-zinc-900/60 border border-zinc-700/40 rounded-xl p-4 text-center col-span-2 sm:col-span-1">
+          <div className="text-2xl font-bold text-zinc-300">{pageEntries.length}</div>
+          <div className="text-zinc-400 text-xs mt-1 uppercase tracking-wider">Pages Tracked</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Page visits breakdown */}
+        {pageEntries.length > 0 && (
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+            <div className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">Page Visits</div>
+            <div className="space-y-2">
+              {pageEntries.slice(0, 8).map(([page, count]) => {
+                const max = pageEntries[0]?.[1] || 1;
+                const w = Math.round((count / max) * 100);
+                return (
+                  <div key={page} className="flex items-center gap-2">
+                    <div className="text-zinc-300 text-xs w-20 truncate shrink-0">{page}</div>
+                    <div className="flex-1 bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="h-full bg-violet-500 rounded-full transition-all" style={{ width: `${w}%` }} />
+                    </div>
+                    <div className="text-zinc-400 text-xs w-7 text-right shrink-0">{count}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Scroll depth */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+          <div className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">Scroll Depth</div>
+          <div className="space-y-2">
+            {([25, 50, 75, 100] as const).map(m => {
+              const key = `scroll_${m}` as keyof typeof data.scrollDepth;
+              const count = data.scrollDepth[key];
+              return (
+                <div key={m} className="flex items-center gap-2">
+                  <div className="text-zinc-400 text-xs w-10 shrink-0">{m}%</div>
+                  <div className="flex-1 bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${scrollPct(count)}%`,
+                        background: m <= 25 ? "#a78bfa" : m <= 50 ? "#818cf8" : m <= 75 ? "#6366f1" : "#4f46e5",
+                      }}
+                    />
+                  </div>
+                  <div className="text-zinc-400 text-xs w-7 text-right shrink-0">{count}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-zinc-600 text-xs mt-3">Unique sessions per depth milestone</div>
+        </div>
+      </div>
+
+      {/* Top albums */}
+      {data.albumVisits.length > 0 && (
+        <div className="mt-4 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+          <div className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">Top Albums Visited</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {data.albumVisits.map((a, i) => (
+              <div key={a.code} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
+                <span className="text-zinc-600 text-xs w-4">{i + 1}.</span>
+                <span className="text-white text-xs font-medium truncate flex-1 capitalize">{a.code}</span>
+                <span className="text-amber-400 text-xs font-bold shrink-0">{a.visits}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

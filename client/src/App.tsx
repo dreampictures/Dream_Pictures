@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 // Layout & Pages
 import Navbar from "@/components/Navbar";
@@ -29,6 +30,7 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   const [location] = useLocation();
+  useAnalytics();
 
   // CRM page — no navbar or footer
   if (location.startsWith("/admin-work-secret")) {

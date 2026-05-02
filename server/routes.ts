@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { S3Client, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
+import { recordPageview, recordHeartbeat, recordScroll, getSnapshot } from "./analytics";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -776,6 +777,33 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch history" });
     }
+  });
+
+  // ─── Analytics (public — no personal data stored) ───────────────────────────
+  app.post("/api/analytics/pageview", (req, res) => {
+    const { sessionId, path } = req.body || {};
+    if (typeof sessionId === "string" && typeof path === "string") {
+      recordPageview(sessionId.slice(0, 64), path.slice(0, 200));
+    }
+    res.json({ ok: true });
+  });
+
+  app.post("/api/analytics/heartbeat", (req, res) => {
+    const { sessionId } = req.body || {};
+    if (typeof sessionId === "string") recordHeartbeat(sessionId.slice(0, 64));
+    res.json({ ok: true });
+  });
+
+  app.post("/api/analytics/scroll", (req, res) => {
+    const { sessionId, milestone } = req.body || {};
+    if (typeof sessionId === "string" && [25, 50, 75, 100].includes(Number(milestone))) {
+      recordScroll(sessionId.slice(0, 64), Number(milestone) as 25 | 50 | 75 | 100);
+    }
+    res.json({ ok: true });
+  });
+
+  app.get("/api/admin/analytics", (_req, res) => {
+    res.json(getSnapshot());
   });
 
   return httpServer;
