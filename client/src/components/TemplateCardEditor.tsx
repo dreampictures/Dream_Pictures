@@ -521,85 +521,290 @@ function drawBirthday(ctx: CanvasRenderingContext2D, f: Record<string, string>, 
 
 // ── ANNIVERSARY TEMPLATE ───────────────────────────────────────────────────────
 
-function drawAnniversary(ctx: CanvasRenderingContext2D, f: Record<string, string>) {
+function bigHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, color: string, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Glow
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + s * 0.35);
+  ctx.bezierCurveTo(cx, cy, cx - s, cy, cx - s, cy - s * 0.42);
+  ctx.bezierCurveTo(cx - s, cy - s * 1.05, cx, cy - s * 1.05, cx, cy - s * 0.42);
+  ctx.bezierCurveTo(cx, cy - s * 1.05, cx + s, cy - s * 1.05, cx + s, cy - s * 0.42);
+  ctx.bezierCurveTo(cx + s, cy, cx, cy, cx, cy + s * 0.35);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Highlight
+  ctx.fillStyle = "#ffffff";
+  ctx.globalAlpha = alpha * 0.22;
+  ctx.beginPath();
+  ctx.ellipse(cx - s * 0.28, cy - s * 0.55, s * 0.22, s * 0.15, -Math.PI / 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function heartBouquet(ctx: CanvasRenderingContext2D, bx: number, by: number) {
+  // Stems
+  ctx.save();
+  ctx.strokeStyle = "#c9a227";
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = 0.7;
+  const stems: [number, number, number, number, number, number][] = [
+    [bx + 30, by + 10, bx + 20, by + 60, bx + 10, by + 110],
+    [bx + 65, by, bx + 65, by + 60, bx + 65, by + 115],
+    [bx + 100, by + 10, bx + 80, by + 60, bx + 60, by + 110],
+  ];
+  stems.forEach(([x0, y0, cx1, cy1, x1, y1]) => {
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(cx1, cy1, x1, y1);
+    ctx.stroke();
+  });
+  // Leaf
+  ctx.fillStyle = "#4a8a30";
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.ellipse(bx + 42, by + 72, 14, 8, -Math.PI / 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Hearts
+  bigHeart(ctx, bx + 30, by - 28, 32, "#cc4466", 0.9);
+  bigHeart(ctx, bx + 68, by - 38, 36, "#c9a227", 0.95);
+  bigHeart(ctx, bx + 106, by - 28, 30, "#cc4466", 0.85);
+
+  // Ribbon wrap
+  ctx.save();
+  ctx.strokeStyle = "#c9a227";
+  ctx.lineWidth = 5;
+  ctx.globalAlpha = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(bx, by + 110);
+  ctx.bezierCurveTo(bx + 30, by + 118, bx + 100, by + 118, bx + 130, by + 110);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAnniversary(ctx: CanvasRenderingContext2D, f: Record<string, string>, logo: HTMLImageElement | null) {
   ctx.clearRect(0, 0, W, H);
 
-  const bg = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, W * 0.8);
-  bg.addColorStop(0, "#2d0a18");
-  bg.addColorStop(0.55, "#1a0510");
-  bg.addColorStop(1, "#080208");
+  // ── Background — deep navy with warm centre ──
+  const bg = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, W * 0.85);
+  bg.addColorStop(0, "#12102a");
+  bg.addColorStop(0.55, "#0a0818");
+  bg.addColorStop(1, "#04030e");
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = "#cc7080";
+  // ── Gold border ──
+  ctx.strokeStyle = GOLD;
   ctx.lineWidth = 5;
   ctx.strokeRect(18, 18, W - 36, H - 36);
-  ctx.strokeStyle = "rgba(204,112,128,0.3)";
+  ctx.strokeStyle = GOLD_DIM;
   ctx.lineWidth = 1.2;
   ctx.strokeRect(30, 30, W - 60, H - 60);
 
+  // ── Corner ornaments (gold) ──
   cornerOrnament(ctx, 30, 30, 1, 1);
   cornerOrnament(ctx, W - 30, 30, -1, 1);
   cornerOrnament(ctx, 30, H - 30, 1, -1);
   cornerOrnament(ctx, W - 30, H - 30, -1, -1);
 
-  // Scattered hearts
-  [[90, 150, 18, 0.28], [960, 250, 14, 0.22], [80, 700, 12, 0.2],
-   [975, 700, 16, 0.28], [245, 955, 11, 0.2], [820, 955, 13, 0.22],
-   [510, 80, 9, 0.18], [840, 130, 7, 0.15]].forEach(([cx, cy, s, a]) =>
-    smallHeart(ctx, cx, cy, s, a));
+  // ── Scattered sparkles ──
+  const sparkles: [number, number, number, number][] = [
+    [75, 210, 6, 0.65], [155, 360, 4, 0.5], [48, 590, 7, 0.55],
+    [125, 740, 5, 0.45], [195, 140, 4, 0.4], [315, 62, 5, 0.45],
+    [1012, 290, 6, 0.55], [968, 475, 4, 0.45], [1018, 640, 7, 0.55],
+    [438, 1018, 5, 0.4], [618, 52, 4, 0.4], [758, 1018, 6, 0.45],
+    [898, 1018, 4, 0.4], [148, 975, 5, 0.45],
+  ];
+  sparkles.forEach(([x, y, r, a]) => sparkle(ctx, x, y, r, a));
 
-  ornamentDivider(ctx, W / 2, 195, 220);
-  ornamentDivider(ctx, W / 2, H - 195, 220);
+  // ── Scattered small hearts ──
+  const heartData: [number, number, number, number][] = [
+    [68, 175, 11, 0.45], [118, 495, 9, 0.35], [998, 225, 11, 0.4],
+    [988, 545, 9, 0.35], [198, 968, 10, 0.4], [898, 958, 10, 0.4],
+    [438, 972, 9, 0.35], [555, 55, 8, 0.3], [75, 430, 7, 0.28],
+  ];
+  heartData.forEach(([x, y, s, a]) => smallHeart(ctx, x, y, s, a));
 
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = "italic 38px Georgia,serif";
-  ctx.fillStyle = "rgba(204,112,128,0.9)";
-  ctx.fillText("Dream Pictures", W / 2, 158);
+  // ── Large floating hearts top-right (replace balloons) ──
+  bigHeart(ctx, 910, 118, 52, "#c9a227", 0.85);
+  bigHeart(ctx, 1002, 82, 44, "#cc4466", 0.75);
+  bigHeart(ctx, 1050, 168, 36, "#c9a227", 0.7);
 
-  const g1 = ctx.createLinearGradient(W / 2 - 420, 0, W / 2 + 420, 0);
-  g1.addColorStop(0, "#cc7080");
-  g1.addColorStop(0.5, "#ffb3c1");
-  g1.addColorStop(1, "#cc7080");
+  // ── Large floating hearts bottom-right ──
+  bigHeart(ctx, 878, 898, 48, "#cc4466", 0.75);
+  bigHeart(ctx, 958, 862, 54, "#c9a227", 0.88);
+  bigHeart(ctx, 1038, 882, 42, "#cc4466", 0.72);
 
-  ctx.font = "bold 84px Georgia,serif";
-  ctx.fillStyle = g1;
-  ctx.fillText("HAPPY", W / 2, 326);
-  ctx.fillText("ANNIVERSARY", W / 2, 430);
+  // ── Heart bouquet bottom-right ──
+  heartBouquet(ctx, 815, 910);
 
-  const name = (f.name || "Dear Client").toUpperCase();
-  ctx.font = "bold 62px Georgia,serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(name, W / 2, 560, W - 160);
+  // ── Gold ribbon bottom-left ──
+  ctx.save();
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 4;
+  ctx.globalAlpha = 0.65;
+  ctx.beginPath();
+  ctx.moveTo(60, 820); ctx.bezierCurveTo(92, 860, 52, 900, 82, 940);
+  ctx.bezierCurveTo(112, 980, 72, 1010, 102, 1042); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(102, 820); ctx.bezierCurveTo(72, 860, 112, 900, 82, 940);
+  ctx.bezierCurveTo(52, 980, 92, 1010, 62, 1042); ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.restore();
 
-  ornamentDivider(ctx, W / 2, 582, 260);
-
-  let msgY = 668;
-  if (f.years && f.years.trim()) {
-    ctx.font = "italic 34px Georgia,serif";
-    ctx.fillStyle = "rgba(255,179,193,0.8)";
-    ctx.fillText(`Celebrating ${f.years} Beautiful Years Together`, W / 2, 636, W - 160);
-    msgY = 716;
+  // ── Logo ──
+  const logoY = 72;
+  if (logo) {
+    ctx.drawImage(logo, W / 2 - 36, logoY, 72, 72);
+  } else {
+    ctx.save();
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(W / 2, logoY + 32, 32, 0, Math.PI * 2); ctx.stroke();
+    ctx.font = "bold 22px Georgia,serif"; ctx.fillStyle = GOLD;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("DP", W / 2, logoY + 32);
+    ctx.restore();
   }
 
-  ctx.font = "italic 33px Georgia,serif";
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.fillText(f.message || "Wishing you love, joy & many beautiful years together!", W / 2, msgY, W - 160);
+  // ── Brand ──
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.font = "bold 36px Georgia,serif"; ctx.fillStyle = "#ffffff";
+  ctx.fillText("Dream Pictures", W / 2, 170);
+  ctx.font = "12px Arial,sans-serif"; ctx.fillStyle = GOLD_DIM;
+  ctx.letterSpacing = "3px";
+  ctx.fillText("CAPTURING MEMORIES, CREATING STORIES", W / 2, 191);
+  ctx.letterSpacing = "0px";
+  ornamentDivider(ctx, W / 2, 208, 180);
 
-  ctx.font = "30px Georgia,serif";
-  ctx.fillStyle = "rgba(204,112,128,0.65)";
-  ctx.fillText("With warm wishes,", W / 2, 818);
-  ctx.font = "italic bold 60px Georgia,serif";
-  ctx.fillStyle = g1;
-  ctx.fillText("Best Wishes", W / 2, 880);
+  // ── » H A P P Y « ──
+  ctx.font = "28px Arial,sans-serif"; ctx.fillStyle = GOLD;
+  ctx.fillText("»", W / 2 - 200, 268);
+  ctx.fillText("«", W / 2 + 200, 268);
+  ctx.font = "bold 52px Georgia,serif"; ctx.fillStyle = "#ffffff";
+  ctx.letterSpacing = "14px";
+  ctx.fillText("HAPPY", W / 2 + 7, 272);
+  ctx.letterSpacing = "0px";
+
+  // ── ANNIVERSARY (gold gradient) ──
+  ctx.font = "bold 102px Georgia,serif";
+  ctx.fillStyle = goldGrad(ctx, W / 2 - 440, W / 2 + 440);
+  ctx.letterSpacing = "2px";
+  ctx.fillText("ANNIVERSARY", W / 2 + 1, 400, W - 80);
+  ctx.letterSpacing = "0px";
+
+  // ── — TO — ──
+  ctx.font = "18px Arial,sans-serif"; ctx.fillStyle = GOLD_DIM;
+  ctx.fillText("———  TO  ———", W / 2, 435);
+
+  // ── Client name ──
+  const name = (f.name || "YOUR NAME").toUpperCase();
+  ctx.font = "bold 72px Georgia,serif"; ctx.fillStyle = "#ffffff";
+  ctx.letterSpacing = "3px";
+  ctx.fillText(name, W / 2, 522, W - 200);
+  ctx.letterSpacing = "0px";
+
+  ornamentDivider(ctx, W / 2, 546, 260);
+
+  // ── Message box ──
+  ctx.save();
+  ctx.fillStyle = "rgba(8,10,26,0.75)";
+  ctx.strokeStyle = GOLD_DIM; ctx.lineWidth = 1.5;
+  rrect(ctx, 200, 562, 680, f.years && f.years.trim() ? 215 : 185, 14);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // Years line (optional)
+  let msgBoxY = 600;
+  if (f.years && f.years.trim()) {
+    ctx.font = "italic 28px Georgia,serif";
+    ctx.fillStyle = "rgba(255,200,120,0.9)";
+    ctx.fillText(`Celebrating ${f.years} Beautiful Years Together`, W / 2, msgBoxY, 640);
+    msgBoxY += 34;
+    // Small divider inside box
+    ctx.strokeStyle = GOLD_DIM; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.4;
+    ctx.beginPath(); ctx.moveTo(280, msgBoxY + 2); ctx.lineTo(W - 280, msgBoxY + 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    msgBoxY += 18;
+  }
+
+  // Message text
+  const annMsgLines: { text: string; gold: boolean; italic?: boolean }[] = [
+    { text: "Wishing you a lifetime filled with", gold: false },
+    { text: "Love, Joy & Beautiful Moments", gold: true, italic: true },
+    { text: "May every year together bring you", gold: false },
+    { text: "Happiness, Peace & Togetherness", gold: true, italic: true },
+    { text: "and all that your hearts desire.", gold: false },
+  ];
+  const annLineH = 29;
+  annMsgLines.forEach(line => {
+    ctx.font = line.italic ? "italic 23px Georgia,serif" : "23px Georgia,serif";
+    ctx.fillStyle = line.gold ? GOLD_LIGHT : "rgba(255,255,255,0.88)";
+    ctx.fillText(line.text, W / 2, msgBoxY, 640);
+    msgBoxY += line.italic ? annLineH + 2 : annLineH - 1;
+  });
+
+  // ── Left circle badge ──
+  ctx.save();
+  const bx = 138, by = 680, br = 78;
+  ctx.strokeStyle = GOLD; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = GOLD_DIM; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(bx, by, br - 10, 0, Math.PI * 2); ctx.stroke();
+
+  // Small heart inside badge
+  bigHeart(ctx, bx, by - 14, 18, "#c9a227", 0.9);
+
+  ctx.font = "bold 8.5px Arial,sans-serif"; ctx.fillStyle = GOLD;
+  ctx.textAlign = "center"; ctx.letterSpacing = "0.5px";
+  ["THANK YOU", "FOR LETTING US", "BE A PART OF YOUR", "BEAUTIFUL MEMORIES"].forEach((t, i) => {
+    ctx.fillText(t, bx, by + 24 + i * 12);
+  });
+  ctx.letterSpacing = "0px";
+  ctx.restore();
+
+  // ── Heart above script ──
+  smallHeart(ctx, W / 2, 808, 10, 0.9);
+
+  // ── "With Love" script ──
+  ctx.textAlign = "center";
+  const roseGrad = ctx.createLinearGradient(W / 2 - 240, 0, W / 2 + 240, 0);
+  roseGrad.addColorStop(0, "#9a7010");
+  roseGrad.addColorStop(0.3, GOLD_LIGHT);
+  roseGrad.addColorStop(0.5, "#ffe080");
+  roseGrad.addColorStop(0.7, GOLD_LIGHT);
+  roseGrad.addColorStop(1, "#9a7010");
+  ctx.font = "italic bold 68px Georgia,serif";
+  ctx.fillStyle = roseGrad;
+  ctx.fillText("With Love", W / 2, 870);
+
+  // Flanking hearts
+  smallHeart(ctx, W / 2 - 200, 856, 9, 0.7);
+  smallHeart(ctx, W / 2 + 200, 856, 9, 0.7);
+
+  // ── "With love & gratitude," ──
+  ctx.font = "24px Georgia,serif"; ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillText("With love & gratitude,", W / 2, 910);
+
+  // ── "Dream Pictures" ──
   ctx.font = "bold 34px Georgia,serif";
-  ctx.fillStyle = "rgba(204,112,128,0.95)";
-  ctx.fillText(f.from || "Dream Pictures", W / 2, 938);
+  ctx.fillStyle = goldGrad(ctx, W / 2 - 160, W / 2 + 160);
+  ctx.fillText(f.from || "Dream Pictures", W / 2, 950);
 
-  socialIcon(ctx, W / 2 - 60, 990, "fb");
-  socialIcon(ctx, W / 2, 990, "ig");
-  socialIcon(ctx, W / 2 + 60, 990, "wa");
+  ornamentDivider(ctx, W / 2, 970, 160);
+
+  // ── Social icons ──
+  socialIcon(ctx, W / 2 - 60, 1002, "fb");
+  socialIcon(ctx, W / 2, 1002, "ig");
+  socialIcon(ctx, W / 2 + 60, 1002, "wa");
 }
 
 // ── PAYMENT TEMPLATE ───────────────────────────────────────────────────────────
@@ -758,7 +963,7 @@ export function TemplateCardEditor({ type, clientName, phone, balance, workDesc,
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     if (type === "birthday") drawBirthday(ctx, fields, logoImg);
-    else if (type === "anniversary") drawAnniversary(ctx, fields);
+    else if (type === "anniversary") drawAnniversary(ctx, fields, logoImg);
     else drawPayment(ctx, fields);
   }, [fields, type, logoImg]);
 
