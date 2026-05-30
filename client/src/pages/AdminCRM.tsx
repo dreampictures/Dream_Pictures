@@ -49,16 +49,10 @@ function safeName(name: string | null | undefined) {
   return n.length > 0 ? n : "Dear Client";
 }
 function birthdayMsg(name: string | null | undefined) {
-  return `🎉Happy Birthday ${safeName(name)}! 
-Wishing you success, happiness & a great year ahead.
-Thanks for your trust! 🙏 
-From: Dream Pictures`;
+  return `Happy Birthday ${safeName(name)}! \nWishing you success, happiness & a great year ahead.\nThanks for your trust!\nFrom: Dream Pictures`;
 }
 function anniversaryMsg(name: string | null | undefined) {
-  return `💐Happy Anniversary ${safeName(name)}! 
-Wishing you love, joy & many beautiful years together.
-Thanks for your trust! 🙏 
-From: Dream Pictures`;
+  return `Happy Anniversary ${safeName(name)}! \nWishing you love, joy & many beautiful years together.\nThanks for your trust!\nFrom: Dream Pictures`;
 }
 function dlCSV(rows: (string | number)[][], filename: string) {
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
