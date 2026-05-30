@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { CrmClient, CrmWork, CrmPayment, CrmExpense } from "@shared/schema";
+import { TemplateCardEditor } from "@/components/TemplateCardEditor";
 
 const LS_KEY = "crm_auth";
 const WORK_TYPES = ["Album", "Shoot", "Editing", "Other"];
@@ -660,6 +661,8 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
 }) {
   const [payingWork, setPayingWork] = useState<CrmWork | null>(null);
   const [savingPayment, setSavingPayment] = useState(false);
+  type CardEditorState = { type: "birthday" | "anniversary" | "payment"; clientName: string; phone: string; balance?: number; workDesc?: string };
+  const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
   const pending = works.filter(w => w.status === "pending");
   const pendingPay = works.filter(w => getWorkBalance(w, payments) > 0);
   const totalBalance = pendingPay.reduce((s, w) => s + getWorkBalance(w, payments), 0);
@@ -688,6 +691,16 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
 
   return (
     <div className="space-y-6">
+      {cardEditor && (
+        <TemplateCardEditor
+          type={cardEditor.type}
+          clientName={cardEditor.clientName}
+          phone={cardEditor.phone}
+          balance={cardEditor.balance}
+          workDesc={cardEditor.workDesc}
+          onClose={() => setCardEditor(null)}
+        />
+      )}
       {payingWork && (
         <QuickPaymentModal
           work={payingWork}
@@ -850,10 +863,17 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                       <td className="p-3 text-right text-zinc-400 hidden sm:table-cell">{fmtCur(w.totalPrice)}</td>
                       <td className="p-3 text-right font-bold text-orange-400">{fmtCur(bal)}</td>
                       <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-2 flex-wrap">
                           <button data-testid={`button-pay-pending-${w.id}`} onClick={() => setPayingWork(w)} className="bg-orange-700 hover:bg-orange-600 text-white text-xs rounded-lg px-3 py-1.5 transition-colors font-semibold">💰 Pay</button>
                           {phone && (
                             <a href={waLink(phone, msg)} target="_blank" rel="noreferrer" data-testid={`button-wa-payment-${w.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-2 py-1.5 inline-block transition-colors">WA</a>
+                          )}
+                          {phone && (
+                            <button
+                              data-testid={`button-card-payment-${w.id}`}
+                              onClick={() => setCardEditor({ type: "payment", clientName: w.clientName, phone, balance: bal, workDesc: w.description })}
+                              className="bg-amber-800 hover:bg-amber-700 text-white text-xs rounded-lg px-2 py-1.5 transition-colors"
+                            >🖼 Card</button>
                           )}
                         </div>
                       </td>
@@ -879,9 +899,14 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                     <div className="text-white font-semibold">{c.name}</div>
                     <div className="text-zinc-400 text-xs">{c.phone} · {fmtDate(c.dob)}</div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     <div className="text-blue-400 font-bold text-sm">{d === 0 ? "Today!" : `${d}d`}</div>
                     <a href={waLink(c.phone, birthdayMsg(c.name))} target="_blank" rel="noreferrer" data-testid={`button-wa-birthday-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
+                    <button
+                      data-testid={`button-card-birthday-${c.id}`}
+                      onClick={() => setCardEditor({ type: "birthday", clientName: c.name, phone: c.phone })}
+                      className="bg-blue-800 hover:bg-blue-700 text-white text-xs rounded-lg px-2 py-1.5 transition-colors"
+                    >🖼 Card</button>
                   </div>
                 </div>
               );
@@ -903,9 +928,14 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                     <div className="text-white font-semibold">{c.name}</div>
                     <div className="text-zinc-400 text-xs">{c.phone} · {fmtDate(c.anniversary)}</div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     <div className="text-pink-400 font-bold text-sm">{d === 0 ? "Today!" : `${d}d`}</div>
                     <a href={waLink(c.phone, anniversaryMsg(c.name))} target="_blank" rel="noreferrer" data-testid={`button-wa-anniversary-${c.id}`} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors">Wish</a>
+                    <button
+                      data-testid={`button-card-anniversary-${c.id}`}
+                      onClick={() => setCardEditor({ type: "anniversary", clientName: c.name, phone: c.phone })}
+                      className="bg-pink-900 hover:bg-pink-800 text-white text-xs rounded-lg px-2 py-1.5 transition-colors"
+                    >🖼 Card</button>
                   </div>
                 </div>
               );

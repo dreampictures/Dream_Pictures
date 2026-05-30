@@ -1,0 +1,142 @@
+IMPORTANT OPTIMIZATION UPDATE
+
+Do NOT generate new background/template images every time.
+
+System must work using reusable fixed templates.
+
+Correct Architecture:
+
+---
+
+## TEMPLATE STORAGE SYSTEM
+
+Create static reusable template designs only once.
+
+Example:
+
+* payment-template-1.png
+* birthday-template-1.png
+* anniversary-template-1.png
+
+These template images remain permanently stored.
+
+When user sends wishes/reminders:
+
+* DO NOT generate a completely new image
+* ONLY overlay/change dynamic text data on existing template
+
+Dynamic fields:
+
+* Client Name
+* Pending Amount
+* Event Name
+* Date
+* Custom Message
+* Anniversary Year
+
+Background/template image must remain same.
+
+---
+
+## BEST IMPLEMENTATION METHOD
+
+Use:
+
+* HTML Canvas
+  OR
+* Fabric.js
+  OR
+* Konva.js
+
+Process:
+
+1. Load existing template image
+2. Draw dynamic text on top
+3. Export final PNG
+4. Send/download/share
+
+This avoids:
+
+* Heavy storage usage
+* Duplicate image generation
+* Slow loading
+* Server overload
+
+---
+
+## PERFORMANCE REQUIREMENTS
+
+* Templates stored only once
+* Final generated image should exist temporarily
+* Auto delete temporary generated files after send/download
+  OR
+* Generate fully client-side in browser without saving
+
+Preferred:
+Generate images in browser memory using canvas.
+
+---
+
+## TEMPLATE ENGINE STRUCTURE
+
+Create reusable template JSON config.
+
+Example:
+{
+"template": "payment-template-1.png",
+"fields": {
+"client_name": {
+"x": 320,
+"y": 220,
+"fontSize": 32,
+"color": "#ffffff"
+},
+"balance": {
+"x": 320,
+"y": 300,
+"fontSize": 42,
+"color": "#FFD700"
+}
+}
+}
+
+Only text values change.
+Template image remains fixed.
+
+---
+
+## BENEFITS
+
+* Very low storage usage
+* Faster performance
+* Faster WhatsApp sharing
+* Easy template management
+* Professional workflow
+* No unnecessary duplicate images
+* Better scalability
+
+---
+
+## EDITOR REQUIREMENTS
+
+Admin should still be able to:
+
+* Edit text
+* Change font size
+* Move text positions
+* Change colors
+* Preview final output live
+
+But base template image should remain reusable.
+
+---
+
+## FINAL GOAL
+
+System should behave like:
+Canva template editing system
+
+NOT like:
+AI image generation system
+
+Only dynamic text rendering on fixed premium templates.
