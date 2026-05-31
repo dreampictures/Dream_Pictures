@@ -978,27 +978,46 @@ export function TemplateCardEditor({ type, clientName, phone, balance, workDesc,
     a.click();
   }
 
-  function shareCard() {
+  const textMsg =
+    type === "birthday"
+      ? `Happy Birthday ${fields.name}! 🎂🎉\nWishing you joy, success & happiness!\n— ${fields.from}`
+      : type === "anniversary"
+      ? `Happy Anniversary ${fields.name}! 💍❤️\nWishing you love, joy & many beautiful years together!\n— ${fields.from}`
+      : `Hello ${fields.name},\nYour pending balance for Dream Pictures work is ₹${fields.balance}.\n${fields.message}\nThank you. — ${fields.from}`;
+
+  const rawPhone = phone.replace(/\D/g, "");
+  const waPhone = rawPhone.startsWith("91") ? rawPhone : `91${rawPhone}`;
+  const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(textMsg)}`;
+
+  async function shareOnWhatsApp() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.toBlob(async (blob) => {
-      if (!blob) { download(); return; }
+      if (!blob) { window.open(waUrl, "_blank"); return; }
       const file = new File([blob], `${type}-card.png`, { type: "image/png" });
+
+      // Mobile / modern browser: native share sheet → user picks WhatsApp
       if (navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file] }); return; } catch { /* fall through */ }
+        try {
+          await navigator.share({ files: [file], text: textMsg });
+          return;
+        } catch (err) {
+          if ((err as Error).name === "AbortError") return; // user cancelled
+          // share failed → fall through to desktop flow
+        }
       }
-      download();
+
+      // Desktop fallback: download image first, then open WhatsApp
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}-${clientName.replace(/\s+/g, "-")}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      // Small delay so download dialog appears before WA opens
+      setTimeout(() => window.open(waUrl, "_blank"), 800);
     }, "image/png");
   }
-
-  const textMsg =
-    type === "birthday"
-      ? `Happy Birthday ${fields.name}!\nWishing you joy, success & happiness!\n— ${fields.from}`
-      : type === "anniversary"
-      ? `Happy Anniversary ${fields.name}!\n${fields.message}\n— ${fields.from}`
-      : `Hello ${fields.name},\nYour pending balance for Dream Pictures work is ${fields.balance}.\n${fields.message}\nThank you. — ${fields.from}`;
-
-  const waUrl = `https://wa.me/${phone.replace(/\D/g, "").replace(/^(?!91)/, "91")}?text=${encodeURIComponent(textMsg)}`;
 
   const SCALE = 0.40;
 
@@ -1056,19 +1075,24 @@ export function TemplateCardEditor({ type, clientName, phone, balance, workDesc,
 
             <div className="p-5 pt-0 flex flex-col gap-2 border-t border-zinc-800">
               <button
+                data-testid="button-share-whatsapp-card"
+                onClick={shareOnWhatsApp}
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl py-3 text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.555 4.122 1.528 5.857L0 24l6.335-1.518A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.65-.487-5.19-1.341l-.372-.22-3.863.926.972-3.769-.24-.389A9.946 9.946 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                </svg>
+                Share Image on WhatsApp
+              </button>
+              <button
                 data-testid="button-download-card"
-                onClick={shareCard}
-                className="w-full bg-white text-black font-bold rounded-xl py-3 text-sm hover:bg-zinc-100 transition-colors"
-              >⬇ Download / Share Image</button>
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noreferrer"
-                data-testid="button-wa-text-card"
-                className="w-full bg-green-700 hover:bg-green-600 text-white font-bold rounded-xl py-3 text-sm text-center transition-colors block"
-              >💬 Send Text via WhatsApp</a>
-              <p className="text-zinc-600 text-[11px] text-center leading-tight">
-                Download image → open WhatsApp → attach &amp; send
+                onClick={download}
+                className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+              >⬇ Download PNG</button>
+              <p className="text-zinc-600 text-[10px] text-center leading-tight">
+                Mobile: share sheet opens → pick WhatsApp
+                <br />Desktop: image saves + WhatsApp opens
               </p>
             </div>
           </div>
