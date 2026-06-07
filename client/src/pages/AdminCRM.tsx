@@ -9,6 +9,7 @@ const WORK_TYPES = ["Album", "Shoot", "Editing", "Other"];
 const WORK_STAGES = ["Shoot Done", "Editing", "Album Designing", "Ready", "Delivered"];
 const PAYMENT_METHODS = ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"];
 const EXPENSE_CATEGORIES = ["Studio Expense", "Album Printing", "Travel", "Electricity", "Internet", "Cyber Cafe Supplies", "Other"];
+const CUSTOM_OPT = "Custom…";
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 
@@ -306,19 +307,23 @@ function ClientForm({ init, existingClients, onSave, onCancel, saving }: { init?
 // ─── Work Form ───────────────────────────────────────────────────────────────
 
 function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmClient[]; init?: CrmWork | null; onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
+  const initStageKnown = WORK_STAGES.includes(init?.workStage ?? "Shoot Done");
   const [f, setF] = useState({
     clientId: init?.clientId?.toString() || "",
     clientName: init?.clientName || "",
     description: init?.description || "",
     workType: init?.workType || "Album",
-    workStage: init?.workStage || "Shoot Done",
+    workStage: initStageKnown ? (init?.workStage || "Shoot Done") : CUSTOM_OPT,
     totalPrice: init?.totalPrice?.toString() || "",
     advancePaid: init?.advancePaid?.toString() || "",
     workDate: init?.workDate || todayStr(),
     status: init?.status || "pending",
   });
+  const [customStage, setCustomStage] = useState(!initStageKnown ? (init?.workStage ?? "") : "");
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
   const balance = (parseFloat(f.totalPrice) || 0) - (parseFloat(f.advancePaid) || 0);
+  const isCustomStage = f.workStage === CUSTOM_OPT;
+  const finalStage = isCustomStage ? customStage.trim() : f.workStage;
 
   function pickClient(id: string) {
     const c = clients.find(c => c.id.toString() === id);
@@ -348,8 +353,22 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
           <label className={lbl}>Work Stage</label>
           <select data-testid="select-work-stage" className={sel} value={f.workStage} onChange={e => s("workStage", e.target.value)}>
             {WORK_STAGES.map(t => <option key={t}>{t}</option>)}
+            <option value={CUSTOM_OPT}>{CUSTOM_OPT}</option>
           </select>
         </div>
+        {isCustomStage && (
+          <div className="sm:col-span-2">
+            <label className={lbl}>Custom Stage *</label>
+            <input
+              data-testid="input-work-custom-stage"
+              className={inp}
+              placeholder="Type your stage name…"
+              value={customStage}
+              onChange={e => setCustomStage(e.target.value)}
+              autoFocus
+            />
+          </div>
+        )}
         <div><label className={lbl}>Total Price (₹)</label><input data-testid="input-work-total" type="number" className={inp} value={f.totalPrice} onChange={e => s("totalPrice", e.target.value)} /></div>
         <div><label className={lbl}>Advance Paid (₹)</label><input data-testid="input-work-advance" type="number" className={inp} value={f.advancePaid} onChange={e => s("advancePaid", e.target.value)} /></div>
         <div>
@@ -366,7 +385,7 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
         </div>
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-work" onClick={() => onSave(f)} disabled={saving || !f.clientName || !f.description || !f.workDate} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update Work" : "Save Work"}</button>
+        <button data-testid="button-save-work" onClick={() => onSave({ ...f, workStage: finalStage })} disabled={saving || !f.clientName || !f.description || !f.workDate || !finalStage} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update Work" : "Save Work"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
@@ -413,8 +432,6 @@ function PaymentForm({ clients, onSave, onCancel, saving }: { clients: CrmClient
 }
 
 // ─── Expense Form ─────────────────────────────────────────────────────────────
-
-const CUSTOM_OPT = "Custom…";
 
 function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
   onSave: (d: any) => void; onCancel: () => void; saving: boolean;
