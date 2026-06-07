@@ -414,21 +414,33 @@ function PaymentForm({ clients, onSave, onCancel, saving }: { clients: CrmClient
 
 // ─── Expense Form ─────────────────────────────────────────────────────────────
 
+const CUSTOM_OPT = "Custom…";
+
 function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
   onSave: (d: any) => void; onCancel: () => void; saving: boolean;
   initial?: { date?: string; category?: string; description?: string; amount?: number | string; notes?: string | null };
   editMode?: boolean;
 }) {
+  const initCatKnown = EXPENSE_CATEGORIES.includes(initial?.category ?? EXPENSE_CATEGORIES[0]);
   const [f, setF] = useState({
     date: initial?.date ?? todayStr(),
-    category: initial?.category ?? EXPENSE_CATEGORIES[0],
+    category: initCatKnown ? (initial?.category ?? EXPENSE_CATEGORIES[0]) : CUSTOM_OPT,
     description: initial?.description ?? "",
     amount: initial?.amount?.toString() ?? "",
     notes: initial?.notes ?? "",
     pin: "",
   });
+  const [customCat, setCustomCat] = useState(!initCatKnown ? (initial?.category ?? "") : "");
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
-  const canSave = !!f.date && !!f.description && !!f.amount && (!editMode || !!f.pin);
+  const isCustom = f.category === CUSTOM_OPT;
+  const finalCategory = isCustom ? customCat.trim() : f.category;
+  const canSave = !!f.date && !!f.description && !!f.amount && !!finalCategory && (!editMode || !!f.pin);
+
+  function handleSave() {
+    const data = { ...f, category: finalCategory };
+    onSave(editMode ? { ...data, adminPin: f.pin } : data);
+  }
+
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 mb-4">
       <h3 className="text-white font-semibold mb-4 text-sm">{editMode ? "Edit Expense" : "Add Expense"}</h3>
@@ -438,8 +450,22 @@ function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
           <label className={lbl}>Category</label>
           <select data-testid="select-expense-category" className={sel} value={f.category} onChange={e => s("category", e.target.value)}>
             {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+            <option value={CUSTOM_OPT}>{CUSTOM_OPT}</option>
           </select>
         </div>
+        {isCustom && (
+          <div className="sm:col-span-2">
+            <label className={lbl}>Custom Category *</label>
+            <input
+              data-testid="input-expense-custom-category"
+              className={inp}
+              placeholder="Type your category name…"
+              value={customCat}
+              onChange={e => setCustomCat(e.target.value)}
+              autoFocus
+            />
+          </div>
+        )}
         <div className="sm:col-span-2"><label className={lbl}>Expense Type *</label><input data-testid="input-expense-description" className={inp} placeholder="e.g. Monthly rent payment" value={f.description} onChange={e => s("description", e.target.value)} /></div>
         <div><label className={lbl}>Amount (₹) *</label><input data-testid="input-expense-amount" type="number" min="0" className={inp} value={f.amount} onChange={e => s("amount", e.target.value)} /></div>
         <div><label className={lbl}>Notes</label><input data-testid="input-expense-notes" className={inp} placeholder="Optional notes" value={f.notes} onChange={e => s("notes", e.target.value)} /></div>
@@ -451,7 +477,7 @@ function ExpenseForm({ onSave, onCancel, saving, initial, editMode }: {
         )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-expense" onClick={() => onSave(editMode ? { ...f, adminPin: f.pin } : f)} disabled={saving || !canSave} className={btn("bg-amber-700 hover:bg-amber-600")}>{saving ? "Saving…" : editMode ? "Update Expense" : "Add Expense"}</button>
+        <button data-testid="button-save-expense" onClick={handleSave} disabled={saving || !canSave} className={btn("bg-amber-700 hover:bg-amber-600")}>{saving ? "Saving…" : editMode ? "Update Expense" : "Add Expense"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
