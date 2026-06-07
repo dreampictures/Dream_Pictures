@@ -708,11 +708,13 @@ function StageBadge({ stage }: { stage: string }) {
 
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
-function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickAction, onRecordPayment }: {
+function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickAction, onRecordPayment, notifPerm, onEnableNotif }: {
   clients: CrmClient[]; works: CrmWork[]; payments: CrmPayment[]; expenses: CrmExpense[];
   onMarkDone: (w: CrmWork) => void;
   onQuickAction: (tab: string) => void;
   onRecordPayment: (d: any) => void;
+  notifPerm: NotificationPermission;
+  onEnableNotif: () => void;
 }) {
   const [payingWork, setPayingWork] = useState<CrmWork | null>(null);
   const [savingPayment, setSavingPayment] = useState(false);
@@ -744,8 +746,24 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
     }, {})
   ).sort((a, b) => b.total - a.total).slice(0, 5);
 
+  const hasUpcoming = birthdays.some(c => (daysUntil(c.dob) ?? 99) <= 3) || anniversaries.some(c => (daysUntil(c.anniversary) ?? 99) <= 3);
+
   return (
     <div className="space-y-6">
+      {/* Notification enable banner */}
+      {"Notification" in window && notifPerm === "default" && hasUpcoming && (
+        <div className="bg-amber-950/40 border border-amber-700/60 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-amber-300 font-semibold text-sm">🔔 Birthday / Anniversary Reminders</p>
+            <p className="text-amber-400/70 text-xs mt-0.5">Notifications enable karo — CRM kholne pe automatically alert aayega aaj ya agli 3 din de events layi.</p>
+          </div>
+          <button
+            data-testid="button-banner-enable-notif"
+            onClick={onEnableNotif}
+            className="shrink-0 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg px-4 py-2 transition-colors"
+          >Enable</button>
+        </div>
+      )}
       {cardEditor && (
         <TemplateCardEditor
           type={cardEditor.type}
@@ -1529,6 +1547,9 @@ export default function AdminCRM() {
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const qc = useQueryClient();
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(() =>
+    "Notification" in window ? Notification.permission : "denied"
+  );
 
   useEffect(() => {
     if (searchQ.length < 2) { setSearchRes(null); setShowSearch(false); return; }
@@ -1542,6 +1563,58 @@ export default function AdminCRM() {
   const { data: clients = [] } = useQuery<CrmClient[]>({ queryKey: ["/api/crm/clients"], enabled: authed });
   const { data: works = [] } = useQuery<CrmWork[]>({ queryKey: ["/api/crm/works"], enabled: authed });
   const { data: payments = [] } = useQuery<CrmPayment[]>({ queryKey: ["/api/crm/payments"], enabled: authed });
+
+  // ── Birthday / Anniversary Browser Notifications ──
+  function fireBirthdayNotifs(clientList: CrmClient[]) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const todayKey = todayStr();
+    const lsKey = `crm_notified_${todayKey}`;
+    if (localStorage.getItem(lsKey)) return; // already notified today
+
+    const events: { title: string; body: string; tag: string }[] = [];
+    clientList.forEach(c => {
+      const bd = daysUntil(c.dob);
+      if (bd === 0)
+        events.push({ title: "🎂 Birthday Today!", body: `${c.name} da birthday aaj hai! Wish karna na bhulo 🎉`, tag: `bd-${c.id}` });
+      else if (bd !== null && bd <= 3)
+        events.push({ title: `🎂 Birthday in ${bd} day${bd === 1 ? "" : "s"}`, body: `${c.name} da birthday sirf ${bd} din baad hai.`, tag: `bd-soon-${c.id}` });
+
+      const ad = daysUntil(c.anniversary);
+      if (ad === 0)
+        events.push({ title: "💍 Anniversary Today!", body: `${c.name} di anniversary aaj hai! Wish karna na bhulo 💕`, tag: `ann-${c.id}` });
+      else if (ad !== null && ad <= 3)
+        events.push({ title: `💍 Anniversary in ${ad} day${ad === 1 ? "" : "s"}`, body: `${c.name} di anniversary sirf ${ad} din baad hai.`, tag: `ann-soon-${c.id}` });
+    });
+
+    if (events.length === 0) return;
+    events.forEach((ev, i) => {
+      setTimeout(() => {
+        const n = new Notification(ev.title, { body: ev.body, icon: "/dp-logo-white.png", tag: ev.tag });
+        n.onclick = () => { window.focus(); };
+      }, i * 700);
+    });
+    localStorage.setItem(lsKey, "1");
+  }
+
+  // Auto-fire on load if permission already granted
+  useEffect(() => {
+    if (authed && clients.length > 0) fireBirthdayNotifs(clients);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, clients]);
+
+  function enableNotifications() {
+    if (!("Notification" in window)) { alert("Eh browser notifications support nahi karda."); return; }
+    Notification.requestPermission().then(perm => {
+      setNotifPerm(perm);
+      if (perm === "granted") {
+        // Clear today's cache so it fires fresh
+        localStorage.removeItem(`crm_notified_${todayStr()}`);
+        fireBirthdayNotifs(clients);
+      } else if (perm === "denied") {
+        alert("Notifications blocked hain. Browser settings ch ja ke allow karo.");
+      }
+    });
+  }
   const { data: expenses = [] } = useQuery<CrmExpense[]>({ queryKey: ["/api/crm/expenses"], enabled: authed });
 
   const inv = (keys: string[]) => keys.forEach(k => qc.invalidateQueries({ queryKey: [k] }));
@@ -1619,6 +1692,14 @@ export default function AdminCRM() {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button data-testid="button-export-all" onClick={() => exportAllData(clients, works, payments, expenses)} className="hidden sm:block text-zinc-500 hover:text-amber-400 text-xs transition-colors px-2 py-1 whitespace-nowrap">↓ All</button>
+            {"Notification" in window && notifPerm !== "denied" && (
+              <button
+                data-testid="button-enable-notif"
+                onClick={enableNotifications}
+                title={notifPerm === "granted" ? "Notifications On ✓" : "Enable Birthday Notifications"}
+                className={`text-sm px-2 py-1 transition-colors ${notifPerm === "granted" ? "text-amber-400" : "text-zinc-500 hover:text-amber-400 animate-pulse"}`}
+              >🔔</button>
+            )}
             <button data-testid="button-crm-logout" onClick={() => { localStorage.removeItem(LS_KEY); setAuthed(false); }} className="text-zinc-500 hover:text-red-400 text-xs transition-colors px-2 py-1">Logout</button>
           </div>
         </div>
@@ -1644,6 +1725,8 @@ export default function AdminCRM() {
             onMarkDone={w => updateWork.mutate({ id: w.id, d: { ...w, status: "done" } })}
             onQuickAction={t => setTab(t as Tab)}
             onRecordPayment={d => createPayment.mutate(d)}
+            notifPerm={notifPerm}
+            onEnableNotif={enableNotifications}
           />
         )}
         {tab === "clients" && (
