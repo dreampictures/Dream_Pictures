@@ -308,11 +308,12 @@ function ClientForm({ init, existingClients, onSave, onCancel, saving }: { init?
 
 function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmClient[]; init?: CrmWork | null; onSave: (d: any) => void; onCancel: () => void; saving: boolean }) {
   const initStageKnown = WORK_STAGES.includes(init?.workStage ?? "Shoot Done");
+  const initTypeKnown = WORK_TYPES.includes(init?.workType ?? "Album");
   const [f, setF] = useState({
     clientId: init?.clientId?.toString() || "",
     clientName: init?.clientName || "",
     description: init?.description || "",
-    workType: init?.workType || "Album",
+    workType: initTypeKnown ? (init?.workType || "Album") : CUSTOM_OPT,
     workStage: initStageKnown ? (init?.workStage || "Shoot Done") : CUSTOM_OPT,
     totalPrice: init?.totalPrice?.toString() || "",
     advancePaid: init?.advancePaid?.toString() || "",
@@ -320,10 +321,13 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
     status: init?.status || "pending",
   });
   const [customStage, setCustomStage] = useState(!initStageKnown ? (init?.workStage ?? "") : "");
+  const [customType, setCustomType] = useState(!initTypeKnown ? (init?.workType ?? "") : "");
   const s = (k: string, v: string) => setF(x => ({ ...x, [k]: v }));
   const balance = (parseFloat(f.totalPrice) || 0) - (parseFloat(f.advancePaid) || 0);
   const isCustomStage = f.workStage === CUSTOM_OPT;
+  const isCustomType = f.workType === CUSTOM_OPT;
   const finalStage = isCustomStage ? customStage.trim() : f.workStage;
+  const finalType = isCustomType ? customType.trim() : f.workType;
 
   function pickClient(id: string) {
     const c = clients.find(c => c.id.toString() === id);
@@ -347,6 +351,7 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
           <label className={lbl}>Work Type</label>
           <select data-testid="select-work-type" className={sel} value={f.workType} onChange={e => s("workType", e.target.value)}>
             {WORK_TYPES.map(t => <option key={t}>{t}</option>)}
+            <option value={CUSTOM_OPT}>{CUSTOM_OPT}</option>
           </select>
         </div>
         <div>
@@ -356,6 +361,19 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
             <option value={CUSTOM_OPT}>{CUSTOM_OPT}</option>
           </select>
         </div>
+        {isCustomType && (
+          <div className="sm:col-span-2">
+            <label className={lbl}>Custom Work Type *</label>
+            <input
+              data-testid="input-work-custom-type"
+              className={inp}
+              placeholder="Type your work type…"
+              value={customType}
+              onChange={e => setCustomType(e.target.value)}
+              autoFocus
+            />
+          </div>
+        )}
         {isCustomStage && (
           <div className="sm:col-span-2">
             <label className={lbl}>Custom Stage *</label>
@@ -365,7 +383,7 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
               placeholder="Type your stage name…"
               value={customStage}
               onChange={e => setCustomStage(e.target.value)}
-              autoFocus
+              autoFocus={!isCustomType}
             />
           </div>
         )}
@@ -385,7 +403,7 @@ function WorkForm({ clients, init, onSave, onCancel, saving }: { clients: CrmCli
         </div>
       </div>
       <div className="flex gap-2 mt-4">
-        <button data-testid="button-save-work" onClick={() => onSave({ ...f, workStage: finalStage })} disabled={saving || !f.clientName || !f.description || !f.workDate || !finalStage} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update Work" : "Save Work"}</button>
+        <button data-testid="button-save-work" onClick={() => onSave({ ...f, workType: finalType, workStage: finalStage })} disabled={saving || !f.clientName || !f.description || !f.workDate || !finalStage || !finalType} className={btn("bg-amber-600 hover:bg-amber-500")}>{saving ? "Saving…" : init ? "Update Work" : "Save Work"}</button>
         <button onClick={onCancel} className={btn("bg-zinc-700 hover:bg-zinc-600")}>Cancel</button>
       </div>
     </div>
