@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Terms() {
+  useSEO({ title: "Terms & Conditions", description: "Read the terms and conditions for Dream Pictures photography & videography services.", canonical: "/terms", noIndex: true });
   const sections = [
     {
       num: "1",

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Instagram, Facebook, Youtube, Clock, MessageCircle } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
+import { useSEO } from "@/hooks/use-seo";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -13,6 +14,11 @@ const stagger = {
 };
 
 export default function Contact() {
+  useSEO({
+    title: "Contact Us",
+    description: "Get in touch with Dream Pictures — reach us for wedding photography bookings, inquiries, and consultations in Ferozepur, Punjab.",
+    canonical: "/contact",
+  });
   return (
     <div className="bg-noise min-h-screen">
 

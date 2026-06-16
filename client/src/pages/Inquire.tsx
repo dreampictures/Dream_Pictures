@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { CheckCircle, Camera, Video, Sparkles, Heart, CalendarCheck, ImageIcon } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
+import { useSEO } from "@/hooks/use-seo";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -54,6 +55,11 @@ const packages = [
 ];
 
 export default function Inquire() {
+  useSEO({
+    title: "Book Your Session",
+    description: "Ready to book Dream Pictures? Submit your inquiry for wedding photography, videography, or portrait sessions in Punjab.",
+    canonical: "/inquire",
+  });
   return (
     <div className="bg-noise min-h-screen">
 

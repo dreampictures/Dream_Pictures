@@ -2,8 +2,14 @@ import { motion } from "framer-motion";
 import heroImg from "@/assets/images/about-hero.jpg";
 import meImg from "@/assets/images/about-me.jpg";
 import logoImg from "@assets/DP_logo_2021_White_1772790737407.png";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function About() {
+  useSEO({
+    title: "About Us",
+    description: "Meet the team behind Dream Pictures — a passionate photography & videography studio based in Ferozepur, Punjab, dedicated to capturing your most cherished moments.",
+    canonical: "/about",
+  });
   return (
     <div className="pt-32 pb-24 px-4 bg-noise">
       <div className="max-w-4xl mx-auto">

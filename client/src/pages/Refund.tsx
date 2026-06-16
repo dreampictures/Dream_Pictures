@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Refund() {
+  useSEO({ title: "Refund Policy", description: "Dream Pictures refund and cancellation policy for photography & videography bookings.", canonical: "/refund", noIndex: true });
   const sections = [
     {
       num: "1",

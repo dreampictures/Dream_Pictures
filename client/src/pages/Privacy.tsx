@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Privacy() {
+  useSEO({ title: "Privacy Policy", description: "Dream Pictures privacy policy — how we collect, use, and protect your personal data.", canonical: "/privacy", noIndex: true });
   const sections = [
     {
       num: "1",

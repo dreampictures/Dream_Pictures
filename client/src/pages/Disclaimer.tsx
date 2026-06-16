@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Disclaimer() {
+  useSEO({ title: "Disclaimer", description: "Disclaimer for Dream Pictures — limitations of liability and service expectations.", canonical: "/disclaimer", noIndex: true });
   const sections = [
     {
       num: "1",

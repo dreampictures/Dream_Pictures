@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useSEO } from "@/hooks/use-seo";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Camera, Video, Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Youtube } from "lucide-react";
@@ -20,6 +21,11 @@ const FALLBACK_PORTFOLIO = [
 ];
 
 export default function Home() {
+  useSEO({
+    title: "Wedding & Portrait Photography",
+    description: "Dream Pictures — professional wedding photography & videography in Ferozepur, Punjab. Cinematic films, golden albums, and timeless portraits.",
+    canonical: "/",
+  });
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);

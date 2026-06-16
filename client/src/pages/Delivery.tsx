@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Delivery() {
+  useSEO({ title: "Delivery Policy", description: "Dream Pictures delivery policy — how and when you receive your photos, videos, and albums.", canonical: "/delivery", noIndex: true });
   const sections = [
     {
       num: "1",

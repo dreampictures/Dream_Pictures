@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /portfolio
+Allow: /about
+Allow: /contact
+Allow: /inquire
+Allow: /terms
+Allow: /privacy
+Allow: /refund
+Allow: /disclaimer
+Allow: /delivery
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin-work-secret
+Disallow: /dailyamount
+Disallow: /dailyamount/
+
+Sitemap: https://dream-pictures-2026.fly.dev/sitemap.xml

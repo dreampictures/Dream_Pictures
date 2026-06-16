@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useSEO } from "@/hooks/use-seo";
 import { motion } from "framer-motion";
 import { usePortfolio } from "@/hooks/use-portfolio";
 import type { PortfolioItemResponse } from "@shared/routes";
@@ -22,6 +23,11 @@ const MOCK_GALLERY = [
 ];
 
 export default function Portfolio() {
+  useSEO({
+    title: "Portfolio",
+    description: "Browse the Dream Pictures portfolio — wedding films, portraits, pre-wedding shoots, and cinematic photography from across Punjab.",
+    canonical: "/portfolio",
+  });
   const { data: portfolioItems, isLoading, error } = usePortfolio();
 
   // Scroll to top on mount
