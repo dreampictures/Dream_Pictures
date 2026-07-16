@@ -900,7 +900,7 @@ function DashboardTab({ clients, works, payments, expenses, onMarkDone, onQuickA
                     <td className="p-3 hidden sm:table-cell"><StageBadge stage={w.workStage} /></td>
                     <td className="p-3 text-zinc-500 text-xs">{fmtDate(w.workDate)}</td>
                     <td className="p-3 text-center">
-                      <button data-testid={`button-markdone-${w.id}`} onClick={() => onMarkDone(w)} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap">Mark Done</button>
+                      <button type="button" data-testid={`button-markdone-${w.id}`} onClick={() => onMarkDone(w)} className="bg-green-800 hover:bg-green-700 text-white text-xs rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap">Mark Done</button>
                     </td>
                   </tr>
                 ))}
@@ -1628,7 +1628,7 @@ export default function AdminCRM() {
   const createWork = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/works", d), onSuccess: () => inv(["/api/crm/works"]) });
   const updateWork = useMutation({
     mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/works/${id}`, d),
-    onSuccess: () => inv(["/api/crm/works"]),
+    onSuccess: (_data, vars) => { inv(["/api/crm/works"]); if ((vars as any)?.d?.status === "done") toast({ title: "✓ Done!", description: "Work marked as done." }); },
     onError: (err: any) => toast({ title: "Update failed", description: err?.message || "Work update nahi ho sake. Dobara try karo.", variant: "destructive" }),
   });
   const deleteWork = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/works/${id}`), onSuccess: () => inv(["/api/crm/works"]) });
