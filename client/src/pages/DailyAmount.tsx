@@ -438,6 +438,28 @@ export default function DailyAmount() {
     setEditUnlocked(false);
   }
 
+  // ── 15-min inactivity auto-logout ─────────────────────────────────────────
+  const inactivityRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!pin) return;
+    const TIMEOUT = 15 * 60 * 1000;
+    function resetTimer() {
+      if (inactivityRef.current) clearTimeout(inactivityRef.current);
+      inactivityRef.current = setTimeout(() => {
+        localStorage.removeItem(PIN_KEY);
+        setPin(null);
+        setEditUnlocked(false);
+      }, TIMEOUT);
+    }
+    const events = ["mousemove", "click", "keydown", "scroll", "touchstart"] as const;
+    events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+      if (inactivityRef.current) clearTimeout(inactivityRef.current);
+    };
+  }, [pin]);
+
   // ── Calculations (all decimal-safe with parseFloat) ───────────────────────
   const cashTotal =
     fields.notes10 * 10 + fields.notes20 * 20 + fields.notes50 * 50 +

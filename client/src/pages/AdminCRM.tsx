@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { CrmClient, CrmWork, CrmPayment, CrmExpense } from "@shared/schema";
 import { TemplateCardEditor } from "@/components/TemplateCardEditor";
+import { useToast } from "@/hooks/use-toast";
 
 const LS_KEY = "crm_auth";
 const WORK_TYPES = ["Album", "Shoot", "Editing", "Other"];
@@ -1540,6 +1541,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function AdminCRM() {
+  const { toast } = useToast();
   const [authed, setAuthed] = useState(() => localStorage.getItem(LS_KEY) === "true");
   const [tab, setTab] = useState<Tab>("dashboard");
   const [searchQ, setSearchQ] = useState("");
@@ -1624,7 +1626,11 @@ export default function AdminCRM() {
   const deleteClient = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/clients/${id}`), onSuccess: () => inv(["/api/crm/clients", "/api/crm/works"]) });
 
   const createWork = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/works", d), onSuccess: () => inv(["/api/crm/works"]) });
-  const updateWork = useMutation({ mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/works/${id}`, d), onSuccess: () => inv(["/api/crm/works"]) });
+  const updateWork = useMutation({
+    mutationFn: ({ id, d }: { id: number; d: any }) => apiRequest("PUT", `/api/crm/works/${id}`, d),
+    onSuccess: () => inv(["/api/crm/works"]),
+    onError: (err: any) => toast({ title: "Update failed", description: err?.message || "Work update nahi ho sake. Dobara try karo.", variant: "destructive" }),
+  });
   const deleteWork = useMutation({ mutationFn: (id: number) => apiRequest("DELETE", `/api/crm/works/${id}`), onSuccess: () => inv(["/api/crm/works"]) });
 
   const createPayment = useMutation({ mutationFn: (d: any) => apiRequest("POST", "/api/crm/payments", d), onSuccess: () => inv(["/api/crm/payments", "/api/crm/works"]) });
