@@ -186,6 +186,27 @@ export default function DailyAmount() {
   const [txNote, setTxNote] = useState("");
   const [autoFilledBalance, setAutoFilledBalance] = useState(false);
 
+  // ── Auto-logout after 20 min inactivity ───────────────────────────────────
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!pin) return;
+    const TIMEOUT = 20 * 60 * 1000;
+    const reset = () => {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      inactivityTimer.current = setTimeout(() => {
+        localStorage.removeItem(PIN_KEY);
+        setPin(null);
+      }, TIMEOUT);
+    };
+    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [pin]);
+
   // ── Refs ──────────────────────────────────────────────────────────────────
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedDateRef = useRef<string>("");
