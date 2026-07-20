@@ -31,6 +31,7 @@ export default function ContactForm() {
   const contactFormSchema = insertContactMessageSchema.extend({
     name: insertContactMessageSchema.shape.name.min(1, "Full name is required"),
     email: insertContactMessageSchema.shape.email.min(1, "Email is required").email("Please enter a valid email"),
+    phone: insertContactMessageSchema.shape.phone.min(1, "Phone number is required"),
     service: insertContactMessageSchema.shape.service.min(1, "Please select a service"),
     message: insertContactMessageSchema.shape.message.min(1, "Message is required"),
   });
@@ -102,7 +103,7 @@ export default function ContactForm() {
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs uppercase tracking-widest text-muted-foreground">Phone Number (Optional)</FormLabel>
+                <FormLabel className="text-xs uppercase tracking-widest text-muted-foreground">Phone Number</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="+1 (555) 000-0000" 
