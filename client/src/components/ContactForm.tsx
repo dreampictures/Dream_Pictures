@@ -3,8 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { api } from "@shared/routes";
 import { insertContactMessageSchema } from "@shared/schema";
-import type { ContactMessageInput } from "@shared/routes";
 import { useContact } from "@/hooks/use-contact";
+import { z } from "zod";
 
 import {
   Form,
@@ -31,12 +31,14 @@ export default function ContactForm() {
   const contactFormSchema = insertContactMessageSchema.extend({
     name: insertContactMessageSchema.shape.name.min(1, "Full name is required"),
     email: insertContactMessageSchema.shape.email.min(1, "Email is required").email("Please enter a valid email"),
-    phone: insertContactMessageSchema.shape.phone.min(1, "Phone number is required"),
+    phone: z.string().min(1, "Phone number is required"),
     service: insertContactMessageSchema.shape.service.min(1, "Please select a service"),
     message: insertContactMessageSchema.shape.message.min(1, "Message is required"),
   });
 
-  const form = useForm<ContactMessageInput>({
+  type ContactFormData = z.infer<typeof contactFormSchema>;
+
+  const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
@@ -47,7 +49,7 @@ export default function ContactForm() {
     },
   });
 
-  function onSubmit(data: ContactMessageInput) {
+  function onSubmit(data: ContactFormData) {
     submitContact(data, {
       onSuccess: () => {
         form.reset();
