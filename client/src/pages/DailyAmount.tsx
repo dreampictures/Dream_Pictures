@@ -22,6 +22,61 @@ function pf(v: any): number {
   return isNaN(n) ? 0 : n;
 }
 
+function fmtInputAmount(n: number) {
+  return n ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 20 }).format(n) : "";
+}
+
+function AmountInput({
+  value,
+  onChange,
+  disabled,
+  placeholder = "0",
+  className,
+  style,
+  "data-testid": testId,
+  onKeyDown,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  className: string;
+  style?: React.CSSProperties;
+  "data-testid"?: string;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+}) {
+  const [isFocused, setIsFocused] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  return (
+    <input
+      data-testid={testId}
+      type="text"
+      inputMode="decimal"
+      value={isFocused ? draft : fmtInputAmount(value)}
+      onFocus={() => {
+        setIsFocused(true);
+        setDraft(value ? String(value) : "");
+      }}
+      onChange={(e) => {
+        const input = e.target.value.replace(/,/g, "").replace(/[^\d.]/g, "");
+        const decimalIndex = input.indexOf(".");
+        const normalized = decimalIndex === -1
+          ? input
+          : input.slice(0, decimalIndex + 1) + input.slice(decimalIndex + 1).replace(/\./g, "");
+        setDraft(normalized);
+        onChange(normalized === "" ? 0 : pf(normalized));
+      }}
+      onBlur={() => setIsFocused(false)}
+      onKeyDown={onKeyDown}
+      disabled={disabled}
+      placeholder={placeholder}
+      className={className}
+      style={style}
+    />
+  );
+}
+
 // ─── PIN Screen ───────────────────────────────────────────────────────────────
 function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
   const [pin, setPin] = useState("");
@@ -143,13 +198,10 @@ function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "
       <span className="flex-1 text-slate-300 text-xs truncate">{label}</span>
       <div className="relative shrink-0">
         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">₹</span>
-        <input
+        <AmountInput
           data-testid={`input-${fieldKey}`}
-          type="number"
-          step="0.01"
-          min="0"
-          value={value || ""}
-          onChange={(e) => onChange(pf(e.target.value))}
+          value={value}
+          onChange={onChange}
           disabled={disabled}
           placeholder="0"
           className={`w-28 bg-transparent text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 ${accentColor} disabled:opacity-40 disabled:cursor-not-allowed`}
@@ -589,13 +641,10 @@ export default function DailyAmount() {
                   <div className="flex-1" />
                   <div className="relative shrink-0">
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">₹</span>
-                    <input
+                    <AmountInput
                       data-testid="input-coins"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={fields.coins || ""}
-                      onChange={(e) => updateField("coins", pf(e.target.value))}
+                      value={fields.coins}
+                      onChange={(value) => updateField("coins", value)}
                       disabled={!editUnlocked}
                       placeholder="0"
                       className="w-20 bg-transparent text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-40"
@@ -629,13 +678,10 @@ export default function DailyAmount() {
                 <h3 className="text-xs font-bold text-white tracking-widest uppercase flex-1">Opening Balance</h3>
                 <div className="relative shrink-0">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
-                  <input
+                  <AmountInput
                     data-testid="input-opening-balance"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={fields.openingBalance || ""}
-                    onChange={(e) => updateField("openingBalance", pf(e.target.value))}
+                    value={fields.openingBalance}
+                    onChange={(value) => updateField("openingBalance", value)}
                     disabled={!editUnlocked}
                     placeholder="0"
                     className="w-32 bg-transparent text-yellow-400 text-right rounded-lg px-2 pl-6 py-1 text-sm font-bold outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -764,13 +810,10 @@ export default function DailyAmount() {
                     <div className="flex gap-1.5">
                       <div className="relative flex-1">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">₹</span>
-                        <input
+                        <AmountInput
                           data-testid="input-tx-amount"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={txAmount}
-                          onChange={(e) => setTxAmount(e.target.value)}
+                          value={pf(txAmount)}
+                          onChange={(value) => setTxAmount(value === 0 ? "" : String(value))}
                           onKeyDown={(e) => e.key === "Enter" && txAmount && addTxMutation.mutate()}
                           placeholder="Amount"
                           className="w-full bg-transparent text-white rounded-md px-2 pl-6 py-1.5 text-xs outline-none focus:ring-1 focus:ring-orange-400"
