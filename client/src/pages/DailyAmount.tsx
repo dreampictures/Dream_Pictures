@@ -22,6 +22,15 @@ function pf(v: any): number {
   return isNaN(n) ? 0 : n;
 }
 
+function dailySystemTotal(entry: any) {
+  const cash =
+    pf(entry.notes10) * 10 + pf(entry.notes20) * 20 + pf(entry.notes50) * 50 +
+    pf(entry.notes100) * 100 + pf(entry.notes200) * 200 + pf(entry.notes500) * 500 + pf(entry.coins);
+  const bank = pf(entry.bobSaving) + pf(entry.bobCurrent) + pf(entry.hdfc) + pf(entry.kotak) + pf(entry.au) + pf(entry.sbi);
+  const aeps = pf(entry.aepsBob) + pf(entry.aepsFino) + pf(entry.aepsPayworld) + pf(entry.aepsDigipay);
+  return cash + bank + aeps;
+}
+
 function fmtInputAmount(n: number) {
   return n ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 20 }).format(n) : "";
 }
@@ -305,6 +314,7 @@ export default function DailyAmount() {
   const [editPin, setEditPin] = useState("");
   const [editPinError, setEditPinError] = useState("");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [date, setDate] = useState(todayStr());
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -394,6 +404,19 @@ export default function DailyAmount() {
     },
     enabled: !!pin,
     staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: dailyHistory = [] } = useQuery<any[]>({
+    queryKey: ["/api/dailyamount/history"],
+    queryFn: async () => {
+      if (!pin) return [];
+      const res = await fetch("/api/dailyamount/history", { headers: dapiHeaders(pin) });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!pin,
+    staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -710,12 +733,32 @@ export default function DailyAmount() {
   const expectedBalance = fields.openingBalance + incomeTotal - expenseTotal;
   const difference = systemBalance - expectedBalance;
   const isBalanced = Math.abs(difference) < 0.01;
+  const cashShare = systemBalance > 0 ? (cashTotal / systemBalance) * 100 : 0;
+  const bankShare = systemBalance > 0 ? (bankTotal / systemBalance) * 100 : 0;
+  const aepsShare = systemBalance > 0 ? (aepsTotal / systemBalance) * 100 : 0;
   const filteredTransactions = txArray.filter((tx) => {
     if (txFilter !== "all" && tx.type !== txFilter) return false;
     const search = txSearch.trim().toLowerCase();
     if (!search) return true;
     return [tx.note, tx.type, String(tx.amount)].some((value) => String(value || "").toLowerCase().includes(search));
   });
+  const trendEntries = dailyHistory
+    .filter((entry) => String(entry.date).slice(0, 10) <= date)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .slice(-7);
+  const trendValues = trendEntries.map((entry) => ({
+    date: String(entry.date).slice(0, 10),
+    total: dailySystemTotal(entry),
+  }));
+  const trendMax = trendValues.length ? Math.max(...trendValues.map((point) => point.total)) : 0;
+  const trendPoints = trendValues.length === 1
+    ? [{ x: 0, y: trendMax > 0 ? 8 : 40 }, { x: 100, y: trendMax > 0 ? 8 : 40 }]
+    : trendValues.map((point, index) => ({
+        x: (index / Math.max(trendValues.length - 1, 1)) * 100,
+        y: trendMax > 0 ? 40 - (point.total / trendMax) * 32 : 40,
+      }));
+  const trendLinePath = trendPoints.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+  const trendAreaPath = trendPoints.length ? `${trendLinePath} L 100 40 L 0 40 Z` : "";
 
   if (!pin) {
     return <PinScreen onSuccess={(p) => setPin(p)} />;
@@ -742,6 +785,7 @@ export default function DailyAmount() {
         .da-page * { box-sizing: border-box; }
         .da-page button, .da-page input { font: inherit; }
         .da-sidebar {
+          position: relative; isolation: isolate;
           z-index: 2;
           display: flex;
           flex: 0 0 128px;
@@ -750,15 +794,15 @@ export default function DailyAmount() {
           flex-direction: column;
           padding: 10px 8px 8px;
           border-right: 1px solid rgba(112, 157, 204, .2);
-          background: linear-gradient(180deg, rgba(7, 19, 39, .98), rgba(6, 16, 33, .98));
+          background: #071326;
         }
-        .da-side-brand { display: flex; align-items: center; justify-content: center; height: 29px; margin-bottom: 11px; color: #f3c65a; }
+        .da-side-brand { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; height: 29px; margin-bottom: 11px; color: #f3c65a; }
         .da-side-brand-mark {
           display: grid; width: 27px; height: 27px; place-items: center; border-radius: 8px;
           border: 1px solid rgba(244, 192, 68, .32); background: linear-gradient(145deg, #183a61, #122746);
           box-shadow: 0 0 14px rgba(234, 176, 51, .14);
         }
-        .da-nav { display: flex; flex-direction: column; gap: 4px; }
+        .da-nav { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; }
         .da-nav-item {
           display: flex; align-items: center; gap: 7px; min-height: 29px; padding: 0 7px;
           border: 1px solid transparent; border-radius: 7px; background: transparent; color: #91a7c0;
@@ -771,14 +815,17 @@ export default function DailyAmount() {
           background: linear-gradient(100deg, rgba(201, 149, 34, .22), rgba(32, 61, 94, .45));
           box-shadow: inset 0 0 15px rgba(230, 180, 53, .09), 0 0 12px rgba(225, 176, 52, .08);
         }
-        .da-nav-item:disabled { opacity: .48; cursor: not-allowed; }
+        .da-nav-item:focus-visible { outline: 2px solid rgba(255, 211, 99, .85); outline-offset: 1px; }
         .da-nav-item svg { flex: 0 0 auto; }
         .da-side-art {
-          height: 82px; min-height: 55px; margin-top: auto; overflow: hidden;
-          border: 1px solid rgba(68, 127, 180, .24); border-radius: 9px;
-          background: linear-gradient(155deg, rgba(20, 50, 82, .58), rgba(11, 26, 49, .8));
+          position: absolute; z-index: 0; inset: 0; overflow: hidden; pointer-events: none;
+          border: 0; border-radius: 0; background: linear-gradient(155deg, #143252, #0b1a31);
         }
-        .da-side-foot { padding-top: 6px; color: #607991; font-size: 8px; line-height: 1.4; text-align: center; }
+        .da-side-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,14,29,.42), rgba(5,14,29,.56) 56%, rgba(5,14,29,.3)); }
+        .da-side-art .da-artwork { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; }
+        .da-side-art .da-artwork img { object-fit: cover; object-position: center bottom; opacity: .76; }
+        .da-side-art .da-artwork-fallback { align-items: end; padding-bottom: 36px; opacity: .22; }
+        .da-side-foot { position: relative; z-index: 1; margin-top: auto; padding: 6px 2px 1px; color: #a3b3c6; font-size: 8px; line-height: 1.4; text-align: center; text-shadow: 0 1px 4px #071326; }
         .da-artwork {
           position: relative; display: grid; min-width: 0; min-height: 0; place-items: center;
           overflow: hidden; color: #89b9ed; background:
@@ -885,10 +932,14 @@ export default function DailyAmount() {
         .da-opening-metric-input { height: 19px; }
         .da-dashboard-grid {
           display: grid; flex: 1; min-width: 0; min-height: 0; grid-template-columns: minmax(0, .96fr) minmax(0, .98fr) minmax(0, 1.12fr);
+          grid-template-rows: minmax(0, 1fr) 75px;
           gap: 8px;
         }
         .da-column { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 7px; overflow: hidden; }
         .da-column:first-child > .da-panel { flex: 1; min-height: 0; }
+        .da-column:nth-child(2) { grid-column: 2; grid-row: 1; }
+        .da-column:nth-child(2) > .da-panel { flex: 1; min-height: 0; }
+        .da-column:last-child { grid-column: 3; grid-row: 1 / span 2; }
         .da-panel {
           border-radius: 9px; border: 1px solid rgba(80, 132, 190, .36) !important;
           background: linear-gradient(150deg, rgba(12, 29, 54, .97), rgba(8, 22, 43, .97)) !important;
@@ -933,6 +984,8 @@ export default function DailyAmount() {
         .da-transactions-panel { flex: 1; min-height: 0; }
         .da-tx-header { gap: 6px; }
         .da-tx-header h3 { flex: 1; }
+        .da-view-all { flex: 0 0 auto; min-height: 21px; padding: 0 7px; border: 1px solid rgba(100, 151, 202, .25); border-radius: 6px; color: #b6d7f6; background: rgba(17, 52, 88, .55); font-size: 8px; white-space: nowrap; }
+        .da-view-all:hover { border-color: rgba(112, 181, 244, .55); background: rgba(24, 70, 116, .65); }
         .da-tx-header .da-tx-totals { display: none; }
         .da-tx-search-wrap { max-width: 116px; min-width: 78px; }
         .da-tx-search { height: 22px; font-size: 9px; }
@@ -962,31 +1015,34 @@ export default function DailyAmount() {
         .da-difference-value { font-size: 13px; }
         .da-status { gap: 3px; padding: 3px 5px; font-size: 8px; }
         .da-artwork-small { width: 30px; height: 24px; flex: 0 0 30px; border-radius: 5px; opacity: .78; }
-        .da-overview { position: relative; flex: 1 0 75px; min-height: 75px; overflow: hidden; padding: 6px 7px; border: 1px solid rgba(91, 146, 202, .3); border-radius: 9px; background: linear-gradient(125deg, rgba(13, 30, 54, .94), rgba(9, 22, 43, .96)); box-shadow: inset 0 1px rgba(255,255,255,.025); }
-        .da-overview-title { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: #e5edf7; font-size: 9px; font-weight: 700; }
-        .da-overview-breakdown { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-        .da-overview-item { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 3px 4px; align-items: center; min-width: 0; }
+        .da-overview { position: relative; grid-column: 1 / span 2; grid-row: 2; min-width: 0; min-height: 0; overflow: hidden; padding: 5px 7px; border: 1px solid rgba(91, 146, 202, .3); border-radius: 9px; background: linear-gradient(125deg, rgba(13, 30, 54, .94), rgba(9, 22, 43, .96)); box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .da-overview-title { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; color: #e5edf7; font-size: 9px; font-weight: 700; }
+        .da-overview-title small { color: #8499b3; font-size: 7px; font-weight: 500; }
+        .da-overview-content { display: grid; height: 48px; grid-template-columns: minmax(0, 1fr) 48px minmax(0, 112px); align-items: center; gap: 8px; }
+        .da-overview-chart { position: relative; min-width: 0; height: 100%; overflow: hidden; border-bottom: 1px solid rgba(203, 145, 50, .25); background: linear-gradient(180deg, rgba(232, 151, 43, .03), transparent); }
+        .da-overview-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+        .da-overview-chart-empty { display: grid; width: 100%; height: 100%; place-items: center; color: #71869f; font-size: 7px; }
+        .da-overview-breakdown { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 3px; }
+        .da-overview-item { display: grid; grid-template-columns: 6px minmax(20px, 1fr) auto auto; gap: 3px; align-items: center; min-width: 0; }
         .da-overview-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 7px currentColor; }
         .da-overview-item span:nth-child(2) { color: #9aafc4; font-size: 7px; }
-        .da-overview-item strong { grid-column: 2; overflow: hidden; color: #e2ebf5; font-size: 8px; font-family: ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }
-        .da-overview-item small { grid-column: 2; color: #7f97ae; font-size: 7px; }
-        .da-overview-bar { display: flex; height: 5px; overflow: hidden; margin-top: 5px; border-radius: 999px; background: rgba(6, 17, 32, .9); box-shadow: inset 0 0 0 1px rgba(118, 154, 192, .12); }
-        .da-overview-bar span { min-width: 0; transition: width .25s ease; }
-        .da-overview-bar .cash { background: #32c89b; box-shadow: 0 0 8px rgba(50, 200, 155, .7); }
-        .da-overview-bar .banks { background: #3d9cff; box-shadow: 0 0 8px rgba(61, 156, 255, .65); }
-        .da-overview-bar .aeps { background: #a67aff; box-shadow: 0 0 8px rgba(166, 122, 255, .65); }
-        .da-overview-art { position: absolute; right: 5px; bottom: 5px; width: 34px; height: 25px; opacity: .25; pointer-events: none; }
+        .da-overview-item strong { overflow: hidden; color: #e2ebf5; font-size: 7px; font-family: ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }
+        .da-overview-item small { color: #7f97ae; font-size: 6px; }
+        .da-overview-donut { display: grid; flex: 0 0 48px; width: 48px; height: 48px; padding: 5px; place-items: center; border-radius: 50%; box-shadow: 0 0 12px rgba(67, 134, 221, .18); }
+        .da-overview-donut-hole { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(151, 181, 215, .18); border-radius: 50%; background: #0b1930; }
+        .da-overview-donut-hole strong { max-width: 100%; overflow: hidden; color: #f3f7ff; font: 700 7px/1 ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }
+        .da-overview-donut-hole small { margin-top: 2px; color: #91a6c0; font-size: 6px; line-height: 1; }
         .da-nav-status { position: absolute; left: 136px; top: 7px; z-index: 12; padding: 6px 9px; border-radius: 7px; color: #d6e2f0; background: #112542; border: 1px solid rgba(103, 151, 205, .3); font-size: 10px; }
         @media (min-width: 1024px) and (max-height: 520px) {
-          .da-toolbar { flex-basis: 37px; min-height: 37px; }
+          .da-toolbar { flex-basis: 40px; min-height: 40px; }
           .da-main { gap: 6px; padding: 6px 7px 7px; }
           .da-main > .grid { gap: 6px; }
-          .da-metric { min-height: 53px; gap: 5px; padding: 4px 5px; border-radius: 7px; }
-          .da-metric-icon { width: 24px; height: 24px; flex-basis: 24px; }
-          .da-metric-icon svg { width: 14px; height: 14px; }
-          .da-metric-label { font-size: 7px; line-height: 1.1; }
-          .da-metric-value { font-size: 10px; line-height: 1.15; }
-          .da-metric-sub { font-size: 6px; line-height: 1.1; }
+          .da-metric { min-height: 64px; gap: 6px; padding: 4px 6px; border-radius: 8px; }
+          .da-metric-icon { width: 36px; height: 40px; flex-basis: 36px; border-radius: 9px; }
+          .da-metric-icon svg { width: 19px; height: 19px; }
+          .da-metric-label { font-size: 8px; line-height: 1.1; }
+          .da-metric-value { font-size: 11px; line-height: 1.15; }
+          .da-metric-sub { font-size: 7px; line-height: 1.1; }
           .da-opening-metric-input { height: 18px; font-size: 9px; }
           .da-dashboard-grid, .da-column { gap: 5px; }
           .da-card-head, .da-tx-header { min-height: 26px; padding: 2px 6px; }
@@ -1011,14 +1067,19 @@ export default function DailyAmount() {
           .da-section-total { padding-top: 1px; }
           .da-section-total span { font-size: 8px; }
           .da-section-total > span:last-child { font-size: 9px; }
-          .da-overview { flex-basis: 66px; min-height: 66px; padding: 4px 5px; }
-          .da-overview-title { margin-bottom: 3px; font-size: 8px; }
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 66px; }
+          .da-overview { height: 66px; padding: 4px 5px; }
+          .da-overview-title { margin-bottom: 2px; font-size: 8px; }
+          .da-overview-title small { font-size: 6px; }
+          .da-overview-content { height: 40px; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 94px); gap: 5px; }
+          .da-overview-chart-empty { font-size: 6px; }
           .da-overview-breakdown { gap: 2px; }
-          .da-overview-item { gap: 2px 3px; }
+          .da-overview-item { grid-template-columns: 5px minmax(15px, 1fr) auto auto; gap: 2px; }
+          .da-overview-dot { width: 5px; height: 5px; }
           .da-overview-item span:nth-child(2), .da-overview-item small { font-size: 6px; }
-          .da-overview-item strong { font-size: 7px; }
-          .da-overview-bar { height: 4px; margin-top: 3px; }
-          .da-overview-art { width: 28px; height: 18px; }
+          .da-overview-item strong { font-size: 6px; }
+          .da-overview-donut { flex-basis: 40px; width: 40px; height: 40px; padding: 4px; }
+          .da-overview-donut-hole strong { font-size: 6px; }
           .da-tx-filterbar { gap: 3px; padding: 3px 5px; }
           .da-tx-filter { min-height: 18px; padding: 0 5px; font-size: 7px; }
           .da-tx-date { width: 87px; height: 18px; font-size: 7px; }
@@ -1062,11 +1123,12 @@ export default function DailyAmount() {
           .da-app-main { min-height: 0; }
           .da-toolbar { flex-wrap: wrap; min-height: 46px; padding: 5px 9px; }
           .da-main { overflow: visible; }
-          .da-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .da-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; }
           .da-column { overflow: visible; }
-          .da-column:last-child { grid-column: 1 / -1; min-height: 430px; }
-          .da-column:first-child { min-height: 400px; }
-          .da-column:nth-child(2) { min-height: 400px; }
+          .da-column:first-child { grid-column: 1; grid-row: auto; min-height: 400px; }
+          .da-column:nth-child(2) { grid-column: 2; grid-row: auto; min-height: 400px; }
+          .da-column:last-child { grid-column: 1 / -1; grid-row: auto; min-height: 430px; }
+          .da-overview { grid-column: 1 / -1; grid-row: auto; min-height: 66px; }
         }
         @media (max-width: 920px) and (min-width: 621px) {
           .da-main > .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1125,19 +1187,26 @@ export default function DailyAmount() {
             { label: "Bank Balances", icon: <Landmark size={14} />, target: "bank-panel" },
             { label: "AEPS Wallet", icon: <Wallet size={14} />, target: "aeps-panel" },
             { label: "Transactions", icon: <ArrowUpRight size={14} />, target: "transactions-panel" },
-            { label: "Reports", icon: <FileText size={14} />, target: "reports", unavailable: true },
-            { label: "Settings", icon: <Settings size={14} />, target: "settings", unavailable: true },
+            { label: "Reports", icon: <FileText size={14} />, target: "reports" },
+            { label: "Settings", icon: <Settings size={14} />, target: "settings" },
           ].map((item) => (
             <button
               key={item.target}
               type="button"
               className={`da-nav-item ${activeSection === item.target ? "active" : ""}`}
-              disabled={item.unavailable}
-              title={item.unavailable ? `${item.label} is not available on this page` : item.label}
+              title={item.label}
               aria-current={activeSection === item.target ? "page" : undefined}
+              aria-haspopup={item.target === "settings" ? "dialog" : undefined}
               onClick={() => {
-                if (item.unavailable) return;
                 setActiveSection(item.target);
+                if (item.target === "reports") {
+                  navigate("/dailyamount/history");
+                  return;
+                }
+                if (item.target === "settings") {
+                  setShowSettingsModal(true);
+                  return;
+                }
                 document.getElementById(item.target)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
               }}
             >
@@ -1219,7 +1288,7 @@ export default function DailyAmount() {
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
       <div className="da-main" id="top">
         <div className="grid">
-          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} iconImage="/assets/dailyamount/opening-balance.png" testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
             {editUnlocked ? (
               <div className="relative w-full">
                 <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
@@ -1236,16 +1305,16 @@ export default function DailyAmount() {
               <span className="text-amber-300">₹{fmt(fields.openingBalance)}</span>
             )}
           </MetricCard>
-          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} testId="metric-cash-total" sub="Notes + coins">
+          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} iconImage="/assets/dailyamount/cash-total.png" testId="metric-cash-total" sub="Notes + coins">
             <span className="text-white">₹{fmt(cashTotal)}</span>
           </MetricCard>
-          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
+          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} iconImage="/assets/dailyamount/bank-total.png" testId="metric-bank-total" sub="6 accounts">
             <span className="text-white">₹{fmt(bankTotal)}</span>
           </MetricCard>
-          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
+          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} iconImage="/assets/dailyamount/aeps-wallet.png" testId="metric-aeps-total" sub="4 sources">
             <span className="text-white">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} iconImage="/assets/dailyamount/difference.png" testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
@@ -1385,33 +1454,6 @@ export default function DailyAmount() {
               </div>
             </Card>
 
-            {/* Balance Overview */}
-            <div className="da-overview" aria-label="Balance overview by category">
-              <div className="da-overview-title"><Scale size={12} /> Balance Overview</div>
-              <div className="da-overview-breakdown">
-                <div className="da-overview-item">
-                  <span className="da-overview-dot" style={{ color: "#32c89b", background: "#32c89b" }} />
-                  <span>Cash</span><strong>₹{fmt(cashTotal)}</strong>
-                  <small>{systemBalance ? ((cashTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
-                </div>
-                <div className="da-overview-item">
-                  <span className="da-overview-dot" style={{ color: "#3d9cff", background: "#3d9cff" }} />
-                  <span>Banks</span><strong>₹{fmt(bankTotal)}</strong>
-                  <small>{systemBalance ? ((bankTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
-                </div>
-                <div className="da-overview-item">
-                  <span className="da-overview-dot" style={{ color: "#a67aff", background: "#a67aff" }} />
-                  <span>AEPS</span><strong>₹{fmt(aepsTotal)}</strong>
-                  <small>{systemBalance ? ((aepsTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
-                </div>
-              </div>
-              <div className="da-overview-bar" role="img" aria-label={`Cash ${systemBalance ? ((cashTotal / systemBalance) * 100).toFixed(1) : "0"}%, banks ${systemBalance ? ((bankTotal / systemBalance) * 100).toFixed(1) : "0"}%, AEPS ${systemBalance ? ((aepsTotal / systemBalance) * 100).toFixed(1) : "0"}%`}>
-                <span className="cash" style={{ width: `${systemBalance ? (cashTotal / systemBalance) * 100 : 0}%` }} />
-                <span className="banks" style={{ width: `${systemBalance ? (bankTotal / systemBalance) * 100 : 0}%` }} />
-                <span className="aeps" style={{ width: `${systemBalance ? (aepsTotal / systemBalance) * 100 : 0}%` }} />
-              </div>
-              <Artwork src="/assets/dailyamount/balance-overview.png" label="Balance overview illustration" icon={<Scale size={18} />} className="da-overview-art" />
-            </div>
           </div>
 
           {/* ══ COLUMN 3 — Transactions + Reconciliation ══════════════════ */}
@@ -1429,6 +1471,15 @@ export default function DailyAmount() {
                     <span className="text-rose-400 font-mono">−₹{fmt(expenseTotal)}</span>
                   </div>
                 )}
+                <button
+                  type="button"
+                  data-testid="button-view-all-transactions"
+                  className="da-view-all da-print-hidden"
+                  onClick={() => navigate("/dailyamount/history")}
+                  title="View transaction history"
+                >
+                  View All
+                </button>
                 <div className="da-tx-search-wrap da-print-hidden relative flex-1 min-w-[88px] max-w-[150px]">
                   <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -1632,6 +1683,67 @@ export default function DailyAmount() {
             </div>
           </div>
 
+          <div className="da-overview" role="group" aria-label="Balance overview">
+            <div className="da-overview-title">
+              <Scale size={12} />
+              <span>Balance Overview</span>
+              <small>Cash + Banks + AEPS</small>
+            </div>
+            <div className="da-overview-content">
+              <div
+                className="da-overview-chart"
+                role="img"
+                aria-label={`Saved system balances: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(", ") || "no saved history"}`}
+                title={`Saved daily totals: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(" · ") || "No saved history"}`}
+              >
+                {trendValues.length ? (
+                  <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
+                        <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
+                      </linearGradient>
+                    </defs>
+                    <path d={trendAreaPath} fill="url(#da-overview-area-gradient)" />
+                    <path d={trendLinePath} fill="none" stroke="#f3a63f" strokeWidth="1.3" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                ) : (
+                  <div className="da-overview-chart-empty">No saved balance history</div>
+                )}
+              </div>
+              <div
+                className="da-overview-donut"
+                role="img"
+                aria-label={`Current balance mix: cash ${cashShare.toFixed(1)}%, banks ${bankShare.toFixed(1)}%, AEPS ${aepsShare.toFixed(1)}%`}
+                title={`System balance ₹${fmt(systemBalance)}`}
+                style={{
+                  background: systemBalance > 0
+                    ? `conic-gradient(#32c89b 0% ${cashShare}%, #3d9cff ${cashShare}% ${cashShare + bankShare}%, #a67aff ${cashShare + bankShare}% 100%)`
+                    : "conic-gradient(#38506b 0% 100%)",
+                }}
+              >
+                <div className="da-overview-donut-hole">
+                  <strong>{systemBalance ? `₹${new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(systemBalance)}` : "₹0"}</strong>
+                  <small>Total</small>
+                </div>
+              </div>
+              <div className="da-overview-breakdown">
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#32c89b", background: "#32c89b" }} />
+                  <span>Cash</span><strong>₹{fmt(cashTotal)}</strong><small>{cashShare.toFixed(0)}%</small>
+                </div>
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#3d9cff", background: "#3d9cff" }} />
+                  <span>Banks</span><strong>₹{fmt(bankTotal)}</strong><small>{bankShare.toFixed(0)}%</small>
+                </div>
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#a67aff", background: "#a67aff" }} />
+                  <span>AEPS</span><strong>₹{fmt(aepsTotal)}</strong><small>{aepsShare.toFixed(0)}%</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1666,6 +1778,85 @@ export default function DailyAmount() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {showSettingsModal && (
+        <div
+          className="da-print-hidden fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSettingsModal(false); }}
+        >
+          <section
+            className="w-full max-w-sm rounded-2xl p-5 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="da-settings-title"
+            style={{ background: "linear-gradient(155deg, #10233e, #0a172c)", border: "1px solid rgba(117,163,210,.3)" }}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 id="da-settings-title" className="text-base font-bold text-white">Settings</h2>
+                <p className="mt-1 text-xs text-slate-400">Manage this reconciliation view.</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close settings"
+                onClick={() => setShowSettingsModal(false)}
+                className="rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <label className="mb-4 block text-xs font-medium text-slate-300">
+              Reconciliation date
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => { setDate(e.target.value); setEditUnlocked(false); setTxSearch(""); }}
+                className="mt-1.5 w-full rounded-lg bg-slate-950/50 px-3 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-blue-400"
+                style={{ border: "1px solid rgba(120,158,196,.25)", colorScheme: "dark" }}
+              />
+            </label>
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl p-3" style={{ background: "rgba(5,16,31,.6)", border: "1px solid rgba(120,158,196,.15)" }}>
+              <div>
+                <p className="text-xs font-semibold text-white">Edit access</p>
+                <p className="mt-1 text-[11px] text-slate-400">{editUnlocked ? "Editing is unlocked" : "Editing is locked"}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (editUnlocked) {
+                    setEditUnlocked(false);
+                  } else {
+                    setShowSettingsModal(false);
+                    setShowEditModal(true);
+                  }
+                }}
+                className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold"
+                style={{ color: editUnlocked ? "#fda4af" : "#f5d06b", background: editUnlocked ? "rgba(244,63,94,.12)" : "rgba(234,179,8,.12)", border: `1px solid ${editUnlocked ? "rgba(244,63,94,.25)" : "rgba(234,179,8,.25)"}` }}
+              >
+                {editUnlocked ? "Lock editing" : "Unlock"}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={refreshData}
+                className="flex-1 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/5"
+                style={{ border: "1px solid rgba(120,158,196,.25)" }}
+              >
+                <RefreshCw size={12} className="mr-1.5 inline" />Refresh data
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowSettingsModal(false); navigate("/dailyamount/history"); }}
+                className="flex-1 rounded-lg px-3 py-2 text-xs font-semibold text-slate-950"
+                style={{ background: "linear-gradient(135deg, #ffd565, #eaa52c)" }}
+              >
+                View reports
+              </button>
+            </div>
+          </section>
         </div>
       )}
       </div>

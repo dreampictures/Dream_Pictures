@@ -1,2 +1,3 @@
 - [Mockup sandbox dependencies](mockup-sandbox-dependencies.md) — a running preview can still lack artifact-local packages declared in its manifest.
 - [Compact dashboard viewport checks](compact-dashboard-viewport.md) — the default 1280×720 preview can miss clipping at the 1024×457 reference size.
+- [DailyAmount data visuals](dailyamount-data-visuals.md) — balance summaries and charts must use saved values; never fabricate deltas or history.
