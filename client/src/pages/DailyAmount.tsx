@@ -2449,11 +2449,15 @@ export default function DailyAmount() {
         }
         .da-overview-donut-hole strong { font-size: clamp(10px, 1.4vh, 18px); }
         .da-overview-donut-hole small { font-size: clamp(8px, 1vh, 12px); }
+        @media screen and (min-width: 621px) {
+          .da-overview-donut-hole strong { font-size: clamp(14px, 1.6vh, 22px); }
+          .da-overview-donut-hole small { font-size: clamp(10px, 1vh, 14px); }
+        }
         @media screen and (min-width: 621px) and (min-height: 621px) {
           .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) clamp(160px, 20vh, 210px); }
         }
         @media screen and (min-width: 621px) and (max-height: 620px) {
-          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 108px; }
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 140px; }
         }
       `}</style>
 
