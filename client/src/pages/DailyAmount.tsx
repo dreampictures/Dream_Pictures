@@ -2345,6 +2345,19 @@ export default function DailyAmount() {
         #bank-panel .da-bank-content .da-illustrated-rows {
           padding-right: calc(var(--da-bank-art-width) + var(--da-bank-entry-inset));
         }
+        #bank-panel .da-account-input {
+          color: #f8fbff !important;
+          font-weight: 700;
+          caret-color: #ffd166;
+        }
+        #bank-panel .da-account-input:not(:disabled) {
+          background: rgba(3, 13, 27, .94) !important;
+        }
+        #bank-panel .da-account-input:focus-visible {
+          border-color: rgba(132, 201, 255, .96) !important;
+          outline: 2px solid rgba(87, 166, 244, .42);
+          outline-offset: 1px;
+        }
         #bank-panel .da-account-row:nth-child(odd) { background: rgba(20, 56, 98, .32); }
         #bank-panel .da-account-row:hover {
           background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06));
