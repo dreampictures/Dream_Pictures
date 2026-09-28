@@ -649,19 +649,28 @@ export function ReferenceRedesign() {
         .da-action.primary { color: #1b2638; border-color: rgba(255, 218, 120, .8); background: linear-gradient(135deg, #ffd565, #eaa52c); box-shadow: 0 3px 13px rgba(231, 166, 46, .17); }
         .da-action.primary:hover { box-shadow: 0 0 17px rgba(241, 181, 63, .3); }
         .da-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 6px 0 8px; }
-        .da-metric { position: relative; min-height: 55px; overflow: hidden; padding: 7px 8px; border-radius: 8px; }
-        .da-metric::after { content: ""; position: absolute; width: 44px; height: 24px; right: 4px; bottom: 2px; opacity: .38; background: currentColor; clip-path: polygon(0 87%, 22% 57%, 40% 68%, 58% 24%, 74% 46%, 100% 0, 100% 100%, 0 100%); }
-        .da-metric.gold { color: #49ddb3; border-color: rgba(63, 211, 173, .4); background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)); }
-        .da-metric.green { color: #36b5ff; border-color: rgba(44, 150, 247, .44); background: linear-gradient(120deg, rgba(12, 56, 105, .86), rgba(10, 31, 62, .96)); }
-        .da-metric.blue { color: #b190ff; border-color: rgba(151, 106, 237, .45); background: linear-gradient(120deg, rgba(57, 34, 114, .8), rgba(29, 27, 67, .96)); }
-        .da-metric.violet { color: #ffb44c; border-color: rgba(244, 150, 40, .45); background: linear-gradient(120deg, rgba(112, 62, 15, .74), rgba(54, 35, 28, .96)); }
-        .da-metric.red { color: #ff6d92; border-color: rgba(255, 73, 115, .48); background: linear-gradient(120deg, rgba(98, 29, 62, .72), rgba(45, 24, 52, .96)); }
-        .da-metric.red.good { color: #55d8aa; border-color: rgba(52, 200, 146, .45); background: linear-gradient(120deg, rgba(16, 77, 68, .8), rgba(12, 38, 57, .96)); }
-        .da-metric-icon { z-index: 1; }
-        .da-metric-copy { z-index: 1; }
-        .da-eyebrow { color: #bbcade; font-size: 8px; text-transform: none; }
-        .da-metric strong { font-size: clamp(11px, 1.15vw, 15px); }
-        .da-metric small { font-size: 7px; }
+        .da-metric { position: relative; isolation: isolate; min-width: 0; min-height: 60px; overflow: hidden; padding: 7px 9px; border-radius: 10px; border: 1px solid rgba(79, 120, 163, .42); box-shadow: inset 0 1px rgba(255,255,255,.06), 0 6px 15px rgba(0,0,0,.2), 0 0 16px var(--metric-glow, rgba(73,153,232,.1)); transition: transform .18s, border-color .18s, box-shadow .18s; }
+        .da-metric::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .18; background: radial-gradient(ellipse at 100% 100%, currentColor, transparent 67%); }
+        .da-metric::after { content: ""; position: absolute; z-index: 0; width: 64px; height: 26px; right: 0; bottom: 0; opacity: .44; pointer-events: none; background: linear-gradient(180deg, transparent, currentColor); clip-path: polygon(0 82%, 18% 58%, 34% 70%, 51% 33%, 67% 47%, 83% 20%, 100% 0, 100% 100%, 0 100%); }
+        .da-metric:hover { transform: translateY(-1px); border-color: currentColor; box-shadow: 0 0 19px var(--metric-glow, rgba(64,143,225,.16)), inset 0 1px rgba(255,255,255,.07); }
+        .da-metric.gold { --metric-glow: rgba(25,224,169,.2); color: #49ddb3; border-color: rgba(63,211,173,.52); background: linear-gradient(120deg, rgba(8,79,68,.94), rgba(8,36,52,.98)); }
+        .da-metric.green { --metric-glow: rgba(26,126,255,.2); color: #36b5ff; border-color: rgba(44,150,247,.56); background: linear-gradient(120deg, rgba(10,62,123,.94), rgba(8,30,64,.98)); }
+        .da-metric.blue { --metric-glow: rgba(139,67,255,.2); color: #b190ff; border-color: rgba(151,106,237,.56); background: linear-gradient(120deg, rgba(62,32,128,.92), rgba(29,25,67,.98)); }
+        .da-metric.violet { --metric-glow: rgba(255,139,39,.17); color: #ffb44c; border-color: rgba(244,150,40,.53); background: linear-gradient(120deg, rgba(101,55,17,.88), rgba(48,32,37,.98)); }
+        .da-metric.red { --metric-glow: rgba(255,48,99,.2); color: #ff6d92; border-color: rgba(255,73,115,.58); background: linear-gradient(120deg, rgba(101,27,61,.92), rgba(44,23,50,.98)); }
+        .da-metric.red.good { --metric-glow: rgba(25,224,169,.18); color: #55d8aa; border-color: rgba(52,200,146,.5); background: linear-gradient(120deg, rgba(16,77,68,.88), rgba(12,38,57,.98)); }
+        .da-metric-icon { position: relative; z-index: 1; width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; box-shadow: inset 0 1px rgba(255,255,255,.18), 0 5px 13px rgba(0,0,0,.18); }
+        .da-metric.gold .da-metric-icon { color: #ecfff7; border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f); box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric.green .da-metric-icon { color: #f0f8ff; border-color: rgba(113,190,255,.42); background: linear-gradient(145deg, #168cff, #0758c5); box-shadow: 0 0 15px rgba(29,132,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric.blue .da-metric-icon { color: #faf4ff; border-color: rgba(201,153,255,.42); background: linear-gradient(145deg, #a145f1, #6221bd); box-shadow: 0 0 15px rgba(152,69,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric.violet .da-metric-icon { color: #fff8e9; border-color: rgba(255,195,119,.4); background: linear-gradient(145deg, #f4a438, #b9631a); box-shadow: 0 0 15px rgba(241,139,47,.18), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric.red .da-metric-icon { color: #fff1f4; border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f); box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric.red.good .da-metric-icon { color: #ecfff7; border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f); box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric-copy { position: relative; z-index: 1; min-width: 0; gap: 3px; }
+        .da-eyebrow { color: #d8e7f2; font-size: 9px; font-weight: 600; letter-spacing: .15px; text-transform: none; }
+        .da-metric strong { font-size: clamp(12px, 1.2vw, 16px); font-weight: 800; letter-spacing: -.25px; line-height: 1.15; }
+        .da-metric.green strong, .da-metric.blue strong, .da-metric.violet strong { color: #f0f5ff; }
+        .da-metric small { color: #a7bbcf; font-size: 8px; }
         .da-workspace { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, .97fr) minmax(0, 1.08fr); gap: 8px; }
         .da-column { gap: 8px; }
         .da-card, .da-reconcile { border-color: rgba(80, 132, 190, .34); border-radius: 9px; background: linear-gradient(150deg, rgba(12, 29, 54, .97), rgba(8, 22, 43, .97)); box-shadow: inset 0 1px rgba(255,255,255,.03), 0 7px 20px rgba(0, 5, 15, .19); }
@@ -883,7 +892,7 @@ export function ReferenceRedesign() {
         </header>
 
         <section className="da-metrics" aria-label="Daily balance summary">
-          <Metric label="Opening balance" value={`₹${money(fields.openingBalance)}`} icon={<WalletCards size={17} />} tone="gold" sub="Carry-in">
+          <Metric label="Opening Balance" value={`₹${money(fields.openingBalance)}`} icon={<WalletCards size={17} />} tone="gold" sub="Carry-in">
             {editing ? (
               <div className="da-metric-edit">
                 <span>₹</span>
@@ -891,10 +900,10 @@ export function ReferenceRedesign() {
               </div>
             ) : undefined}
           </Metric>
-          <Metric label="Cash total" value={`₹${money(cashTotal)}`} icon={<Banknote size={17} />} tone="green" sub="Notes + coins" />
-          <Metric label="Bank total" value={`₹${money(bankTotal)}`} icon={<Landmark size={17} />} tone="blue" sub={`${bankAccounts.length} accounts`} />
-          <Metric label="AEPS wallet" value={`₹${money(aepsTotal)}`} icon={<WalletCards size={17} />} tone="violet" sub={`${walletAccounts.length} sources`} />
-          <Metric label="Difference" value={`${difference >= 0 ? "+" : "−"}₹${money(Math.abs(difference))}`} icon={balanced ? <Check size={18} /> : <AlertTriangle size={17} />} tone={`red ${balanced ? "good" : ""}`} sub={balanced ? "Accounts agree" : "Needs review"} />
+          <Metric label="Cash Total" value={`₹${money(cashTotal)}`} icon={<Banknote size={17} />} tone="green" sub="Notes + coins" />
+          <Metric label="Bank Total" value={`₹${money(bankTotal)}`} icon={<Landmark size={17} />} tone="blue" sub={`${bankAccounts.length} accounts`} />
+          <Metric label="AEPS Wallet" value={`₹${money(aepsTotal)}`} icon={<WalletCards size={17} />} tone="violet" sub={`${walletAccounts.length} sources`} />
+          <Metric label="Difference" value={`${difference >= 0 ? "+" : "−"}₹${money(Math.abs(difference))}`} icon={<Scale size={17} />} tone={`red ${balanced ? "good" : ""}`} sub={balanced ? "Accounts agree" : "Needs review"} />
         </section>
 
         <main className="da-workspace">

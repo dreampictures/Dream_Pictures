@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet, ArrowUpRight, FileText, Settings } from "lucide-react";
+import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -257,7 +257,6 @@ function MetricCard({ label, accent, icon, children, testId, sub, className = ""
     <div
       data-testid={testId}
       className={`da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2 ${className}`}
-      style={{ background: "linear-gradient(140deg, rgba(17,42,71,0.97), rgba(11,30,52,0.92))", border: `1px solid ${accent}35`, boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 4px 12px rgba(0,0,0,0.12)" }}
     >
       <div
         className="da-metric-icon w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
@@ -822,30 +821,40 @@ export default function DailyAmount() {
         }
         .da-clear-cash:hover { background: rgba(156, 52, 67, .3); }
         .da-metric {
-          position: relative; min-height: 57px; overflow: hidden; padding: 6px 7px;
-          border-radius: 8px; border: 1px solid rgba(73, 153, 232, .3);
+          position: relative; isolation: isolate; min-height: 57px; overflow: hidden; padding: 6px 8px;
+          border-radius: 9px; border: 1px solid rgba(73, 153, 232, .3);
           background: linear-gradient(135deg, rgba(13, 34, 61, .97), rgba(9, 24, 46, .96));
-          box-shadow: inset 0 1px rgba(255,255,255,.035), 0 5px 15px rgba(0,0,0,.18);
+          box-shadow: inset 0 1px rgba(255,255,255,.05), 0 6px 15px rgba(0,0,0,.2), 0 0 16px var(--metric-glow, rgba(73,153,232,.1));
           transition: transform .18s, border-color .18s, box-shadow .18s;
         }
-        .da-metric::after {
-          content: ""; position: absolute; right: 3px; bottom: 2px; width: 39px; height: 22px;
-          opacity: .36; background: currentColor;
-          clip-path: polygon(0 85%, 20% 61%, 39% 69%, 57% 30%, 74% 48%, 100% 0, 100% 100%, 0 100%);
+        .da-metric::before {
+          content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+          opacity: .18; background: radial-gradient(ellipse at 100% 100%, currentColor, transparent 67%);
         }
-        .da-metric:hover { transform: translateY(-1px); box-shadow: 0 0 15px rgba(64, 143, 225, .12), inset 0 1px rgba(255,255,255,.05); }
-        .da-metric:nth-child(1) { color: #45d8b3; border-color: rgba(63, 211, 173, .42) !important; background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)) !important; }
-        .da-metric:nth-child(2) { color: #36b5ff; border-color: rgba(44, 150, 247, .44) !important; background: linear-gradient(120deg, rgba(12, 56, 105, .86), rgba(10, 31, 62, .96)) !important; }
-        .da-metric:nth-child(3) { color: #b190ff; border-color: rgba(151, 106, 237, .45) !important; background: linear-gradient(120deg, rgba(57, 34, 114, .8), rgba(29, 27, 67, .96)) !important; }
-        .da-metric:nth-child(4) { color: #ffb44c; border-color: rgba(244, 150, 40, .45) !important; background: linear-gradient(120deg, rgba(112, 62, 15, .74), rgba(54, 35, 28, .96)) !important; }
-        .da-metric:nth-child(5) { color: #ff6d92; border-color: rgba(255, 73, 115, .48) !important; background: linear-gradient(120deg, rgba(98, 29, 62, .72), rgba(45, 24, 52, .96)) !important; }
+        .da-metric::after {
+          content: ""; position: absolute; right: 0; bottom: 0; z-index: -1; width: 64px; height: 26px;
+          opacity: .44; pointer-events: none; background: linear-gradient(180deg, transparent, currentColor);
+          clip-path: polygon(0 82%, 18% 58%, 34% 70%, 51% 33%, 67% 47%, 83% 20%, 100% 0, 100% 100%, 0 100%);
+        }
+        .da-metric:hover { transform: translateY(-1px); border-color: currentColor; box-shadow: 0 0 19px var(--metric-glow, rgba(64,143,225,.16)), inset 0 1px rgba(255,255,255,.07); }
+        .da-metric:nth-child(1) { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .52) !important; background: linear-gradient(120deg, rgba(8, 79, 68, .94), rgba(8, 36, 52, .98)) !important; }
+        .da-metric:nth-child(2) { --metric-glow: rgba(26, 126, 255, .2); color: #36b5ff; border-color: rgba(44, 150, 247, .56) !important; background: linear-gradient(120deg, rgba(10, 62, 123, .94), rgba(8, 30, 64, .98)) !important; }
+        .da-metric:nth-child(3) { --metric-glow: rgba(139, 67, 255, .2); color: #b190ff; border-color: rgba(151, 106, 237, .56) !important; background: linear-gradient(120deg, rgba(62, 32, 128, .92), rgba(29, 25, 67, .98)) !important; }
+        .da-metric:nth-child(4) { --metric-glow: rgba(255, 139, 39, .17); color: #ffb44c; border-color: rgba(244, 150, 40, .53) !important; background: linear-gradient(120deg, rgba(101, 55, 17, .88), rgba(48, 32, 37, .98)) !important; }
+        .da-metric:nth-child(5) { --metric-glow: rgba(255, 48, 99, .2); color: #ff6d92; border-color: rgba(255, 73, 115, .58) !important; background: linear-gradient(120deg, rgba(101, 27, 61, .92), rgba(44, 23, 50, .98)) !important; }
         .da-metric[data-testid="metric-difference"] { box-shadow: inset 0 1px rgba(255,255,255,.03), 0 0 14px rgba(255, 65, 108, .1); }
         .da-metric[data-testid="metric-difference"].is-balanced { color: #45d8b3; border-color: rgba(63, 211, 173, .42); background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)); box-shadow: 0 0 14px rgba(51, 207, 156, .1); }
         .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { color: #45d8b3 !important; }
-        .da-metric-icon { position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,.09) !important; }
+        .da-metric-icon { position: relative; z-index: 1; width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: rgba(255,255,255,.09) !important; box-shadow: inset 0 1px rgba(255,255,255,.18), 0 5px 13px rgba(0,0,0,.18); }
+        .da-metric:nth-child(1) .da-metric-icon { color: #ecfff7 !important; border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric:nth-child(2) .da-metric-icon { color: #f0f8ff !important; border-color: rgba(113,190,255,.42); background: linear-gradient(145deg, #168cff, #0758c5) !important; box-shadow: 0 0 15px rgba(29,132,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric:nth-child(3) .da-metric-icon { color: #faf4ff !important; border-color: rgba(201,153,255,.42); background: linear-gradient(145deg, #a145f1, #6221bd) !important; box-shadow: 0 0 15px rgba(152,69,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric:nth-child(4) .da-metric-icon { color: #fff8e9 !important; border-color: rgba(255,195,119,.4); background: linear-gradient(145deg, #f4a438, #b9631a) !important; box-shadow: 0 0 15px rgba(241,139,47,.18), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric:nth-child(5) .da-metric-icon { color: #fff1f4 !important; border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
         .da-metric > div:last-child { position: relative; z-index: 1; }
-        .da-metric-label { color: #c3d2e3; font-size: 8px; text-transform: none; }
-        .da-metric-value { font-size: clamp(10px, 1vw, 13px); line-height: 1.2; }
+        .da-metric-label { color: #d8e7f2; font-size: 9px; font-weight: 600; letter-spacing: .15px; text-transform: none; }
+        .da-metric-value { font-size: clamp(11px, 1.08vw, 14px); font-weight: 800; letter-spacing: -.25px; line-height: 1.15; }
         .da-metric-sub { color: #a7bbcf; font-size: 7px; }
         .da-opening-metric-input { height: 19px; }
         .da-dashboard-grid {
@@ -1162,7 +1171,7 @@ export default function DailyAmount() {
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
       <div className="da-main" id="top">
         <div className="grid">
-          <MetricCard label="Opening balance" accent="#39d7aa" icon={<Banknote size={16} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
             {editUnlocked ? (
               <div className="relative w-full">
                 <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
@@ -1171,24 +1180,24 @@ export default function DailyAmount() {
                   value={fields.openingBalance}
                   onChange={(value) => updateField("openingBalance", value)}
                   placeholder="0"
-                  className="da-opening-metric-input w-full bg-slate-950/40 text-emerald-200 text-right rounded px-1 py-0.5 pl-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-emerald-400"
+                  className="da-opening-metric-input w-full bg-slate-950/40 text-amber-200 text-right rounded px-1 py-0.5 pl-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-emerald-400"
                   style={{ border: "1px solid rgba(109,145,179,0.28)" }}
                 />
               </div>
             ) : (
-              <span className="text-emerald-200">₹{fmt(fields.openingBalance)}</span>
+              <span className="text-amber-300">₹{fmt(fields.openingBalance)}</span>
             )}
           </MetricCard>
-          <MetricCard label="Cash total" accent="#1687ff" icon={<Coins size={17} />} testId="metric-cash-total" sub="Notes + coins">
-            <span className="text-blue-300">₹{fmt(cashTotal)}</span>
+          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} testId="metric-cash-total" sub="Notes + coins">
+            <span className="text-white">₹{fmt(cashTotal)}</span>
           </MetricCard>
-          <MetricCard label="Bank total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
-            <span className="text-purple-300">₹{fmt(bankTotal)}</span>
+          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
+            <span className="text-white">₹{fmt(bankTotal)}</span>
           </MetricCard>
-          <MetricCard label="AEPS wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
-            <span className="text-orange-300">₹{fmt(aepsTotal)}</span>
+          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
+            <span className="text-white">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={isBalanced ? <CheckCircle size={17} /> : <AlertTriangle size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
