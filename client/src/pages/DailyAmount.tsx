@@ -2350,6 +2350,26 @@ export default function DailyAmount() {
           background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06));
           box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16);
         }
+        #aeps-panel .da-card-head,
+        #aeps-panel .da-card-body {
+          position: relative;
+          z-index: 1;
+        }
+        #aeps-panel .da-card-head {
+          background: linear-gradient(90deg, rgba(39, 22, 72, .72), rgba(23, 18, 56, .54)) !important;
+        }
+        #aeps-panel::before {
+          content: "";
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          opacity: .96;
+          background: url("/assets/reconciliation/aeps-illustration.png") left center / 120% 100% no-repeat;
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -2640,7 +2660,6 @@ export default function DailyAmount() {
                   />
                 ))}
                 </div>
-                <Artwork src="/assets/reconciliation/aeps-illustration.png" label="AEPS illustration" className="da-inline-illustration da-aeps-illustration" />
               </div>
             </Card>
 
