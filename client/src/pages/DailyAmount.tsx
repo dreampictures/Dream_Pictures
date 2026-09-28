@@ -1497,10 +1497,10 @@ export default function DailyAmount() {
           box-shadow: inset 0 0 18px rgba(230, 180, 53, .1), 0 0 18px rgba(225, 176, 52, .13);
         }
         .da-side-art {
-          inset: auto 0 0;
-          height: clamp(190px, 31vh, 360px);
-          border-top: 1px solid rgba(120, 171, 222, .16);
-          background: linear-gradient(180deg, rgba(8, 23, 44, .35), rgba(8, 23, 44, .86));
+          inset: 0;
+          height: auto;
+          border-top: 0;
+          background: #08172d;
         }
         .da-side-art::after {
           background: linear-gradient(180deg, #08172d 0%, rgba(8, 23, 44, .48) 24%, rgba(7, 18, 36, .04) 72%, rgba(6, 15, 31, .28) 100%);
