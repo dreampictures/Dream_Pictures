@@ -2319,6 +2319,26 @@ export default function DailyAmount() {
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
         }
         #bank-panel { --da-bank-art-width: clamp(76px, 28%, 150px); }
+        #bank-panel .da-card-head,
+        #bank-panel .da-card-body {
+          position: relative;
+          z-index: 1;
+        }
+        #bank-panel .da-card-head {
+          background: linear-gradient(90deg, rgba(12, 34, 64, .72), rgba(9, 27, 52, .54)) !important;
+        }
+        #bank-panel::before {
+          content: "";
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          opacity: .96;
+          background: url("/assets/reconciliation/bank-illustration.png") left center / 120% 100% no-repeat;
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+        }
         #bank-panel .da-account-table-header {
           padding-right: var(--da-bank-art-width);
         }
@@ -2329,28 +2349,6 @@ export default function DailyAmount() {
         #bank-panel .da-account-row:hover {
           background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06));
           box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16);
-        }
-        #bank-panel .da-bank-illustration {
-          top: 0;
-          right: 0;
-          bottom: 0;
-          width: var(--da-bank-art-width);
-          height: auto;
-          transform: none;
-          overflow: hidden;
-          border: 0;
-          border-radius: 0;
-          opacity: .98;
-          background: radial-gradient(ellipse at 72% 52%, rgba(36, 127, 239, .24), transparent 74%);
-        }
-        #bank-panel .da-bank-illustration img {
-          position: absolute;
-          inset: 0;
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
         }
       `}</style>
 
@@ -2608,7 +2606,6 @@ export default function DailyAmount() {
                   />
                 ))}
                 </div>
-                <Artwork src="/assets/reconciliation/bank-illustration.png" label="Bank building illustration" className="da-inline-illustration da-bank-illustration" />
               </div>
             </Card>
 
