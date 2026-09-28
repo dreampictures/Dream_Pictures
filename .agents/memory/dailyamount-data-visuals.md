@@ -3,11 +3,11 @@ name: DailyAmount visual constraints
 description: Data accuracy, reference composition, and PIN-safe visual QA constraints for DailyAmount.
 ---
 
-DailyAmount chart visuals may use decorative static curves when they make no historical claim. The balance donut must use current cash, bank, and AEPS totals and percentages, with a clear zero-total state. Never invent historical data.
+DailyAmount's overview chart and KPI sparklines must use saved daily-entry records within the selected range, ending no later than the selected date or today. Do not synthesize missing dates or unsaved values. Historical Difference stays empty unless saved difference or transaction totals are present; the donut remains based on current totals.
 
-**Why:** The user wants the target chart appearance without adding historical logic, while all displayed financial values and donut proportions remain tied to current saved data.
+**Why:** The user approved the existing visual design but requires all historical chart values to come from real records. Transaction totals are stored separately and are absent from the existing history response, so balance-only estimates would be misleading.
 
-**How to apply:** Treat KPI waves and the orange overview curve as decoration, not trends. Derive donut slices and percentages from the existing totals; render a neutral zero state when their sum is zero.
+**How to apply:** Filter saved records client-side for 7D/30D/90D without filling calendar gaps; do not add unsaved current form values. Leave the Difference sparkline blank unless its historical inputs exist. Derive donut slices and percentages from current totals and retain the zero-total state.
 
 ## PIN-safe visual QA
 

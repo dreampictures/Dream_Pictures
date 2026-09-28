@@ -22,6 +22,143 @@ function pf(v: any): number {
   return isNaN(n) ? 0 : n;
 }
 
+type DailyHistoryPoint = {
+  date: string;
+  openingBalance: number;
+  cashTotal: number;
+  bankTotal: number;
+  aepsTotal: number;
+  systemBalance: number;
+  difference: number | null;
+};
+
+type HistorySeriesPoint = { date: string; value: number };
+
+function normalizeHistoryDate(value: any): string | null {
+  const key = value instanceof Date && Number.isFinite(value.getTime())
+    ? value.toISOString().slice(0, 10)
+    : String(value ?? "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
+  const timestamp = Date.parse(`${key}T00:00:00.000Z`);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === key
+    ? key
+    : null;
+}
+
+function shiftHistoryDate(date: string, days: number): string {
+  const timestamp = Date.parse(`${date}T00:00:00.000Z`) + days * 86_400_000;
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function optionalHistoryNumber(value: any): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function dailyHistoryMetrics(entry: any): DailyHistoryPoint | null {
+  const date = normalizeHistoryDate(entry?.date);
+  if (!date) return null;
+
+  const fields = [
+    entry.openingBalance,
+    entry.notes10,
+    entry.notes20,
+    entry.notes50,
+    entry.notes100,
+    entry.notes200,
+    entry.notes500,
+    entry.coins,
+    entry.bobSaving,
+    entry.bobCurrent,
+    entry.hdfc,
+    entry.kotak,
+    entry.au,
+    entry.sbi,
+    entry.aepsBob,
+    entry.aepsFino,
+    entry.aepsPayworld,
+    entry.aepsDigipay,
+  ].map(optionalHistoryNumber);
+  if (fields.some((value) => value === null)) return null;
+
+  const [
+    openingBalance, notes10, notes20, notes50, notes100, notes200, notes500, coins,
+    bobSaving, bobCurrent, hdfc, kotak, au, sbi,
+    aepsBob, aepsFino, aepsPayworld, aepsDigipay,
+  ] = fields as number[];
+  const cashTotal = notes10 * 10 + notes20 * 20 + notes50 * 50 +
+    notes100 * 100 + notes200 * 200 + notes500 * 500 + coins;
+  const bankTotal = bobSaving + bobCurrent + hdfc + kotak + au + sbi;
+  const aepsTotal = aepsBob + aepsFino + aepsPayworld + aepsDigipay;
+  const systemBalance = cashTotal + bankTotal + aepsTotal;
+  if (![cashTotal, bankTotal, aepsTotal, systemBalance].every(Number.isFinite)) return null;
+
+  const storedDifference = optionalHistoryNumber(entry.difference);
+  const incomeTotal = optionalHistoryNumber(entry.incomeTotal);
+  const expenseTotal = optionalHistoryNumber(entry.expenseTotal);
+  const calculatedDifference = incomeTotal !== null && expenseTotal !== null
+    ? systemBalance - (openingBalance + incomeTotal - expenseTotal)
+    : null;
+  const difference = storedDifference !== null
+    ? storedDifference
+    : calculatedDifference !== null && Number.isFinite(calculatedDifference)
+      ? calculatedDifference
+      : null;
+
+  return {
+    date,
+    openingBalance,
+    cashTotal,
+    bankTotal,
+    aepsTotal,
+    systemBalance,
+    difference,
+  };
+}
+
+function normalizedRangeRatio(value: number, min: number, max: number): number {
+  const scale = Math.max(1, Math.abs(min), Math.abs(max));
+  const scaledMin = min / scale;
+  const scaledSpan = max / scale - scaledMin;
+  if (scaledSpan === 0) return 0.5;
+  return Math.min(1, Math.max(0, (value / scale - scaledMin) / scaledSpan));
+}
+
+function sparklineGeometry(series: HistorySeriesPoint[], startDate: string, endDate: string) {
+  const validPoints = series.filter((point) => Number.isFinite(point.value));
+  if (!validPoints.length) return null;
+  const startTimestamp = Date.parse(`${startDate}T00:00:00.000Z`);
+  const endTimestamp = Date.parse(`${endDate}T00:00:00.000Z`);
+  const duration = Math.max(1, endTimestamp - startTimestamp);
+  const min = Math.min(...validPoints.map((point) => point.value));
+  const max = Math.max(...validPoints.map((point) => point.value));
+  const points = validPoints.map((point) => ({
+    x: 4 + ((Date.parse(`${point.date}T00:00:00.000Z`) - startTimestamp) / duration) * 152,
+    y: 38 - normalizedRangeRatio(point.value, min, max) * 28,
+  }));
+  const line = points.map((point, index) =>
+    `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
+  ).join(" ");
+  const first = points[0];
+  const last = points[points.length - 1];
+  return {
+    points,
+    line,
+    area: points.length > 1 ? `${line} L${last.x.toFixed(2)} 48 L${first.x.toFixed(2)} 48 Z` : "",
+  };
+}
+
+function formatHistoryDate(date: string): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00.000Z`));
+}
+
 function fmtInputAmount(n: number) {
   return n ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 20 }).format(n) : "";
 }
@@ -274,8 +411,42 @@ function MetricIconSlot({ fallback, slotName, accent }: {
   );
 }
 
-function MetricCard({ label, accent, icon, children, testId, sub, className = "" }: {
+function MetricSparkline({ label, accent, series, startDate, endDate }: {
+  label: string; accent: string; series: HistorySeriesPoint[]; startDate: string; endDate: string;
+}) {
+  const geometry = sparklineGeometry(series, startDate, endDate);
+  if (!geometry) return null;
+
+  return (
+    <svg
+      className="da-metric-sparkline"
+      viewBox="0 0 160 48"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={`Historical ${label} values across ${series.length} saved reconciliation date${series.length === 1 ? "" : "s"}`}
+      style={{ color: accent }}
+    >
+      {geometry.area && <path d={geometry.area} fill="currentColor" opacity=".12" />}
+      {geometry.points.length > 1 && (
+        <path
+          d={geometry.line}
+          fill="none"
+          stroke="currentColor"
+          strokeOpacity=".48"
+          strokeWidth="1.4"
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+      {geometry.points.length === 1 && (
+        <circle cx={geometry.points[0].x} cy={geometry.points[0].y} r="2.4" fill="currentColor" />
+      )}
+    </svg>
+  );
+}
+
+function MetricCard({ label, accent, icon, children, testId, sub, className = "", sparklineSeries = [], sparklineStartDate = "", sparklineEndDate = "" }: {
   label: string; accent: string; icon: React.ReactNode; children: React.ReactNode; testId: string; sub?: string; className?: string;
+  sparklineSeries?: HistorySeriesPoint[]; sparklineStartDate?: string; sparklineEndDate?: string;
 }) {
   return (
     <div
@@ -288,10 +459,100 @@ function MetricCard({ label, accent, icon, children, testId, sub, className = ""
         <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
         {sub && <p className="da-metric-sub text-[8px] text-slate-500 truncate">{sub}</p>}
       </div>
-      <svg className="da-metric-sparkline" viewBox="0 0 160 48" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 37 C18 32 24 34 40 27 C56 20 62 29 78 24 C94 19 104 28 120 18 C136 9 144 15 160 7 L160 48 L0 48 Z" fill="currentColor" opacity=".12" />
-        <path d="M0 37 C18 32 24 34 40 27 C56 20 62 29 78 24 C94 19 104 28 120 18 C136 9 144 15 160 7" fill="none" stroke="currentColor" strokeOpacity=".48" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
-      </svg>
+      <MetricSparkline label={label} accent={accent} series={sparklineSeries} startDate={sparklineStartDate} endDate={sparklineEndDate} />
+    </div>
+  );
+}
+
+function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, historyLoading = false, historyError = false }: {
+  points: DailyHistoryPoint[];
+  startDate: string;
+  endDate: string;
+  hasAnyHistory: boolean;
+  historyLoading?: boolean;
+  historyError?: boolean;
+}) {
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const startTimestamp = Date.parse(`${startDate}T00:00:00.000Z`);
+  const endTimestamp = Date.parse(`${endDate}T00:00:00.000Z`);
+  const duration = Math.max(1, endTimestamp - startTimestamp);
+  const minValue = points.length ? Math.min(...points.map((point) => point.systemBalance)) : 0;
+  const maxValue = points.length ? Math.max(...points.map((point) => point.systemBalance)) : 0;
+  const plottedPoints = points.map((point) => ({
+    ...point,
+    x: 4 + ((Date.parse(`${point.date}T00:00:00.000Z`) - startTimestamp) / duration) * 92,
+    y: 35 - normalizedRangeRatio(point.systemBalance, minValue, maxValue) * 27,
+  }));
+  const linePath = plottedPoints.map((point, index) =>
+    `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
+  ).join(" ");
+  const firstPoint = plottedPoints[0];
+  const lastPoint = plottedPoints[plottedPoints.length - 1];
+  const areaPath = plottedPoints.length > 1
+    ? `${linePath} L${lastPoint.x.toFixed(2)} 40 L${firstPoint.x.toFixed(2)} 40 Z`
+    : "";
+  const activePoint = plottedPoints.find((point) => point.date === hoveredDate);
+
+  return (
+    <div className="da-overview-chart" role="group" aria-label="Historical system balance chart">
+      <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
+      {plottedPoints.length === 0 ? (
+        <div className="da-overview-chart-empty" role={historyError ? "alert" : undefined}>
+          {historyLoading ? "Loading history…" : historyError ? "History unavailable" : hasAnyHistory ? "No records in this range" : "No historical data yet"}
+        </div>
+      ) : (
+        <svg viewBox="0 0 100 40" preserveAspectRatio="none" role="group" aria-label="System balance by saved reconciliation date">
+          <defs>
+            <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
+              <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
+            </linearGradient>
+          </defs>
+          {areaPath && <path d={areaPath} fill="url(#da-overview-area-gradient)" />}
+          {plottedPoints.length > 1 && (
+            <path
+              className="da-overview-line"
+              d={linePath}
+              fill="none"
+              stroke="#f3a63f"
+              strokeWidth="1.5"
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
+          {plottedPoints.map((point) => (
+            <g key={point.date}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="5"
+                fill="transparent"
+                tabIndex={0}
+                role="button"
+                aria-label={`${formatHistoryDate(point.date)}. System Balance: ₹${fmt(point.systemBalance)}`}
+                onMouseEnter={() => setHoveredDate(point.date)}
+                onMouseLeave={() => setHoveredDate(null)}
+                onFocus={() => setHoveredDate(point.date)}
+                onBlur={() => setHoveredDate(null)}
+              />
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={point.date === hoveredDate ? "2.5" : "1.7"}
+                fill="#f3a63f"
+                stroke="#0b1930"
+                strokeWidth=".6"
+                pointerEvents="none"
+              />
+            </g>
+          ))}
+        </svg>
+      )}
+      {activePoint && (
+        <div className="da-overview-tooltip" aria-live="polite">
+          <span>{formatHistoryDate(activePoint.date)}</span>
+          <strong>System Balance: ₹{fmt(activePoint.systemBalance)}</strong>
+        </div>
+      )}
     </div>
   );
 }
@@ -373,6 +634,7 @@ export default function DailyAmount() {
   };
 
   const [fields, setFields] = useState(emptyFields);
+  const [historyRangeDays, setHistoryRangeDays] = useState<7 | 30 | 90>(30);
 
   // ── Queries ───────────────────────────────────────────────────────────────
   const { data: entry, isLoading: entryLoading } = useQuery({
@@ -414,12 +676,12 @@ export default function DailyAmount() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: dailyHistory = [] } = useQuery<any[]>({
+  const { data: dailyHistory = [], isLoading: dailyHistoryLoading, isError: dailyHistoryError } = useQuery<any[]>({
     queryKey: ["/api/dailyamount/history"],
     queryFn: async () => {
       if (!pin) return [];
       const res = await fetch("/api/dailyamount/history", { headers: dapiHeaders(pin) });
-      if (!res.ok) return [];
+      if (!res.ok) throw new Error("Failed to fetch reconciliation history");
       return res.json();
     },
     enabled: !!pin,
@@ -485,11 +747,12 @@ export default function DailyAmount() {
     if (!pin) return;
     setSaveStatus("saving");
     try {
-      await fetch(`/api/dailyamount/entry/${date}`, {
+      const res = await fetch(`/api/dailyamount/entry/${date}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-da-pin": pin },
         body: JSON.stringify(data),
       });
+      if (res.ok) void qc.invalidateQueries({ queryKey: ["/api/dailyamount/history"] });
       setSaveStatus("saved");
       setLastSaved(new Date());
       setTimeout(() => setSaveStatus("idle"), 3000);
@@ -499,7 +762,7 @@ export default function DailyAmount() {
     // NOTE: We deliberately do NOT call qc.setQueryData here.
     // Updating the cache would trigger the entry useEffect, which would
     // call setFields and overwrite any in-progress keystrokes (e.g. "100." → "100").
-  }, [pin, date]);
+  }, [pin, date, qc]);
 
   // ── Debounced save — 800ms after last keystroke ───────────────────────────
   const debouncedSave = useCallback((data: typeof fields) => {
@@ -648,6 +911,7 @@ export default function DailyAmount() {
       qc.invalidateQueries({ queryKey: ["/api/dailyamount/entry", date] }),
       qc.invalidateQueries({ queryKey: ["/api/dailyamount/prev-balance", date] }),
       qc.invalidateQueries({ queryKey: ["/api/dailyamount/transactions", date] }),
+      qc.invalidateQueries({ queryKey: ["/api/dailyamount/history"] }),
     ]);
   }
 
@@ -743,15 +1007,30 @@ export default function DailyAmount() {
   const cashShare = systemBalance > 0 ? (cashTotal / systemBalance) * 100 : 0;
   const bankShare = systemBalance > 0 ? (bankTotal / systemBalance) * 100 : 0;
   const aepsShare = systemBalance > 0 ? (aepsTotal / systemBalance) * 100 : 0;
+  const todayDateKey = normalizeHistoryDate(todayStr()) || todayStr();
+  const requestedEndDate = normalizeHistoryDate(date) || todayDateKey;
+  const historyEndDate = requestedEndDate > todayDateKey ? todayDateKey : requestedEndDate;
+  const historyStartDate = shiftHistoryDate(historyEndDate, -(historyRangeDays - 1));
+  const allHistoryPoints = (Array.isArray(dailyHistory) ? dailyHistory : [])
+    .map(dailyHistoryMetrics)
+    .filter((point): point is DailyHistoryPoint => !!point && point.date <= todayDateKey)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const chartHistoryPoints = allHistoryPoints.filter(
+    (point) => point.date >= historyStartDate && point.date <= historyEndDate,
+  );
+  const openingHistory = chartHistoryPoints.map((point) => ({ date: point.date, value: point.openingBalance }));
+  const cashHistory = chartHistoryPoints.map((point) => ({ date: point.date, value: point.cashTotal }));
+  const bankHistory = chartHistoryPoints.map((point) => ({ date: point.date, value: point.bankTotal }));
+  const aepsHistory = chartHistoryPoints.map((point) => ({ date: point.date, value: point.aepsTotal }));
+  const differenceHistory = chartHistoryPoints.flatMap((point) =>
+    point.difference === null ? [] : [{ date: point.date, value: point.difference }]
+  );
   const filteredTransactions = txArray.filter((tx) => {
     if (txFilter !== "all" && tx.type !== txFilter) return false;
     const search = txSearch.trim().toLowerCase();
     if (!search) return true;
     return [tx.note, tx.type, String(tx.amount)].some((value) => String(value || "").toLowerCase().includes(search));
   });
-  // The history request remains unchanged for the page's existing data flow.
-  // The overview curve is decorative and makes no historical claim.
-  void dailyHistory;
 
   if (!pin) {
     return <PinScreen onSuccess={(p) => setPin(p)} />;
@@ -1012,10 +1291,19 @@ export default function DailyAmount() {
         .da-overview { position: relative; grid-column: 1 / span 2; grid-row: 2; min-width: 0; min-height: 0; overflow: hidden; padding: 5px 7px; border: 1px solid rgba(91, 146, 202, .3); border-radius: 9px; background: linear-gradient(125deg, rgba(13, 30, 54, .94), rgba(9, 22, 43, .96)); box-shadow: inset 0 1px rgba(255,255,255,.025); }
         .da-overview-title { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; color: #e5edf7; font-size: 9px; font-weight: 700; }
         .da-overview-title small { color: #8499b3; font-size: 7px; font-weight: 500; }
+        .da-chart-range-control { display: flex; flex: 0 0 auto; align-items: center; gap: 2px; margin-left: auto; padding: 1px; border: 1px solid rgba(126, 157, 190, .2); border-radius: 5px; background: rgba(4, 14, 28, .55); }
+        .da-chart-range-button { min-width: 19px; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px; color: #91a6bf; background: transparent; font-size: 7px; font-weight: 700; line-height: 1; cursor: pointer; }
+        .da-chart-range-button:hover { color: #e8f1fc; background: rgba(255, 255, 255, .06); }
+        .da-chart-range-button.is-active { border-color: rgba(247, 185, 78, .35); color: #ffe0a0; background: rgba(234, 157, 51, .16); }
         .da-overview-content { display: grid; height: 48px; grid-template-columns: minmax(0, 1fr) 48px minmax(0, 112px); align-items: center; gap: 8px; }
         .da-overview-chart { position: relative; min-width: 0; height: 100%; overflow: hidden; border-bottom: 1px solid rgba(203, 145, 50, .25); background: linear-gradient(180deg, rgba(232, 151, 43, .03), transparent); }
         .da-overview-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
         .da-overview-chart-empty { display: grid; width: 100%; height: 100%; place-items: center; color: #71869f; font-size: 7px; }
+        .da-overview-chart .da-overview-line { filter: drop-shadow(0 0 5px rgba(255, 176, 61, .9)); }
+        .da-overview-chart circle[role="button"]:focus-visible { stroke: #fff1cf; stroke-width: 1.2; outline: none; }
+        .da-overview-tooltip { position: absolute; top: 4px; right: 5px; z-index: 4; display: grid; max-width: calc(100% - 10px); gap: 2px; padding: 4px 6px; border: 1px solid rgba(248, 180, 72, .36); border-radius: 6px; color: #dce7f5; background: rgba(7, 18, 34, .94); box-shadow: 0 5px 16px rgba(0, 0, 0, .28), 0 0 10px rgba(232, 151, 43, .1); pointer-events: none; }
+        .da-overview-tooltip span { color: #9fb2c8; font-size: 7px; line-height: 1.2; }
+        .da-overview-tooltip strong { color: #ffe1aa; font: 700 8px/1.2 ui-monospace, monospace; white-space: nowrap; }
         .da-overview-breakdown { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 3px; }
         .da-overview-item { display: grid; grid-template-columns: 6px minmax(20px, 1fr) auto auto; gap: 3px; align-items: center; min-width: 0; }
         .da-overview-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 7px currentColor; }
@@ -2145,7 +2433,7 @@ export default function DailyAmount() {
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
       <div className="da-main" id="top">
         <div className="grid">
-          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"} sparklineSeries={openingHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             {editUnlocked ? (
               <div className="relative w-full">
                 <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
@@ -2162,16 +2450,16 @@ export default function DailyAmount() {
               <span className="text-amber-300">₹{fmt(fields.openingBalance)}</span>
             )}
           </MetricCard>
-          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} testId="metric-cash-total" sub="Notes + coins">
+          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} testId="metric-cash-total" sub="Notes + coins" sparklineSeries={cashHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className="text-white">₹{fmt(cashTotal)}</span>
           </MetricCard>
-          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
+          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts" sparklineSeries={bankHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className="text-white">₹{fmt(bankTotal)}</span>
           </MetricCard>
-          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
+          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources" sparklineSeries={aepsHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className="text-white">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""} sparklineSeries={differenceHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
@@ -2556,25 +2844,30 @@ export default function DailyAmount() {
               <BarChart3 size={12} />
               <span>Balance Overview</span>
               <small>Cash + Banks + AEPS</small>
+              <div className="da-chart-range-control" role="group" aria-label="Balance chart date range">
+                {([7, 30, 90] as const).map((days) => (
+                  <button
+                    key={days}
+                    type="button"
+                    className={`da-chart-range-button${historyRangeDays === days ? " is-active" : ""}`}
+                    aria-label={`Show ${days} days`}
+                    aria-pressed={historyRangeDays === days}
+                    onClick={() => setHistoryRangeDays(days)}
+                  >
+                    {days}D
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="da-overview-content">
-              <div
-                className="da-overview-chart"
-                role="img"
-                aria-label="Decorative orange area curve"
-              >
-                <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
-                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
-                      <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 35 C8 35 10 29 18 29 C25 29 29 23 36 24 C44 25 48 31 55 28 C63 25 68 13 75 17 C82 21 86 6 93 9 C96 10 98 14 100 14 L100 40 L0 40 Z" fill="url(#da-overview-area-gradient)" />
-                  <path d="M0 35 C8 35 10 29 18 29 C25 29 29 23 36 24 C44 25 48 31 55 28 C63 25 68 13 75 17 C82 21 86 6 93 9 C96 10 98 14 100 14" fill="none" stroke="#f3a63f" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-                </svg>
-              </div>
+              <BalanceOverviewChart
+                points={chartHistoryPoints}
+                startDate={historyStartDate}
+                endDate={historyEndDate}
+                hasAnyHistory={allHistoryPoints.length > 0}
+                historyLoading={dailyHistoryLoading}
+                historyError={dailyHistoryError}
+              />
               <div
                 className="da-overview-donut"
                 role="img"
