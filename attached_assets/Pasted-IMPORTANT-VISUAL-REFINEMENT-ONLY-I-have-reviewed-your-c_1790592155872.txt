@@ -1,0 +1,620 @@
+IMPORTANT — VISUAL REFINEMENT ONLY
+==================================
+
+I have reviewed your current Daily Reconciliation implementation.
+
+The functionality and overall layout are now present, so DO NOT rebuild the page architecture from scratch.
+
+DO NOT change the existing data logic.
+
+DO NOT change calculations.
+
+DO NOT change database/API logic.
+
+DO NOT change bank names.
+
+DO NOT change AEPS company names.
+
+DO NOT change transaction logic.
+
+DO NOT change date logic.
+
+DO NOT change print/export functionality.
+
+Your current implementation is structurally correct, but the visual design is NOT close enough to the provided reference screenshot.
+
+Now perform a SECOND visual refinement pass.
+
+The attached reference screenshot is the visual target.
+
+==================================================
+CURRENT PROBLEM
+==================================================
+
+Your current page looks like a basic dark admin dashboard.
+
+The reference looks like a premium dark fintech dashboard.
+
+We need to transform the CURRENT implementation into the reference visual style.
+
+Do NOT simplify the reference.
+
+Do NOT redesign it in your own style.
+
+Do NOT make it flatter.
+
+==================================================
+1. INCREASE CARD SIZE AND VISUAL PRESENCE
+==================================================
+
+The current cards are too thin and flat.
+
+Increase:
+
+- card padding
+- border radius
+- visual hierarchy
+- icon size
+- amount font size
+- section header size
+- spacing between sections
+
+The dashboard should feel rich and premium.
+
+Avoid excessive empty dark space inside cards.
+
+==================================================
+2. ADD REAL NEON GLOW
+==================================================
+
+This is VERY IMPORTANT.
+
+The current implementation has almost no visible glow.
+
+Every major section should have a subtle colored glow.
+
+Examples:
+
+Cash:
+cyan/green glow
+
+Bank:
+blue/gold glow
+
+AEPS:
+purple glow
+
+Transactions:
+cyan glow
+
+Difference:
+red/pink glow
+
+KPI cards:
+each card gets its own accent glow.
+
+Use CSS:
+
+box-shadow
+
+multiple layered shadows
+
+radial-gradient
+
+linear-gradient
+
+pseudo-elements where useful
+
+Example concept:
+
+box-shadow:
+0 0 12px rgba(...),
+0 0 30px rgba(...);
+
+Do not make it extremely bright.
+
+The glow should be visible but professional.
+
+==================================================
+3. KPI CARDS MUST MATCH REFERENCE STYLE
+==================================================
+
+The five top cards are currently too simple.
+
+Make them look like premium fintech KPI cards.
+
+Each card must contain:
+
+- large icon area
+- label
+- large amount
+- secondary text
+- decorative bottom wave/sparkline
+- gradient background
+- colored glow
+- subtle border highlight
+
+Cards:
+
+Opening Balance
+Cash Total
+Bank Total
+AEPS Wallet
+Difference
+
+Colors:
+
+Opening Balance = green/teal
+
+Cash Total = blue/cyan
+
+Bank Total = purple/blue
+
+AEPS Wallet = orange/gold
+
+Difference = red/pink
+
+The decorative wave at the bottom/right of each KPI card is important.
+
+Use SVG/CSS/chart.
+
+Do NOT use static screenshot text for amounts.
+
+Amounts must remain dynamic.
+
+==================================================
+4. SIDEBAR
+==================================================
+
+The sidebar is currently too plain.
+
+Make it closer to the reference.
+
+Use:
+
+dark navy gradient
+
+subtle vertical glow
+
+larger navigation icons
+
+better spacing
+
+active item with gold glow
+
+active item should have:
+
+gold left border
+
+dark gold gradient background
+
+soft glow
+
+rounded container
+
+At bottom add:
+
+/assets/reconciliation/sidebar-finance.png
+
+This will be supplied later.
+
+If image is unavailable, keep a graceful placeholder.
+
+==================================================
+5. CASH COUNTING
+==================================================
+
+The current Cash Counting panel has too much empty space.
+
+Improve its visual density.
+
+Rows should be visually prominent.
+
+Each denomination should have:
+
+colored denomination badge
+
+minus button
+
+large bordered input
+
+plus button
+
+calculated amount
+
+Example:
+
+₹500   [-] [344] [+]     ₹1,72,000
+
+Buttons should have:
+
+dark glass background
+blue border
+hover glow
+
+Denomination badges should have subtle accent colors.
+
+Do NOT change existing calculation logic.
+
+At bottom create a strong green/cyan glowing:
+
+Cash Total
+
+section.
+
+==================================================
+6. BANK BALANCES
+==================================================
+
+Current Bank Balances looks like a plain table.
+
+Transform it into a premium glass card.
+
+Header:
+
+BANK icon
+Bank Balances
+Total badge
+
+Table rows should have:
+
+- bank icon/badge
+- bank name
+- balance
+- subtle row hover
+- separators
+- alternating subtle dark gradients
+
+Add the decorative bank illustration:
+
+/assets/reconciliation/bank-illustration.png
+
+Place it on the right side.
+
+The image should have a subtle blue glow.
+
+IMPORTANT:
+
+Use actual existing bank data.
+
+Do not hardcode.
+
+==================================================
+7. AEPS WALLET
+==================================================
+
+Current AEPS panel also looks too flat.
+
+Give it:
+
+purple gradient
+
+violet glow
+
+purple border
+
+large AEPS icon
+
+Total badge
+
+Better row spacing
+
+Decorative AEPS illustration:
+
+/assets/reconciliation/aeps-illustration.png
+
+Place it toward the right side.
+
+Do not modify existing AEPS data.
+
+==================================================
+8. TRANSACTIONS
+==================================================
+
+The current transaction panel is too empty and basic.
+
+Make it visually similar to the reference.
+
+Header:
+
+Transactions
+
+View All
+
+Filters:
+
+All
+Credit
+Debit
+
+Search field
+
+Date selector
+
+Each transaction row should have:
+
+large circular icon
+
+transaction description
+
+time
+
+amount
+
+right arrow
+
+Credit:
+
+green/cyan glow
+
+Debit:
+
+red/pink glow
+
+Rows should have subtle hover glow.
+
+Use actual transaction data.
+
+When there are no transactions, make the empty state visually polished.
+
+==================================================
+9. BALANCE OVERVIEW
+==================================================
+
+The current Balance Overview is too basic.
+
+Create a proper premium chart section.
+
+Left side:
+
+smooth glowing area/line chart
+
+Right side:
+
+donut chart
+
+Legend:
+
+Cash
+Banks
+AEPS
+
+Use real existing calculated values.
+
+The chart should visually match the dark neon dashboard.
+
+Do not use fake data.
+
+If there is no balance history, display a beautiful empty state rather than a broken/blank chart.
+
+==================================================
+10. RECONCILIATION
+==================================================
+
+The current reconciliation panel is too plain.
+
+Make it visually prominent.
+
+Use a gold/dark gradient panel.
+
+Show:
+
+Expected Balance
+
+System Balance
+
+Difference
+
+When difference = 0:
+
+green glowing:
+
+✓ BALANCED
+
+When difference != 0:
+
+red/pink glowing:
+
+⚠ MISMATCH
+
+The state must remain dynamically connected to the existing calculation.
+
+==================================================
+11. BACKGROUND
+==================================================
+
+The current background is too flat.
+
+Create a layered dark navy background.
+
+Use:
+
+radial gradients
+
+subtle blue ambient glow
+
+very subtle purple glow
+
+very subtle cyan glow
+
+Do NOT use a simple solid background.
+
+Do NOT make it too bright.
+
+The page should have visual depth.
+
+==================================================
+12. CARD BORDERS
+==================================================
+
+Current borders are too basic.
+
+Use subtle gradient-like borders.
+
+Cards should appear slightly illuminated from their accent color.
+
+Example:
+
+blue card → blue border glow
+
+purple card → purple border glow
+
+green card → green border glow
+
+red card → red border glow
+
+==================================================
+13. IMAGES
+==================================================
+
+Create/use this directory:
+
+/public/assets/reconciliation/
+
+Expected images:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+reconciliation-illustration.png
+
+I will upload these images later.
+
+Do NOT generate images yourself.
+
+Do NOT use remote image URLs.
+
+Do NOT use base64.
+
+Use:
+
+/assets/reconciliation/FILENAME.png
+
+If the image does not exist yet, gracefully hide/placeholder the image without breaking the layout.
+
+==================================================
+14. IMPORTANT — DO NOT REMOVE THE CURRENT FUNCTIONALITY
+==================================================
+
+The following must continue working:
+
+Cash denomination +/- buttons
+
+Cash total calculation
+
+Opening balance
+
+Bank balances
+
+AEPS balances
+
+Transactions
+
+Credit/debit filtering
+
+Search
+
+Date navigation
+
+Refresh
+
+Print
+
+Export
+
+Expected balance
+
+System balance
+
+Difference
+
+Balanced/Mismatch status
+
+==================================================
+15. RESPONSIVE
+==================================================
+
+Keep the current desktop dashboard layout.
+
+Primary target:
+
+1920x1080
+
+1600x900
+
+1440x900
+
+1366x768
+
+Do not make the desktop dashboard unnecessarily narrow.
+
+==================================================
+16. FINAL VISUAL TARGET
+==================================================
+
+The final webpage should feel like:
+
+PREMIUM DARK FINTECH SOFTWARE
+
+NOT:
+
+basic admin dashboard
+
+NOT:
+
+plain Tailwind dashboard
+
+NOT:
+
+simple dark mode page
+
+The reference screenshot should clearly be recognizable in the final browser UI.
+
+The key visual characteristics are:
+
+- deep navy background
+- colorful neon gradients
+- visible glow
+- glass-like cards
+- colorful KPI cards
+- large financial icons
+- premium tables
+- glowing transaction states
+- decorative financial illustrations
+- modern charts
+- strong reconciliation section
+- dense but clean dashboard
+
+==================================================
+17. DO NOT STOP AFTER ONE CSS CHANGE
+==================================================
+
+After making changes:
+
+Run the application.
+
+Inspect the actual rendered page.
+
+Compare it visually with the reference screenshot.
+
+Then refine:
+
+- spacing
+- card dimensions
+- glow
+- typography
+- icon sizes
+- colors
+- borders
+- charts
+- empty states
+
+Repeat until the page looks substantially closer to the reference.
+
+IMPORTANT:
+
+Do NOT tell me that the current design is "similar enough".
+
+Actually improve the visual implementation.

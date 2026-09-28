@@ -1,0 +1,184 @@
+FINAL IMAGE-ASSET RULE — DO NOT GENERATE ANY IMAGES
+====================================================
+
+IMPORTANT:
+
+From this point onward, DO NOT create, generate, draw, synthesize, AI-generate, or invent ANY image assets for this page.
+
+I will create and upload the required images myself later.
+
+Your job is ONLY to create the webpage UI and connect the image filenames.
+
+====================================================
+IMAGE FOLDER
+====================================================
+
+Create this folder if it does not already exist:
+
+/public/assets/reconciliation/
+
+====================================================
+IMAGE FILENAMES
+====================================================
+
+Prepare the code to support these exact filenames:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+reconciliation-illustration.png
+
+Additional image assets may be added later if required, but DO NOT generate them.
+
+====================================================
+VERY IMPORTANT
+====================================================
+
+DO NOT:
+
+- generate images
+- create SVG illustrations that replace the requested images
+- use AI-generated images
+- use placeholder stock images
+- use Unsplash
+- use Pexels
+- use remote image URLs
+- use base64 images
+- create images using CSS as a replacement
+- use emoji as image replacements
+- download random images from the internet
+
+The visual illustrations will be provided by me.
+
+====================================================
+HOW THE CODE SHOULD WORK
+====================================================
+
+Use normal local asset paths.
+
+Example:
+
+<img
+  src="/assets/reconciliation/sidebar-finance.png"
+  alt=""
+/>
+
+Similarly:
+
+/assets/reconciliation/bank-illustration.png
+
+/assets/reconciliation/aeps-illustration.png
+
+/assets/reconciliation/cash-illustration.png
+
+/assets/reconciliation/balance-overview.png
+
+/assets/reconciliation/reconciliation-illustration.png
+
+====================================================
+IF IMAGE DOES NOT EXIST YET
+====================================================
+
+This is VERY IMPORTANT.
+
+The application must NOT break if the image file has not been uploaded yet.
+
+If an image is missing:
+
+- keep the card/layout intact
+- reserve the correct image area
+- use a subtle dark placeholder area
+- do not generate a replacement
+- do not show a random image
+- do not show an external image
+
+Once I upload the real image with the exact filename, it should automatically appear.
+
+====================================================
+IMAGE COMPONENT
+====================================================
+
+If useful, create a reusable component such as:
+
+ReconciliationImage
+
+It should simply load local assets.
+
+Example concept:
+
+<ReconciliationImage
+  src="/assets/reconciliation/bank-illustration.png"
+  alt=""
+/>
+
+The component should gracefully handle a missing file.
+
+====================================================
+DO NOT CHANGE THE DESIGN BECAUSE IMAGES ARE MISSING
+====================================================
+
+Even if the image files do not exist yet:
+
+KEEP:
+
+- card dimensions
+- spacing
+- glow
+- gradients
+- borders
+- shadows
+- image positioning
+- image container dimensions
+
+Only the actual image content will be added later.
+
+====================================================
+IMAGE CREATION IS MY RESPONSIBILITY
+====================================================
+
+I will provide the actual image assets later.
+
+You only need to prepare the webpage so that:
+
+1. The correct folder exists.
+2. The correct filenames are referenced.
+3. The layout reserves the image area.
+4. The images load automatically when uploaded.
+5. No code changes are required after uploading the same filenames.
+
+====================================================
+DO NOT TOUCH BUSINESS LOGIC
+====================================================
+
+This request is ONLY about image asset handling.
+
+Do not modify:
+
+- calculations
+- API
+- database
+- cash logic
+- bank logic
+- AEPS logic
+- transaction logic
+- reconciliation logic
+
+====================================================
+FINAL CHECK
+====================================================
+
+Before finishing, search the entire Daily Reconciliation implementation for image generation or remote image usage.
+
+Remove any automatically generated/remote image implementation.
+
+The final implementation must use LOCAL IMAGE ASSETS ONLY.
+
+NO AUTOMATIC IMAGE GENERATION.
+NO STOCK IMAGES.
+NO REMOTE IMAGES.
+NO BASE64.
+NO RANDOM PLACEHOLDERS.
+
+I will upload the actual images myself later.
