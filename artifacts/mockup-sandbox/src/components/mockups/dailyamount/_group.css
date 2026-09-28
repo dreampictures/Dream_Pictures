@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+.daily-amount-preview {
+  color-scheme: dark;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #080c18 100%);
+  font-family: "Inter", sans-serif;
+}
+
+.daily-amount-preview input::placeholder { color: #475569; }
+.daily-amount-preview input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .7; }
+.daily-amount-preview ::-webkit-scrollbar { width: 6px; height: 6px; }
+.daily-amount-preview ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.25); border-radius: 8px; }
