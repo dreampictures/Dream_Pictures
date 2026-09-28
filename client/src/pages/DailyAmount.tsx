@@ -1098,7 +1098,7 @@ export default function DailyAmount() {
         }
         .da-side-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,14,29,.42), rgba(5,14,29,.56) 56%, rgba(5,14,29,.3)); }
         .da-side-art .da-artwork { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; }
-        .da-side-art .da-artwork img { object-fit: cover; object-position: center bottom; opacity: .76; }
+        .da-side-art .da-artwork img { object-fit: contain; object-position: right center; opacity: .76; }
         .da-side-art .da-artwork-fallback { align-items: end; padding-bottom: 36px; opacity: .22; }
         .da-side-foot { position: relative; z-index: 1; margin-top: auto; padding: 6px 2px 1px; color: #a3b3c6; font-size: 8px; line-height: 1.4; text-align: center; text-shadow: 0 1px 4px #071326; }
         .da-artwork {
@@ -1107,7 +1107,7 @@ export default function DailyAmount() {
             radial-gradient(circle at 55% 40%, rgba(57, 143, 224, .2), transparent 65%),
             linear-gradient(135deg, rgba(20, 57, 94, .76), rgba(12, 28, 52, .78));
         }
-        .da-artwork img { width: 100%; height: 100%; object-fit: contain; }
+        .da-artwork img { width: 100%; height: 100%; object-fit: contain; object-position: right center; }
         .da-artwork-fallback { display: grid; width: 100%; height: 100%; place-items: center; opacity: .6; }
         .da-side-art .da-artwork { width: 100%; height: 100%; color: #f0c659; background: radial-gradient(ellipse at 50% 95%, rgba(225, 170, 46, .25), transparent 70%); }
         .da-app-main { display: flex; flex: 1; min-width: 0; min-height: 0; flex-direction: column; }
@@ -1184,7 +1184,7 @@ export default function DailyAmount() {
         .da-metric[data-testid="metric-aeps-total"] .da-metric-icon { border-color: rgba(255,195,119,.4); background: linear-gradient(145deg, #f4a438, #b9631a) !important; box-shadow: 0 0 15px rgba(241,139,47,.18), inset 0 1px rgba(255,255,255,.3); }
         .da-metric[data-testid="metric-difference"] .da-metric-icon { border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
         .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric-icon-image { display: block; width: 100%; height: 100%; padding: 5px; object-fit: contain; }
+        .da-metric-icon-image { display: block; width: 100%; height: 100%; padding: 5px; object-fit: contain; object-position: right center; }
         .da-metric-icon svg { width: 23px; height: 23px; }
         .da-metric > div:last-child { position: relative; z-index: 1; }
         .da-metric-label { color: #f2f8f5; font-size: clamp(11px, 1.08vw, 15px); font-weight: 500; letter-spacing: .05px; text-transform: none; }
@@ -1505,7 +1505,7 @@ export default function DailyAmount() {
           background: linear-gradient(180deg, #08172d 0%, rgba(8, 23, 44, .48) 24%, rgba(7, 18, 36, .04) 72%, rgba(6, 15, 31, .28) 100%);
         }
         .da-side-art .da-artwork { inset: 0; display: block; width: 100%; height: 100%; border: 0; border-radius: 0; background: transparent; }
-        .da-side-art .da-artwork img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; padding: 0; opacity: .98; }
+        .da-side-art .da-artwork img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: right center; padding: 0; opacity: .98; }
         .da-side-art .da-artwork-placeholder { background: radial-gradient(ellipse at 50% 80%, rgba(225, 170, 46, .09), transparent 69%); }
         .da-side-foot { z-index: 2; margin-top: auto; padding: 10px 4px 16px; font-size: 10px; }
         .da-artwork { border: 1px solid rgba(111, 163, 217, .18); border-radius: 10px; background: linear-gradient(145deg, rgba(16, 39, 69, .52), rgba(8, 21, 41, .72)); }
@@ -2332,7 +2332,7 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/bank-illustration.png") left center / 120% 100% no-repeat;
+          background: url("/assets/reconciliation/bank-illustration.png") right center / auto 100% no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
         }
@@ -2363,14 +2363,18 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/aeps-illustration.png") left center / 120% 100% no-repeat;
+          background: url("/assets/reconciliation/aeps-illustration.png") right center / auto 100% no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
         }
-        .da-overview-title,
+        .da-overview-title {
+          position: relative;
+          z-index: 2;
+        }
         .da-overview-content {
           position: relative;
           z-index: 1;
+          align-items: center;
         }
         .da-overview > .da-overview-artwork {
           position: absolute;
@@ -2389,7 +2393,7 @@ export default function DailyAmount() {
         .da-overview > .da-overview-artwork img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           object-position: right center;
         }
         .da-overview-title { padding-right: 38px; }
@@ -2412,6 +2416,9 @@ export default function DailyAmount() {
         .da-overview-content {
           grid-template-columns: minmax(0, 1fr) max-content minmax(130px, 180px);
         }
+        .da-overview-breakdown {
+          padding-right: clamp(22px, 3vw, 38px);
+        }
         .da-overview-donut {
           width: auto;
           height: calc(100% - 4px);
@@ -2432,6 +2439,7 @@ export default function DailyAmount() {
             grid-template-columns: minmax(0, 1fr) clamp(104px, 26vw, 152px);
             grid-template-rows: clamp(104px, 26vw, 152px) auto;
           }
+          .da-overview-breakdown { padding-right: 0; }
           .da-overview-donut {
             width: calc(100% - 4px);
             height: calc(100% - 4px);
