@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet } from "lucide-react";
+import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -33,6 +33,7 @@ function AmountInput({
   placeholder = "0",
   className,
   style,
+  id,
   "data-testid": testId,
   onKeyDown,
 }: {
@@ -42,6 +43,7 @@ function AmountInput({
   placeholder?: string;
   className: string;
   style?: React.CSSProperties;
+  id?: string;
   "data-testid"?: string;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }) {
@@ -50,6 +52,7 @@ function AmountInput({
 
   return (
     <input
+      id={id}
       data-testid={testId}
       type="text"
       inputMode="decimal"
@@ -151,14 +154,15 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
 }
 
 // ─── Card wrapper ─────────────────────────────────────────────────────────────
-function Card({ title, accent = "#d4af37", children, className = "" }: { title: string; accent?: string; children: React.ReactNode; className?: string }) {
+function Card({ title, accent = "#d4af37", children, className = "", action }: { title: string; accent?: string; children: React.ReactNode; className?: string; action?: React.ReactNode }) {
   return (
     <div className={`da-panel rounded-xl overflow-hidden flex flex-col ${className}`} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
-      <div className="px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
+      <div className="da-card-head px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
         <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: accent }} />
-        <h3 className="text-[11px] font-bold text-white tracking-wide">{title}</h3>
+        <h3 className="text-[11px] font-bold text-white tracking-wide flex-1">{title}</h3>
+        {action}
       </div>
-      <div className="p-3 flex-1 flex flex-col min-h-0">{children}</div>
+      <div className="da-card-body p-3 flex-1 flex flex-col min-h-0">{children}</div>
     </div>
   );
 }
@@ -167,7 +171,7 @@ function Card({ title, accent = "#d4af37", children, className = "" }: { title: 
 function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: number; onChange: (v: number) => void; disabled?: boolean }) {
   const total = count * denom;
   return (
-    <div className="flex items-center gap-2 py-1.5">
+    <div className="da-denom-row flex items-center gap-2 py-1.5">
       <div className="w-14 shrink-0 text-center">
         <span className="inline-flex min-w-12 justify-center text-xs font-bold text-slate-200 bg-slate-700/80 rounded-md px-1.5 py-1">₹{denom}</span>
       </div>
@@ -177,7 +181,7 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
           aria-label={`Decrease ₹${denom} note count`}
           onClick={() => onChange(Math.max(0, count - 1))}
           disabled={disabled || count <= 0}
-          className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="da-stepper w-7 h-7 flex items-center justify-center rounded-md text-slate-300 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Minus size={13} />
         </button>
@@ -189,7 +193,7 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
           onChange={(e) => onChange(pf(e.target.value))}
           disabled={disabled}
           placeholder="0"
-          className="w-16 bg-slate-950/50 text-white text-center rounded-md px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-80"
+          className="da-count-input w-16 bg-slate-950/50 text-white text-center rounded-md px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-80"
           style={{ border: "1px solid #2a4763" }}
         />
         <button
@@ -197,7 +201,7 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
           aria-label={`Increase ₹${denom} note count`}
           onClick={() => onChange(count + 1)}
           disabled={disabled}
-          className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="da-stepper w-7 h-7 flex items-center justify-center rounded-md text-slate-300 bg-slate-800/90 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Plus size={13} />
         </button>
@@ -212,7 +216,7 @@ function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "
   label: string; fieldKey: string; value: number; onChange: (v: number) => void; disabled?: boolean; accentColor?: string; marker?: string; markerColor?: string;
 }) {
   return (
-    <div className="flex items-center gap-2 py-1 border-b border-slate-700/25 last:border-0">
+    <div className="da-account-row flex items-center gap-2 py-1 border-b border-slate-700/25 last:border-0">
       <div className="flex-1 min-w-0 flex items-center gap-2">
         {marker && <span className="w-5 h-5 shrink-0 rounded-md flex items-center justify-center text-[8px] font-bold" style={{ background: `${markerColor}25`, border: `1px solid ${markerColor}45`, color: markerColor }}>{marker}</span>}
         <span className="text-slate-300 text-xs truncate">{label}</span>
@@ -225,7 +229,7 @@ function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "
           onChange={onChange}
           disabled={disabled}
           placeholder="0"
-          className={`w-28 bg-slate-950/40 text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 ${accentColor} disabled:opacity-85 disabled:cursor-not-allowed`}
+          className={`da-account-input w-28 bg-slate-950/40 text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 ${accentColor} disabled:opacity-85 disabled:cursor-not-allowed`}
           style={{ border: "1px solid #2a4763" }}
         />
       </div>
@@ -236,7 +240,7 @@ function AmountRow({ label, fieldKey, value, onChange, disabled, accentColor = "
 // ─── Section total bar ────────────────────────────────────────────────────────
 function TotalBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="flex justify-between items-center pt-2 mt-1" style={{ borderTop: `1px solid ${color}30` }}>
+    <div className="da-section-total flex justify-between items-center pt-2 mt-1" style={{ borderTop: `1px solid ${color}30` }}>
       <span className="text-xs font-semibold" style={{ color }}>{label}</span>
       <span className="text-sm font-bold font-mono" style={{ color }}>₹{fmt(value)}</span>
     </div>
@@ -249,19 +253,19 @@ function MetricCard({ label, accent, icon, children, testId, sub }: {
   return (
     <div
       data-testid={testId}
-      className="da-metric min-w-0 rounded-xl px-2.5 py-2 flex items-center gap-2.5"
+      className="da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2"
       style={{ background: "linear-gradient(140deg, rgba(17,42,71,0.97), rgba(11,30,52,0.92))", border: `1px solid ${accent}35`, boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 4px 12px rgba(0,0,0,0.12)" }}
     >
       <div
-        className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center"
+        className="da-metric-icon w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
         style={{ background: `${accent}20`, color: accent }}
       >
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">{label}</p>
-        <div className="text-sm sm:text-base font-bold font-mono text-white truncate">{children}</div>
-        {sub && <p className="text-[9px] text-slate-500 truncate">{sub}</p>}
+        <p className="da-metric-label text-[9px] text-slate-400 truncate">{label}</p>
+        <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
+        {sub && <p className="da-metric-sub text-[8px] text-slate-500 truncate">{sub}</p>}
       </div>
     </div>
   );
@@ -463,6 +467,29 @@ export default function DailyAmount() {
     }
 
     const updated = { ...fields, [key]: value };
+    setFields(updated);
+    debouncedSave(updated);
+  }
+
+  function clearCashCounts() {
+    if (!editUnlocked) return;
+    if (!window.confirm("Clear all cash counts for this date? The zero values will be saved with your other reconciliation data.")) return;
+
+    const updated = {
+      ...fields,
+      notes10: 0,
+      notes20: 0,
+      notes50: 0,
+      notes100: 0,
+      notes200: 0,
+      notes500: 0,
+      coins: 0,
+    };
+    userEditingRef.current = true;
+    if (editingResetTimer.current) clearTimeout(editingResetTimer.current);
+    editingResetTimer.current = setTimeout(() => {
+      userEditingRef.current = false;
+    }, 2000);
     setFields(updated);
     debouncedSave(updated);
   }
@@ -670,6 +697,78 @@ export default function DailyAmount() {
   return (
     <div className="da-page h-screen overflow-hidden flex flex-col text-slate-100" style={{ background: bg, fontFamily: "'Inter', sans-serif" }}>
       <style>{`
+        .da-clear-cash {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          height: 23px;
+          padding: 0 7px;
+          border: 1px solid rgba(239, 94, 108, .3);
+          border-radius: 6px;
+          color: #ff9da4;
+          background: rgba(130, 43, 57, .18);
+          font-size: 9px;
+          white-space: nowrap;
+        }
+        .da-clear-cash:hover { background: rgba(156, 52, 67, .3); }
+        @media (min-width: 1024px) and (max-height: 520px) {
+          .da-toolbar { min-height: 40px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+          .da-main { gap: 8px !important; padding: 8px !important; }
+          .da-main > .grid { gap: 6px !important; }
+          .da-dashboard-grid, .da-column { gap: 7px !important; }
+          .da-metric { gap: 6px !important; padding: 5px 6px !important; border-radius: 8px !important; }
+          .da-metric-icon { width: 25px !important; height: 25px !important; }
+          .da-metric-label { font-size: 8px !important; line-height: 1.1 !important; }
+          .da-metric-value { font-size: 11px !important; line-height: 1.15 !important; }
+          .da-metric-sub { font-size: 7px !important; line-height: 1.1 !important; }
+          .da-opening-metric-input { height: 20px !important; font-size: 10px !important; }
+          .da-card-head { min-height: 28px !important; padding: 3px 8px !important; }
+          .da-card-body { padding: 5px !important; }
+          .da-cash-table-header { gap: 5px !important; padding: 0 5px 3px !important; font-size: 8px !important; }
+          .da-denom-row { min-height: 24px !important; gap: 5px !important; padding-top: 1px !important; padding-bottom: 1px !important; }
+          .da-denom-row > div:first-child { width: 50px !important; }
+          .da-denom-row > div:first-child span { min-width: 42px !important; padding: 2px 4px !important; font-size: 10px !important; }
+          .da-denom-row .da-stepper { width: 19px !important; height: 19px !important; padding: 0 !important; }
+          .da-denom-row .da-count-input { width: 54px !important; height: 19px !important; padding: 0 2px !important; font-size: 10px !important; }
+          .da-coins-row { margin-top: 0 !important; }
+          .da-coins-row .da-count-input { width: 68px !important; }
+          .da-cash-total { padding-top: 4px !important; }
+          .da-cash-total-band { padding: 5px 7px !important; }
+          .da-cash-total-band span { font-size: 10px !important; }
+          .da-cash-total-band > div > span { font-size: 13px !important; }
+          .da-clear-cash { height: 21px; padding: 0 5px; font-size: 8px; }
+          .da-account-row { min-height: 18px !important; gap: 5px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+          .da-account-row > div:first-child span:first-child { width: 16px !important; height: 16px !important; }
+          .da-account-row > div:first-child span:last-child { font-size: 9px !important; }
+          .da-account-input { height: 18px !important; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 9px !important; }
+          .da-section-total { padding-top: 3px !important; margin-top: 0 !important; }
+          .da-section-total span { font-size: 9px !important; }
+          .da-section-total > span:last-child { font-size: 10px !important; }
+          .da-system-summary { padding: 6px !important; }
+          .da-system-summary-components { gap: 3px !important; margin-bottom: 4px !important; }
+          .da-system-summary-components p { font-size: 9px !important; margin-bottom: 0 !important; line-height: 1.15 !important; }
+          .da-system-line { padding-top: 4px !important; }
+          .da-system-line > span, .da-system-line > span:first-child { font-size: 10px !important; }
+          .da-system-line > span:last-child { font-size: 13px !important; }
+          .da-tx-header { gap: 6px !important; padding: 3px 7px !important; }
+          .da-tx-header h3 { font-size: 10px !important; }
+          .da-tx-search { height: 22px !important; font-size: 9px !important; }
+          .da-tx-form { padding: 5px !important; gap: 5px !important; }
+          .da-tx-form button, .da-tx-form input { min-height: 22px !important; padding-top: 2px !important; padding-bottom: 2px !important; font-size: 9px !important; }
+          .da-tx-item { min-height: 32px !important; gap: 6px !important; padding: 2px 5px !important; }
+          .da-tx-symbol { width: 21px !important; height: 21px !important; }
+          .da-tx-description { font-size: 10px !important; line-height: 1.15 !important; }
+          .da-tx-time { font-size: 8px !important; line-height: 1.1 !important; }
+          .da-tx-value { font-size: 9px !important; }
+          .da-reconcile-title { padding: 4px 7px !important; font-size: 9px !important; }
+          .da-reconcile-values .da-reconcile-value { padding: 4px 6px !important; }
+          .da-reconcile-value p:first-child { font-size: 8px !important; }
+          .da-reconcile-value p:nth-child(2) { font-size: 10px !important; }
+          .da-reconcile-value p:last-child { display: none; }
+          .da-difference { padding: 4px 7px !important; }
+          .da-difference-value { font-size: 12px !important; }
+          .da-status { gap: 3px !important; padding: 3px 5px !important; font-size: 8px !important; }
+        }
         @media print {
           @page { size: landscape; margin: 10mm; }
           html, body, #root { height: auto !important; overflow: visible !important; background: #fff !important; }
@@ -714,7 +813,7 @@ export default function DailyAmount() {
           </button>
         </div>
         {date === todayStr() && (
-          <span className="hidden lg:inline-flex text-[10px] text-amber-300 font-semibold px-2 py-1 rounded-md" style={{ background: "rgba(250,204,21,0.1)" }}>Today</span>
+          <span className="hidden xl:inline-flex text-[10px] text-amber-300 font-semibold px-2 py-1 rounded-md" style={{ background: "rgba(250,204,21,0.1)" }}>Today</span>
         )}
 
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
@@ -753,8 +852,22 @@ export default function DailyAmount() {
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
       <div className="da-main flex-1 min-h-0 flex flex-col gap-2.5 lg:gap-3 overflow-y-auto lg:overflow-hidden p-2.5 lg:p-3">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-2.5 shrink-0">
-          <MetricCard label="Opening balance" accent="#f2c94c" icon={<Banknote size={17} />} testId="metric-opening-balance" sub="Carry-in">
-            <span className="text-amber-200">₹{fmt(fields.openingBalance)}</span>
+          <MetricCard label="Opening balance" accent="#f2c94c" icon={<Banknote size={16} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+            {editUnlocked ? (
+              <div className="relative w-full">
+                <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
+                <AmountInput
+                  data-testid="input-opening-balance"
+                  value={fields.openingBalance}
+                  onChange={(value) => updateField("openingBalance", value)}
+                  placeholder="0"
+                  className="da-opening-metric-input w-full bg-slate-950/40 text-amber-200 text-right rounded px-1 py-0.5 pl-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-amber-400"
+                  style={{ border: "1px solid rgba(109,145,179,0.28)" }}
+                />
+              </div>
+            ) : (
+              <span className="text-amber-200">₹{fmt(fields.openingBalance)}</span>
+            )}
           </MetricCard>
           <MetricCard label="Cash total" accent="#34d399" icon={<Coins size={17} />} testId="metric-cash-total" sub="Counted notes + coins">
             <span className="text-emerald-300">₹{fmt(cashTotal)}</span>
@@ -777,9 +890,18 @@ export default function DailyAmount() {
 
           {/* ══ COLUMN 1 — Cash Counting ══════════════════════════════════ */}
           <div className="da-column lg:h-full lg:overflow-y-auto lg:overflow-x-hidden">
-            <Card title="Cash Counting" accent="#10b981" className="h-full">
+            <Card
+              title="Cash Counting"
+              accent="#10b981"
+              className="h-full"
+              action={editUnlocked ? (
+                <button type="button" className="da-clear-cash da-print-hidden" onClick={clearCashCounts} title="Clear cash denominations and coins">
+                  <Trash2 size={11} /> Clear All
+                </button>
+              ) : null}
+            >
               <div className="space-y-0">
-                <div className="grid grid-cols-[3.5rem_8.25rem_minmax(0,1fr)] gap-2 px-2 pb-2 text-[9px] text-slate-500 border-b border-slate-700/40">
+                <div className="da-cash-table-header grid grid-cols-[3.5rem_8.25rem_minmax(0,1fr)] gap-2 px-2 pb-2 text-[9px] text-slate-500 border-b border-slate-700/40">
                   <span>Denomination</span>
                   <span className="text-center">Count</span>
                   <span className="text-right">Amount</span>
@@ -798,7 +920,7 @@ export default function DailyAmount() {
                 })}
 
                 {/* Coins */}
-                <div className="flex items-center gap-2 py-1 mt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="da-denom-row da-coins-row flex items-center gap-2 py-1 mt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="w-14 shrink-0 text-center">
                     <span className="text-xs font-bold text-slate-200 bg-slate-700/80 rounded px-1.5 py-0.5">Coins</span>
                   </div>
@@ -811,7 +933,7 @@ export default function DailyAmount() {
                       onChange={(value) => updateField("coins", value)}
                       disabled={!editUnlocked}
                       placeholder="0"
-                      className="w-20 bg-slate-950/40 text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-85"
+                      className="da-count-input w-20 bg-slate-950/40 text-white text-right rounded-md px-2 pl-5 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 disabled:opacity-85"
                       style={{ border: "1px solid #2a4763" }}
                     />
                   </div>
@@ -821,8 +943,8 @@ export default function DailyAmount() {
               </div>
 
               {/* Cash Total */}
-              <div className="mt-auto pt-2">
-                <div className="rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <div className="da-cash-total mt-auto pt-2">
+                <div className="da-cash-total-band rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-emerald-400">Cash Total</span>
                     <span className="text-base font-bold font-mono text-emerald-400">₹{fmt(cashTotal)}</span>
@@ -834,33 +956,6 @@ export default function DailyAmount() {
 
           {/* ══ COLUMN 2 — Banks / AEPS / System Balance ══════════════════ */}
           <div className="da-column lg:h-full lg:overflow-y-auto lg:overflow-x-hidden flex flex-col gap-2.5 lg:gap-3">
-            <div className="da-panel shrink-0 rounded-xl overflow-hidden" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
-              <div className="px-3 py-2 flex items-center gap-2" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
-                <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#e7bf56" }} />
-                <h3 className="text-xs font-bold text-white tracking-wide flex-1">Opening balance</h3>
-                {autoFilledBalance ? (
-                  <span className="flex items-center gap-1 text-[10px] text-amber-300"><Sparkles size={11} />Carry forward</span>
-                ) : (
-                  <span className="text-[10px] text-slate-500">Starting funds</span>
-                )}
-              </div>
-              <div className="px-3 py-2.5 flex items-center justify-between gap-3">
-                <span className="text-[11px] text-slate-300">Starting funds</span>
-                <div className="relative w-36 max-w-[55%]">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
-                  <AmountInput
-                    data-testid="input-opening-balance"
-                    value={fields.openingBalance}
-                    onChange={(value) => updateField("openingBalance", value)}
-                    disabled={!editUnlocked}
-                    placeholder="0"
-                    className="w-full bg-slate-950/30 text-amber-200 text-right rounded-md px-2 pl-6 py-1.5 text-xs font-bold outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-80"
-                    style={{ border: "1px solid rgba(109,145,179,0.28)" }}
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Bank Balances */}
             <Card title="Bank Balances" accent="#3b82f6" className="shrink-0">
               <div className="space-y-0">
@@ -914,8 +1009,8 @@ export default function DailyAmount() {
             </Card>
 
             {/* System Balance */}
-            <div className="da-panel rounded-xl p-3 shrink-0" style={{ background: "linear-gradient(115deg, rgba(105,81,36,0.27), rgba(38,43,47,0.3))", border: "1px solid rgba(228,188,82,0.33)" }}>
-              <div className="grid grid-cols-3 gap-2 mb-2.5">
+            <div className="da-panel da-system-summary rounded-xl p-3 shrink-0" style={{ background: "linear-gradient(115deg, rgba(105,81,36,0.27), rgba(38,43,47,0.3))", border: "1px solid rgba(228,188,82,0.33)" }}>
+              <div className="da-system-summary-components grid grid-cols-3 gap-2 mb-2.5">
                 <div className="text-center">
                   <p className="text-xs text-emerald-400 mb-0.5">Cash</p>
                   <p className="text-xs font-bold text-white font-mono">₹{fmt(cashTotal)}</p>
@@ -929,7 +1024,7 @@ export default function DailyAmount() {
                   <p className="text-xs font-bold text-white font-mono">₹{fmt(aepsTotal)}</p>
                 </div>
               </div>
-              <div className="flex justify-between items-center pt-2" style={{ borderTop: "1px solid rgba(212,175,55,0.15)" }}>
+              <div className="da-system-line flex justify-between items-center pt-2" style={{ borderTop: "1px solid rgba(212,175,55,0.15)" }}>
                 <span className="text-xs font-bold text-yellow-400">System Balance</span>
                 <span className="text-lg font-bold font-mono text-yellow-400">₹{fmt(systemBalance)}</span>
               </div>
@@ -941,37 +1036,44 @@ export default function DailyAmount() {
 
             {/* Transactions card */}
             <div className="da-panel flex-1 rounded-xl overflow-hidden flex flex-col min-h-0" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
-              <div className="px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
+              <div className="da-tx-header px-3 py-2 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
                 <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#f97316" }} />
-                <h3 className="text-xs font-bold text-white tracking-widest uppercase flex-1">Transactions</h3>
+                <h3 className="text-[11px] font-bold text-white tracking-wide flex-1">Transactions</h3>
+                {txArray.length > 0 && (
+                  <div className="da-tx-totals da-print-hidden hidden xl:flex items-center gap-1 text-[9px]" title={`Income ₹${fmt(incomeTotal)} · expenses ₹${fmt(expenseTotal)}`}>
+                    <span className="text-emerald-400 font-mono">+₹{fmt(incomeTotal)}</span>
+                    <span className="text-slate-600">/</span>
+                    <span className="text-rose-400 font-mono">−₹{fmt(expenseTotal)}</span>
+                  </div>
+                )}
+                <div className="da-tx-search-wrap da-print-hidden relative flex-1 min-w-[88px] max-w-[150px]">
+                  <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    data-testid="input-tx-search"
+                    type="search"
+                    value={txSearch}
+                    onChange={(e) => setTxSearch(e.target.value)}
+                    placeholder="Search"
+                    className="da-tx-search w-full bg-black/20 text-white rounded-md pl-7 pr-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-orange-400 placeholder:text-slate-600"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                  />
+                </div>
+                {editUnlocked && (
+                  <button
+                    type="button"
+                    className="da-add-open da-print-hidden flex items-center gap-1 px-2 py-1 rounded-md text-[10px]"
+                    onClick={() => document.getElementById("da-new-tx-amount")?.focus()}
+                    title="Add a transaction"
+                  >
+                    <Plus size={12} /> Add
+                  </button>
+                )}
               </div>
 
-              <div className="flex flex-col flex-1 min-h-0 p-3 gap-2">
-                <div className="da-print-hidden shrink-0 flex items-center gap-2">
-                  <div className="relative flex-1 min-w-0">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                    <input
-                      data-testid="input-tx-search"
-                      type="search"
-                      value={txSearch}
-                      onChange={(e) => setTxSearch(e.target.value)}
-                      placeholder="Search transactions"
-                      className="w-full bg-black/20 text-white rounded-md pl-8 pr-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-orange-400 placeholder:text-slate-600"
-                      style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-                    />
-                  </div>
-                  {txArray.length > 0 && (
-                    <div className="shrink-0 flex items-center gap-1.5 text-[10px] sm:text-xs">
-                      <span className="text-emerald-400 font-mono">+₹{fmt(incomeTotal)}</span>
-                      <span className="text-slate-600">/</span>
-                      <span className="text-rose-400 font-mono">−₹{fmt(expenseTotal)}</span>
-                    </div>
-                  )}
-                </div>
-
+              <div className="flex flex-col flex-1 min-h-0 p-2.5 gap-2">
                 {/* Add Transaction Form */}
                 {editUnlocked ? (
-                  <div className="da-print-hidden shrink-0 rounded-lg p-2.5 space-y-2" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="da-tx-form da-print-hidden shrink-0 rounded-lg p-2 space-y-1.5" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.06)" }}>
                     <div className="flex gap-1.5">
                       <button
                         data-testid="button-type-income"
@@ -994,6 +1096,7 @@ export default function DailyAmount() {
                       <div className="relative flex-1">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">₹</span>
                         <AmountInput
+                          id="da-new-tx-amount"
                           data-testid="input-tx-amount"
                           value={pf(txAmount)}
                           onChange={(value) => setTxAmount(value === 0 ? "" : String(value))}
@@ -1024,12 +1127,7 @@ export default function DailyAmount() {
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="da-print-hidden shrink-0 rounded-lg py-2 px-3 flex items-center gap-2" style={{ background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <Lock size={11} className="text-slate-600" />
-                    <span className="text-slate-600 text-xs">Unlock editing to add transactions</span>
-                  </div>
-                )}
+                ) : null}
 
                 {/* Transaction List — scrollable */}
                 <div className="flex-1 overflow-y-auto min-h-0 -mx-1 px-1">
@@ -1051,17 +1149,17 @@ export default function DailyAmount() {
                         <div
                           key={tx.id}
                           data-testid={`tx-item-${tx.id}`}
-                          className="flex items-center gap-2 py-2 px-2.5 rounded-lg border-b border-slate-700/30"
+                          className="da-tx-item flex items-center gap-2 py-2 px-2.5 rounded-lg border-b border-slate-700/30"
                           style={{ background: "rgba(8,26,44,0.5)" }}
                         >
-                          <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center border ${tx.type === "income" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-rose-300 bg-rose-500/10 border-rose-500/20"}`}>
+                          <div className={`da-tx-symbol w-7 h-7 rounded-lg shrink-0 flex items-center justify-center border ${tx.type === "income" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-rose-300 bg-rose-500/10 border-rose-500/20"}`}>
                             {tx.type === "income" ? <Plus size={13} /> : <Minus size={13} />}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white text-xs font-medium truncate">{tx.note || (tx.type === "income" ? "Income" : "Expense")}</p>
-                            <p className="text-slate-600 text-xs">{new Date(tx.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                          <div className="da-tx-meta flex-1 min-w-0">
+                            <p className="da-tx-description text-white text-xs font-medium truncate">{tx.note || (tx.type === "income" ? "Income" : "Expense")}</p>
+                            <p className="da-tx-time text-slate-600 text-xs">{new Date(tx.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
                           </div>
-                          <span className={`text-xs font-bold font-mono shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                          <span className={`da-tx-value text-xs font-bold font-mono shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
                             {tx.type === "income" ? "+" : "−"}₹{fmt(pf(tx.amount))}
                           </span>
                           {editUnlocked && (
@@ -1083,23 +1181,23 @@ export default function DailyAmount() {
 
             {/* Reconciliation Summary */}
             <div className="da-panel shrink-0 rounded-xl overflow-hidden" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
-              <div className="px-3 py-2 flex items-center gap-2 text-[11px] font-bold text-slate-200" style={{ borderBottom: "1px solid rgba(104,141,177,0.14)" }}>
+              <div className="da-reconcile-title px-3 py-2 flex items-center gap-2 text-[11px] font-bold text-slate-200" style={{ borderBottom: "1px solid rgba(104,141,177,0.14)" }}>
                 <Scale size={13} className="text-amber-300" /> Reconciliation
               </div>
-              <div className="grid grid-cols-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="p-3">
+              <div className="da-reconcile-values grid grid-cols-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="da-reconcile-value p-3">
                   <p className="text-xs text-slate-500 mb-0.5">Expected Balance</p>
                   <p className="text-sm font-bold text-white font-mono">₹{fmt(expectedBalance)}</p>
                   <p className="text-xs text-slate-600 mt-0.5">Open + Income − Expense</p>
                 </div>
-                <div className="p-3" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="da-reconcile-value p-3" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
                   <p className="text-xs text-slate-500 mb-0.5">System Balance</p>
                   <p className="text-sm font-bold text-yellow-400 font-mono">₹{fmt(systemBalance)}</p>
                   <p className="text-xs text-slate-600 mt-0.5">Cash + Banks + AEPS</p>
                 </div>
               </div>
               <div
-                className="px-3 py-2.5 flex items-center justify-between"
+                className={`da-difference px-3 py-2.5 flex items-center justify-between ${isBalanced ? "good" : ""}`}
                 style={{
                   background: isBalanced ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
                   borderTop: `1px solid ${isBalanced ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`,
@@ -1107,12 +1205,12 @@ export default function DailyAmount() {
               >
                 <div>
                   <p className="text-xs text-slate-500">Difference</p>
-                  <p className={`text-base font-bold font-mono ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
+                  <p className={`da-difference-value text-base font-bold font-mono ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
                     {difference >= 0 ? "+" : ""}₹{fmt(difference)}
                   </p>
                 </div>
                 <div
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${isBalanced ? "text-emerald-400" : "text-red-400"}`}
+                  className={`da-status flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${isBalanced ? "text-emerald-400" : "text-red-400"}`}
                   style={{ background: isBalanced ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)", border: `1px solid ${isBalanced ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}` }}
                 >
                   {isBalanced ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}

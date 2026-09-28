@@ -125,19 +125,21 @@ function Metric({
   icon,
   tone,
   sub,
+  children,
 }: {
   label: string;
-  value: string;
+  value?: string;
   icon: React.ReactNode;
   tone: string;
   sub?: string;
+  children?: React.ReactNode;
 }) {
   return (
     <div className={`da-metric ${tone}`}>
       <div className="da-metric-icon">{icon}</div>
       <div className="da-metric-copy">
         <span className="da-eyebrow">{label}</span>
-        <strong>{value}</strong>
+        {children ?? <strong>{value}</strong>}
         {sub && <small>{sub}</small>}
       </div>
     </div>
@@ -290,12 +292,6 @@ export function ReferenceRedesign() {
     setNotice("Reconciliation exported");
   };
 
-  const dateLabel = new Date(`${date}T12:00:00`).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
   return (
     <div className="daily-amount-preview da-redesign">
       <style>{`
@@ -323,12 +319,11 @@ export function ReferenceRedesign() {
         .da-redesign * { box-sizing: border-box; }
         .da-redesign button, .da-redesign input { font: inherit; }
         .da-redesign button { color: inherit; }
-        .da-shell { height: 100%; display: flex; flex-direction: column; max-width: 1760px; margin: 0 auto; padding: 0 17px 15px; }
-        .da-header { min-height: 58px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(123, 158, 192, .17); }
+        .da-shell { height: 100%; display: flex; flex-direction: column; max-width: 1760px; margin: 0 auto; padding: 0 10px 8px; }
+        .da-header { min-height: 46px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(123, 158, 192, .17); }
         .da-brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
         .da-brand-mark { width: 30px; height: 30px; display: grid; place-items: center; color: #f3c75c; border-radius: 9px; background: linear-gradient(145deg, #1d4771, #133355); border: 1px solid #35638e; }
         .da-brand-title { font-weight: 700; font-size: 15px; letter-spacing: -.3px; }
-        .da-brand-kicker { display: block; color: var(--muted); font-size: 9px; letter-spacing: 1.25px; text-transform: uppercase; margin-top: 1px; }
         .da-date-nav { display: flex; align-items: center; border: 1px solid #294766; background: #0c2039; border-radius: 9px; padding: 3px; gap: 2px; }
         .da-icon-button { display: inline-grid; place-items: center; width: 29px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: #a9bbce; cursor: pointer; transition: background .16s, color .16s, transform .16s; }
         .da-icon-button:hover { color: #fff; background: rgba(123, 165, 206, .14); }
@@ -336,8 +331,6 @@ export function ReferenceRedesign() {
         .da-date-input { border: 0; color: #e8eef5; background: transparent; width: 124px; text-align: center; outline: none; font-weight: 650 !important; font-size: 12px !important; }
         .da-date-input::-webkit-calendar-picker-indicator { opacity: .7; cursor: pointer; }
         .da-header-spacer { flex: 1; }
-        .da-demo-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(71, 211, 161, .25); color: #90e5c5; background: rgba(28, 122, 94, .12); border-radius: 20px; padding: 6px 9px; font-size: 10px; white-space: nowrap; }
-        .da-demo-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--mint); box-shadow: 0 0 0 3px rgba(71, 211, 161, .1); }
         .da-actions { display: flex; gap: 6px; align-items: center; }
         .da-action { height: 31px; padding: 0 10px; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border: 1px solid #294766; color: #b9c8d7; background: #0c2039; border-radius: 8px; font-size: 11px; cursor: pointer; transition: border-color .16s, background .16s, transform .16s; }
         .da-action:hover { background: #143252; border-color: #42698d; color: #fff; }
@@ -346,10 +339,9 @@ export function ReferenceRedesign() {
         .da-action.primary:hover { background: #f6d37a; }
         .da-action.editing { border-color: rgba(71, 211, 161, .42); background: rgba(27, 112, 88, .2); color: #9ceacb; }
         .da-icon-only { width: 31px; padding: 0; }
-        .da-notice { min-height: 20px; color: #8fd8b7; font-size: 10px; display: flex; align-items: center; justify-content: flex-end; opacity: .9; }
-        .da-metrics { flex: 0 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; padding: 13px 0 12px; }
-        .da-metric { min-width: 0; display: flex; gap: 10px; align-items: center; padding: 10px 11px; border: 1px solid rgba(79, 120, 163, .42); background: linear-gradient(140deg, rgba(17, 42, 71, .97), rgba(11, 30, 52, .92)); border-radius: 11px; box-shadow: inset 0 1px rgba(255,255,255,.025), 0 4px 12px rgba(0,0,0,.12); }
-        .da-metric-icon { width: 33px; height: 33px; flex: 0 0 33px; display: grid; place-items: center; border-radius: 9px; background: rgba(89, 149, 207, .16); border: 1px solid rgba(113, 173, 224, .21); color: #9dc7ef; }
+        .da-metrics { flex: 0 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 8px 0 9px; }
+        .da-metric { min-width: 0; display: flex; gap: 8px; align-items: center; padding: 7px 8px; border: 1px solid rgba(79, 120, 163, .42); background: linear-gradient(140deg, rgba(17, 42, 71, .97), rgba(11, 30, 52, .92)); border-radius: 9px; box-shadow: inset 0 1px rgba(255,255,255,.025), 0 4px 12px rgba(0,0,0,.12); }
+        .da-metric-icon { width: 29px; height: 29px; flex: 0 0 29px; display: grid; place-items: center; border-radius: 8px; background: rgba(89, 149, 207, .16); border: 1px solid rgba(113, 173, 224, .21); color: #9dc7ef; }
         .da-metric.gold .da-metric-icon { color: #f0ca61; background: rgba(219, 172, 65, .14); border-color: rgba(219, 172, 65, .22); }
         .da-metric.green .da-metric-icon { color: #66ddb4; background: rgba(52, 179, 137, .14); border-color: rgba(52, 179, 137, .22); }
         .da-metric.violet .da-metric-icon { color: #c29bff; background: rgba(139, 90, 206, .16); border-color: rgba(165, 123, 227, .23); }
@@ -360,19 +352,20 @@ export function ReferenceRedesign() {
         .da-metric.red.good .da-metric-icon { color: #72dfb6; background: rgba(47, 171, 128, .15); border-color: rgba(71, 211, 161, .24); }
         .da-metric-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .da-eyebrow { color: #9aacc0; font-size: 9px; font-weight: 600; letter-spacing: .28px; white-space: nowrap; }
-        .da-metric strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(13px, 1.25vw, 16px); letter-spacing: -.2px; font-variant-numeric: tabular-nums; }
-        .da-metric small { color: #7e92a9; font-size: 9px; }
+        .da-metric strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(12px, 1.12vw, 14px); letter-spacing: -.2px; font-variant-numeric: tabular-nums; }
+        .da-metric small { color: #7e92a9; font-size: 8px; }
+        .da-metric-edit { display: flex; align-items: center; gap: 4px; color: #f3cd68; font: 700 12px "IBM Plex Mono", "Courier New", monospace; }
+        .da-metric-edit input { min-width: 0; width: 100%; color: inherit; background: rgba(4,17,32,.66); border: 1px solid rgba(226,185,76,.3); border-radius: 5px; outline: none; padding: 2px 4px; text-align: right; font: inherit; }
         .da-metric.red strong { color: #ff9499; }
         .da-metric.red.good strong { color: #79e0b7; }
         .da-metric.gold strong { color: #f3cd68; }
-        .da-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(300px, 1.08fr) minmax(300px, .95fr) minmax(350px, 1.16fr); gap: 10px; }
-        .da-column { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+        .da-workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(300px, 1.08fr) minmax(300px, .95fr) minmax(350px, 1.16fr); gap: 8px; }
+        .da-column { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
         .da-card { min-width: 0; overflow: hidden; border: 1px solid rgba(78, 117, 158, .42); border-radius: 11px; background: linear-gradient(155deg, rgba(13, 32, 55, .97), rgba(9, 26, 47, .97)); box-shadow: inset 0 1px rgba(255,255,255,.025), 0 8px 22px rgba(1,9,20,.13); }
         .da-card.cash-card, .da-card.tx-card { display: flex; flex-direction: column; min-height: 0; flex: 1; }
         .da-card-head { min-height: 41px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid rgba(104, 143, 182, .2); background: linear-gradient(90deg, rgba(19, 48, 79, .7), rgba(11, 32, 56, .44)); }
         .da-section-icon { color: var(--mint); display: inline-flex; align-items: center; justify-content: center; }
         .da-card-head h2 { font-size: 12px; margin: 0; font-weight: 700; letter-spacing: .15px; }
-        .da-card-head .da-head-note { color: #7f96ae; font-size: 9px; margin-left: 1px; }
         .da-head-spacer { flex: 1; }
         .da-count { color: #93a9bf; font-size: 10px; }
         .da-subtle-button { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(108, 154, 199, .28); border-radius: 6px; padding: 4px 7px; background: rgba(36, 80, 123, .18); color: #9fc8ee; font-size: 9px; cursor: pointer; }
@@ -383,27 +376,27 @@ export function ReferenceRedesign() {
         .da-table-head { padding: 2px 8px 8px; color: #8299b2; font-size: 9px; border-bottom: 1px solid rgba(106, 143, 179, .17); }
         .da-table-head span:nth-child(2) { text-align: center; }
         .da-table-head span:last-child { text-align: right; }
-        .da-denom-row { padding: 5px 7px; min-height: 37px; border-bottom: 1px solid rgba(104, 141, 177, .1); transition: background .15s; }
+        .da-denom-row { padding: 3px 7px; min-height: 32px; border-bottom: 1px solid rgba(104, 141, 177, .1); transition: background .15s; }
         .da-denom-row:hover { background: rgba(77, 127, 174, .08); }
         .da-denom-chip { display: inline-flex; align-items: center; width: max-content; max-width: 100%; border: 1px solid rgba(93, 136, 178, .24); border-radius: 6px; padding: 4px 7px; color: #d9e5ef; background: rgba(36, 69, 101, .47); font-size: 10px; font-weight: 700; }
         .da-denom-chip.coin-chip { color: #f0c65c; border-color: rgba(226, 185, 76, .28); }
         .da-count-control { display: flex; gap: 4px; align-items: center; }
-        .da-stepper { width: 24px; height: 25px; display: grid; place-items: center; padding: 0; background: #112a46; color: #8fa8c1; border: 1px solid #294663; border-radius: 6px; cursor: pointer; }
+        .da-stepper { width: 22px; height: 22px; display: grid; place-items: center; padding: 0; background: #112a46; color: #8fa8c1; border: 1px solid #294663; border-radius: 6px; cursor: pointer; }
         .da-stepper:hover:not(:disabled) { color: #fff; background: #1a3b5e; }
         .da-stepper:disabled { opacity: .33; cursor: not-allowed; }
         .da-input { color: #edf3f8; background: rgba(4, 17, 32, .66); border: 1px solid #2a4763; border-radius: 6px; outline: none; transition: border-color .15s, background .15s; }
         .da-input:focus { border-color: #d3ab4e; background: rgba(8, 25, 44, .95); }
-        .da-count-input { width: 100%; min-width: 0; height: 25px; text-align: center; padding: 0 3px; font-variant-numeric: tabular-nums; }
+        .da-count-input { width: 100%; min-width: 0; height: 23px; text-align: center; padding: 0 3px; font-variant-numeric: tabular-nums; }
         .da-count-input:disabled, .da-amount-input:disabled { color: #e7eef6; opacity: .86; background: rgba(26, 50, 74, .39); border-color: transparent; }
         .da-cash-result { text-align: right; color: #f0c65c; font-variant-numeric: tabular-nums; font-size: 10px; font-weight: 650; white-space: nowrap; }
         .da-cash-total { margin-top: auto; padding-top: 12px; }
-        .da-total-band { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid rgba(62, 204, 151, .32); border-radius: 8px; background: linear-gradient(100deg, rgba(25, 103, 86, .25), rgba(15, 62, 61, .22)); }
+        .da-total-band { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid rgba(62, 204, 151, .32); border-radius: 8px; background: linear-gradient(100deg, rgba(25, 103, 86, .25), rgba(15, 62, 61, .22)); }
         .da-total-band span { font-size: 11px; font-weight: 700; color: #67dfb5; }
         .da-total-band strong { color: #9af0d2; font: 700 16px "IBM Plex Mono", "Courier New", monospace; font-variant-numeric: tabular-nums; }
         .da-account-card { flex: 0 0 auto; min-height: 0; }
         .da-account-card .da-card-body { padding: 6px 11px 8px; }
-        .da-account-card.wallet-card { flex: .79 1 auto; }
-        .da-account-line { display: grid; grid-template-columns: minmax(0, 1fr) 125px; min-height: 32px; align-items: center; gap: 8px; border-bottom: 1px solid rgba(104, 141, 177, .1); }
+        .da-account-card.wallet-card { flex: 0 0 auto; }
+        .da-account-line { display: grid; grid-template-columns: minmax(0, 1fr) 125px; min-height: 27px; align-items: center; gap: 8px; border-bottom: 1px solid rgba(104, 141, 177, .1); }
         .da-account-name { display: flex; gap: 8px; align-items: center; min-width: 0; color: #d4dfeb; font-size: 10px; }
         .da-account-name > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .da-bank-glyph { width: 19px; height: 19px; flex: 0 0 19px; display: grid; place-items: center; border: 1px solid rgba(180, 199, 217, .2); border-radius: 5px; background: #183958; color: #d9ecfb; font-size: 8px; font-weight: 800; }
@@ -414,18 +407,11 @@ export function ReferenceRedesign() {
         .da-bank-glyph.blue { background: #244b76; color: #a9d1ff; }
         .da-money-field { position: relative; min-width: 0; }
         .da-rupee { position: absolute; top: 50%; left: 7px; transform: translateY(-50%); color: #7d91a5; font-size: 9px; pointer-events: none; }
-        .da-amount-input { width: 100%; height: 25px; padding: 0 7px 0 18px; text-align: right; font-size: 10px !important; font-variant-numeric: tabular-nums; }
+        .da-amount-input { width: 100%; height: 23px; padding: 0 7px 0 18px; text-align: right; font-size: 10px !important; font-variant-numeric: tabular-nums; }
         .da-section-total { display: flex; justify-content: space-between; align-items: center; padding: 8px 2px 1px; }
         .da-section-total span { color: #87a4c1; font-size: 10px; font-weight: 650; }
         .da-section-total strong { color: #9dc8f0; font: 700 12px "IBM Plex Mono", "Courier New", monospace; }
         .wallet-card .da-section-total span, .wallet-card .da-section-total strong { color: #c6a3fa; }
-        .da-opening { flex: 0 0 auto; }
-        .da-opening .da-card-head { min-height: 36px; }
-        .da-opening .da-card-body { padding: 10px 12px; }
-        .da-opening-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .da-opening-title { display: flex; align-items: center; gap: 7px; color: #e8d292; font-size: 10px; font-weight: 700; }
-        .da-opening-title small { color: #8498ae; font-size: 9px; font-weight: 400; }
-        .da-open-input { max-width: 142px; height: 29px; padding: 0 8px 0 20px; font-size: 12px !important; font-weight: 700; color: #f1cb65; }
         .da-mid-total { flex: 0 0 auto; padding: 9px 11px; border: 1px solid rgba(228, 188, 82, .33); border-radius: 9px; background: linear-gradient(115deg, rgba(105, 81, 36, .27), rgba(38, 43, 47, .3)); }
         .da-mid-components { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 7px; }
         .da-mid-components > div { text-align: center; border-right: 1px solid rgba(181, 160, 107, .16); }
@@ -440,6 +426,9 @@ export function ReferenceRedesign() {
         .da-income { color: #5ed5aa; }
         .da-expense { color: #f07b82; }
         .da-tx-tools { display: flex; gap: 6px; padding: 10px 11px 8px; border-bottom: 1px solid rgba(104, 141, 177, .12); }
+        .da-transactions-head .da-search-wrap { max-width: 150px; }
+        .da-transactions-head .da-search { height: 27px; font-size: 9px !important; }
+        .da-header-add { height: 27px; padding: 0 7px; }
         .da-search-wrap { position: relative; flex: 1; min-width: 105px; }
         .da-search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #7890a8; pointer-events: none; }
         .da-search { width: 100%; height: 30px; padding: 0 9px 0 29px; font-size: 10px !important; }
@@ -458,9 +447,9 @@ export function ReferenceRedesign() {
         .da-form-error { flex: 1 0 100%; color: #ff9a9e; font-size: 9px; padding-left: 2px; }
         .da-locked-hint { padding: 8px 11px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid rgba(104,141,177,.12); color: #8296aa; font-size: 9px; }
         .da-tx-list { flex: 1; min-height: 100px; overflow-y: auto; padding: 6px 8px; scrollbar-color: #31516f transparent; scrollbar-width: thin; }
-        .da-tx-row { display: flex; align-items: center; gap: 9px; min-height: 49px; padding: 6px 8px; border-bottom: 1px solid rgba(99, 135, 170, .13); border-radius: 6px; transition: background .15s; }
+        .da-tx-row { display: flex; align-items: center; gap: 7px; min-height: 41px; padding: 4px 7px; border-bottom: 1px solid rgba(99, 135, 170, .13); border-radius: 6px; transition: background .15s; }
         .da-tx-row:hover { background: rgba(47, 83, 117, .17); }
-        .da-tx-symbol { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; color: #9ab5cf; border: 1px solid rgba(107, 150, 190, .23); background: rgba(53, 93, 132, .26); border-radius: 8px; }
+        .da-tx-symbol { display: grid; place-items: center; width: 25px; height: 25px; flex: 0 0 25px; color: #9ab5cf; border: 1px solid rgba(107, 150, 190, .23); background: rgba(53, 93, 132, .26); border-radius: 7px; }
         .da-tx-symbol.income { color: #7de3be; border-color: rgba(71, 211, 161, .23); background: rgba(42, 135, 104, .18); }
         .da-tx-symbol.expense { color: #ff9ca1; border-color: rgba(220, 103, 113, .24); background: rgba(136, 58, 69, .2); }
         .da-tx-meta { flex: 1; min-width: 0; }
@@ -496,19 +485,71 @@ export function ReferenceRedesign() {
           .da-account-line { min-height: 34px; }
           .da-tx-row { min-height: 53px; }
         }
-        @media (max-height: 800px) and (min-width: 1121px) {
-          .da-opening .da-card-head, .da-account-card .da-card-head { min-height: 32px; }
-          .da-opening .da-card-body { padding: 6px 10px; }
-          .da-open-input { height: 25px; }
-          .da-account-card .da-card-body { padding: 4px 9px 5px; }
-          .da-account-line { min-height: 24px; }
-          .da-amount-input { height: 21px; }
-          .da-section-total { padding-top: 4px; }
-          .da-mid-total { padding: 7px 9px; }
-          .da-mid-components { margin-bottom: 4px; }
-          .da-system-line { padding-top: 5px; }
+        @media (max-height: 800px) and (min-width: 981px) {
+          .da-header { min-height: 40px; }
+          .da-brand-mark { width: 27px; height: 27px; }
+          .da-metrics { gap: 7px; padding: 6px 0; }
+          .da-metric { gap: 7px; padding: 6px 7px; }
+          .da-metric-icon { width: 26px; height: 26px; flex-basis: 26px; }
+          .da-eyebrow { font-size: 8px; }
+          .da-metric strong { font-size: clamp(11px, 1vw, 13px); }
+          .da-metric small { font-size: 7px; }
+          .da-workspace, .da-column { gap: 7px; }
+          .da-card-head { min-height: 32px; padding: 0 9px; }
+          .da-card-body { padding: 6px 8px; }
+          .da-table-head { padding: 1px 6px 4px; }
+          .da-denom-row { min-height: 28px; padding: 2px 5px; }
+          .da-stepper { width: 20px; height: 20px; }
+          .da-count-input { height: 20px; }
+          .da-total-band { padding: 6px 8px; }
+          .da-account-card .da-card-head { min-height: 29px; }
+          .da-account-card .da-card-body { padding: 3px 8px 4px; }
+          .da-account-line { min-height: 20px; grid-template-columns: minmax(0, 1fr) 110px; gap: 6px; }
+          .da-bank-glyph { width: 17px; height: 17px; flex-basis: 17px; }
+          .da-amount-input { height: 19px; }
+          .da-section-total { padding-top: 3px; }
+          .da-mid-total { padding: 6px 8px; }
+          .da-mid-components { margin-bottom: 3px; }
+          .da-system-line { padding-top: 4px; }
+          .da-tx-row { min-height: 35px; padding: 3px 6px; }
+          .da-tx-symbol { width: 22px; height: 22px; flex-basis: 22px; }
+          .da-reconcile-title { padding: 6px 9px; }
+          .da-reconcile-value { padding: 6px 9px; }
+          .da-difference { padding: 6px 9px; }
         }
-        @media (max-width: 1120px) {
+        @media (max-height: 520px) and (min-width: 981px) {
+          .da-workspace, .da-column { gap: 5px; }
+          .da-card-head { min-height: 27px; padding: 0 7px; }
+          .da-account-card .da-card-head { min-height: 24px; }
+          .da-account-card .da-card-body { padding: 0 5px 1px; }
+          .da-account-line { min-height: 16px; line-height: 14px; grid-template-columns: minmax(0, 1fr) 98px; gap: 4px; }
+          .da-account-name { gap: 4px; font-size: 9px; line-height: 13px; }
+          .da-bank-glyph { width: 14px; height: 14px; flex-basis: 14px; }
+          .da-amount-input { height: 15px !important; min-height: 15px !important; line-height: 13px !important; padding: 0 3px 0 14px; font-size: 9px !important; }
+          .da-rupee { left: 4px; font-size: 8px; }
+          .da-section-total { padding: 1px 1px 0; }
+          .da-section-total span { font-size: 8px; }
+          .da-section-total strong { font-size: 10px; }
+          .da-column:nth-child(2) .da-mid-total { margin-top: auto; }
+          .da-mid-total { padding: 3px 5px; }
+          .da-mid-components { margin-bottom: 1px; }
+          .da-mid-components span { margin-bottom: 1px; font-size: 8px; }
+          .da-mid-components strong { font-size: 9px; }
+          .da-system-line { padding-top: 2px; }
+          .da-system-line span { font-size: 9px; }
+          .da-system-line strong { font-size: 12px; }
+          .da-tx-row { min-height: 30px; padding: 2px 5px; }
+          .da-tx-symbol { width: 20px; height: 20px; flex-basis: 20px; }
+          .da-reconcile-title { padding: 4px 6px; font-size: 9px; }
+          .da-reconcile-value { padding: 3px 6px; }
+          .da-reconcile-value span { margin-bottom: 1px; font-size: 8px; }
+          .da-reconcile-value strong { font-size: 11px; }
+          .da-reconcile-value small { margin-top: 1px; font-size: 7px; }
+          .da-difference { padding: 4px 6px; }
+          .da-diff-amount { margin-top: 1px; font-size: 12px; }
+          .da-status { gap: 3px; padding: 3px 5px; font-size: 8px; }
+        }
+        @media (max-width: 980px) {
           .da-redesign { height: auto; min-height: 100dvh; overflow: auto; }
           .da-shell { height: auto; min-height: 100dvh; padding-bottom: 20px; }
           .da-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -522,7 +563,6 @@ export function ReferenceRedesign() {
           .da-shell { padding: 0 10px 14px; }
           .da-header { flex-wrap: wrap; gap: 8px; padding: 9px 0; }
           .da-brand { flex: 1; }
-          .da-brand-kicker, .da-demo-pill { display: none; }
           .da-date-nav { order: 3; }
           .da-header-spacer { display: none; }
           .da-actions { margin-left: auto; gap: 4px; }
@@ -530,7 +570,6 @@ export function ReferenceRedesign() {
           .da-action svg { width: 14px; height: 14px; }
           .da-action.editing { width: auto; padding: 0 8px; font-size: 10px; gap: 5px; }
           .da-action.editing svg { width: 12px; height: 12px; }
-          .da-notice { order: 4; min-height: 0; width: 100%; justify-content: flex-start; }
           .da-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 10px 0; }
           .da-metric { padding: 8px; gap: 8px; border-radius: 9px; }
           .da-metric-icon { width: 29px; height: 29px; flex-basis: 29px; }
@@ -548,7 +587,6 @@ export function ReferenceRedesign() {
           .da-column:nth-child(2) { min-height: 0; }
           .da-account-card, .da-account-card.wallet-card { flex: initial; min-height: 0; }
           .da-account-line { min-height: 35px; grid-template-columns: minmax(0, 1fr) minmax(130px, 42%); }
-          .da-opening .da-card-body { padding: 9px 10px; }
           .da-mid-total { padding: 10px; }
           .da-column:last-child { grid-column: auto; min-height: 0; }
           .da-card.tx-card { min-height: 390px; flex: initial; }
@@ -561,17 +599,15 @@ export function ReferenceRedesign() {
           .da-shell { height: auto; padding: 0; }
           .da-header, .da-metrics, .da-card, .da-reconcile, .da-mid-total { break-inside: avoid; }
           .da-workspace { min-height: 0; }
-          .da-actions, .da-notice, .da-form, .da-add-open, .da-delete, .da-stepper { display: none !important; }
+          .da-actions, .da-form, .da-add-open, .da-delete, .da-stepper { display: none !important; }
         }
       `}</style>
       <div className="da-shell">
+        <span className="sr-only" role="status">{notice}</span>
         <header className="da-header">
           <div className="da-brand">
             <div className="da-brand-mark"><Banknote size={17} /></div>
-            <div>
-              <div className="da-brand-title">Daily Reconciliation</div>
-              <span className="da-brand-kicker">Office close · {dateLabel}</span>
-            </div>
+            <div className="da-brand-title">Daily Reconciliation</div>
           </div>
           <div className="da-date-nav" aria-label="Choose reconciliation date">
             <button className="da-icon-button" onClick={() => shiftDate(-1)} aria-label="Previous day"><ChevronLeft size={16} /></button>
@@ -579,11 +615,9 @@ export function ReferenceRedesign() {
             <input className="da-date-input" type="date" value={date} onChange={(event) => chooseDate(event.target.value)} aria-label="Reconciliation date" />
             <button className="da-icon-button" onClick={() => shiftDate(1)} aria-label="Next day"><ChevronRight size={16} /></button>
           </div>
-          <span className="da-demo-pill"><i className="da-demo-dot" />Local demo · {date === DEMO_DATE ? "sample day" : "new day"}</span>
           <div className="da-header-spacer" />
-          <div className="da-notice" role="status">{notice}</div>
           <div className="da-actions">
-            <button className="da-action da-icon-only" onClick={resetDemo} title="Restore sample data" aria-label="Restore sample data"><RefreshCw size={13} /></button>
+            <button className="da-action da-icon-only" onClick={resetDemo} title="Refresh sample data" aria-label="Refresh sample data"><RefreshCw size={13} /></button>
             <button className={`da-action ${editing ? "editing" : ""}`} onClick={() => { setEditing((current) => !current); setNotice(editing ? "Editing locked" : "Editing enabled"); }}>
               {editing ? <><Unlock size={12} /> Editing</> : <><LockKeyhole size={12} /> Edit</>}
             </button>
@@ -593,7 +627,14 @@ export function ReferenceRedesign() {
         </header>
 
         <section className="da-metrics" aria-label="Daily balance summary">
-          <Metric label="Opening balance" value={`₹${money(fields.openingBalance)}`} icon={<WalletCards size={17} />} tone="gold" sub="Carry-in" />
+          <Metric label="Opening balance" value={`₹${money(fields.openingBalance)}`} icon={<WalletCards size={17} />} tone="gold" sub="Carry-in">
+            {editing ? (
+              <div className="da-metric-edit">
+                <span>₹</span>
+                <input type="number" min="0" value={fields.openingBalance || ""} onChange={(event) => updateField("openingBalance", parseAmount(event.target.value))} aria-label="Opening balance" />
+              </div>
+            ) : undefined}
+          </Metric>
           <Metric label="Cash total" value={`₹${money(cashTotal)}`} icon={<Banknote size={17} />} tone="green" sub="Counted notes + coins" />
           <Metric label="Bank total" value={`₹${money(bankTotal)}`} icon={<Landmark size={17} />} tone="blue" sub="6 accounts" />
           <Metric label="AEPS wallet" value={`₹${money(aepsTotal)}`} icon={<WalletCards size={17} />} tone="violet" sub="4 sources" />
@@ -607,13 +648,12 @@ export function ReferenceRedesign() {
               <div className="da-card-head">
                 <span className="da-section-icon"><Banknote size={17} /></span>
                 <h2>Cash counting</h2>
-                <span className="da-head-note">Denomination count for today</span>
                 <span className="da-head-spacer" />
                 {editing && <button className="da-subtle-button" onClick={() => {
                   const cleared = { ...fields, notes10: 0, notes20: 0, notes50: 0, notes100: 0, notes200: 0, notes500: 0, coins: 0 };
                   setRecords((current) => ({ ...current, [date]: { ...record, fields: cleared } }));
                   setNotice("Cash counts cleared");
-                }}><X size={11} /> Clear counts</button>}
+                }}><X size={11} /> Clear All</button>}
               </div>
               <div className="da-card-body da-cash-table">
                 <div className="da-table-head">
@@ -651,24 +691,6 @@ export function ReferenceRedesign() {
           </section>
 
           <section className="da-column">
-            <article className="da-card da-opening">
-              <div className="da-card-head">
-                <span className="da-section-icon" style={{ color: "#e6bd56" }}><WalletCards size={15} /></span>
-                <h2>Opening balance</h2>
-                <span className="da-head-spacer" />
-                <span className="da-count">Carry forward</span>
-              </div>
-              <div className="da-card-body">
-                <div className="da-opening-line">
-                  <div className="da-opening-title"><span>₹</span><small>Starting funds</small></div>
-                  <div className="da-money-field">
-                    <span className="da-rupee">₹</span>
-                    <input className="da-input da-amount-input da-open-input" type="number" min="0" value={fields.openingBalance || ""} disabled={!editing} onChange={(event) => updateField("openingBalance", parseAmount(event.target.value))} aria-label="Opening balance" />
-                  </div>
-                </div>
-              </div>
-            </article>
-
             <article className="da-card da-account-card">
               <div className="da-card-head">
                 <span className="da-section-icon" style={{ color: "#7db6ea" }}><Landmark size={16} /></span>
@@ -720,12 +742,11 @@ export function ReferenceRedesign() {
               <div className="da-card-head da-transactions-head">
                 <span className="da-section-icon" style={{ color: "#75dfbd" }}><ArrowUpRight size={17} /></span>
                 <h2>Transactions</h2>
-                <span className="da-head-spacer" />
-                <div className="da-tx-totals"><span className="da-income">+₹{money(incomeTotal)}</span><span style={{ color: "#657e96" }}>·</span><span className="da-expense">−₹{money(expenseTotal)}</span></div>
-              </div>
-              <div className="da-tx-tools">
-                <div className="da-search-wrap"><Search size={13} className="da-search-icon" /><input className="da-input da-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search description or amount…" aria-label="Search transactions" /></div>
-                {editing && <button className="da-add-open" onClick={() => { setFormError(""); document.getElementById("da-new-tx-amount")?.focus(); }}><Plus size={13} /> Add</button>}
+                <div className="da-search-wrap da-header-search">
+                  <Search size={13} className="da-search-icon" />
+                  <input className="da-input da-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search description, amount..." aria-label="Search transactions" />
+                </div>
+                {editing && <button className="da-add-open da-header-add" onClick={() => { setFormError(""); document.getElementById("da-new-tx-amount")?.focus(); }}><Plus size={13} /> Add</button>}
               </div>
               {editing ? (
                 <form className="da-form" onSubmit={(event) => { event.preventDefault(); addTransaction(); }}>
