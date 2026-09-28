@@ -1,0 +1,1123 @@
+DAILY RECONCILIATION — SECTION-BY-SECTION VISUAL RECREATION
+============================================================
+
+IMPORTANT:
+
+The attached reference screenshot is the PRIMARY VISUAL SOURCE OF TRUTH.
+
+I do NOT want a generic dashboard inspired by the screenshot.
+
+I want the CURRENT Daily Reconciliation webpage to visually recreate the
+reference design section-by-section.
+
+Every major section must receive its own visual treatment.
+
+Do not simplify the reference.
+
+Do not replace the design with generic Tailwind cards.
+
+Do not redesign the architecture.
+
+Do not change business logic.
+
+Do not change calculations.
+
+Do not change database/API.
+
+Do not change existing functionality.
+
+This is a detailed visual recreation/refinement task.
+
+============================================================
+CORE RULE
+============================================================
+
+REFERENCE IMAGE = DESIGN SOURCE
+
+CURRENT APPLICATION = DATA + FUNCTIONALITY SOURCE
+
+Therefore:
+
+Reference screenshot controls:
+
+- layout
+- proportions
+- spacing
+- colors
+- gradients
+- glow
+- borders
+- shadows
+- typography hierarchy
+- icon size
+- card style
+- visual density
+- image placement
+- charts
+- decorative elements
+
+Existing application controls:
+
+- values
+- calculations
+- bank names
+- AEPS names
+- transactions
+- dates
+- database
+- API
+- functionality
+
+NEVER use reference screenshot numbers as hardcoded data.
+
+============================================================
+1. OVERALL PAGE
+============================================================
+
+The complete page should feel like a premium dark fintech/accounting
+application.
+
+Background:
+
+deep navy / midnight blue.
+
+Use subtle layered radial gradients.
+
+The page must NOT look like:
+
+- plain dark mode
+- Bootstrap dashboard
+- generic admin panel
+- flat Tailwind dashboard
+
+It should have:
+
+- depth
+- glow
+- gradients
+- glass-like surfaces
+- illuminated borders
+- subtle shadows
+- colorful section accents
+
+The reference screenshot has a very deliberate visual hierarchy.
+
+Recreate that hierarchy.
+
+============================================================
+2. LEFT SIDEBAR
+============================================================
+
+Recreate the sidebar visual treatment from the reference.
+
+Sidebar:
+
+- dark navy
+- full height
+- subtle vertical gradient
+- subtle ambient glow
+- thin right-side separation
+- compact but comfortable navigation
+
+Navigation:
+
+Dashboard
+Cash Counting
+Bank Balances
+AEPS Wallet
+Transactions
+Reports
+Settings
+
+Each item:
+
+- icon
+- label
+- proper spacing
+- subtle hover state
+
+ACTIVE DASHBOARD:
+
+This is important.
+
+Use:
+
+- gold/yellow accent
+- highlighted rounded container
+- subtle gold background gradient
+- gold border
+- soft gold glow
+
+Do not make the active item plain.
+
+BOTTOM SIDEBAR:
+
+Reserve an illustration area.
+
+Use ONLY:
+
+/assets/reconciliation/sidebar-finance.png
+
+Do NOT generate this image.
+
+I will provide the actual image later.
+
+============================================================
+3. TOP HEADER
+============================================================
+
+Recreate the header exactly as a premium dashboard header.
+
+LEFT:
+
+financial logo/icon
+
+Daily Reconciliation
+
+"Daily" = white
+
+"Reconciliation" = gold/yellow accent
+
+CENTER:
+
+date navigation control
+
+[calendar] [date] [previous] [next]
+
+RIGHT:
+
+Refresh
+Print
+Export
+Edit / other existing actions
+
+Preserve all current functionality.
+
+Buttons should use:
+
+- dark glass background
+- thin blue border
+- subtle glow
+- hover highlight
+
+Export:
+
+gold/orange gradient
+dark text
+strong visual emphasis
+
+============================================================
+4. KPI CARDS — EACH CARD SEPARATELY
+============================================================
+
+There are five cards:
+
+1. Opening Balance
+2. Cash Total
+3. Bank Total
+4. AEPS Wallet
+5. Difference
+
+Do NOT make these five cards identical except for color.
+
+Each one should have its own accent treatment.
+
+-----------------------------------
+OPENING BALANCE
+-----------------------------------
+
+Accent:
+
+green / teal
+
+Visual:
+
+- green glowing icon container
+- green/teal gradient
+- subtle green outer glow
+- large amount
+- secondary Carry-in/status text
+- decorative bottom-right wave/sparkline
+
+-----------------------------------
+CASH TOTAL
+-----------------------------------
+
+Accent:
+
+blue / cyan
+
+Visual:
+
+- blue icon container
+- blue gradient
+- blue ambient glow
+- large amount
+- secondary Notes + coins text
+- decorative bottom-right graph/wave
+
+-----------------------------------
+BANK TOTAL
+-----------------------------------
+
+Accent:
+
+purple / violet
+
+Visual:
+
+- purple icon container
+- purple gradient
+- purple glow
+- large amount
+- account count
+- decorative wave
+
+-----------------------------------
+AEPS WALLET
+-----------------------------------
+
+Accent:
+
+orange / amber
+
+Visual:
+
+- orange icon container
+- orange gradient
+- orange glow
+- large amount
+- source count
+- decorative wave
+
+-----------------------------------
+DIFFERENCE
+-----------------------------------
+
+Accent:
+
+red / pink
+
+Visual:
+
+- red/pink icon
+- red gradient
+- red glow
+- large difference amount
+- status text
+
+If balanced:
+
+green state.
+
+If mismatch:
+
+red/pink state.
+
+DO NOT hardcode status.
+
+Use existing calculation.
+
+============================================================
+5. KPI CARD INTERNAL DESIGN
+============================================================
+
+Each KPI card must have:
+
+LEFT:
+
+large rounded icon tile
+
+CENTER:
+
+small label
+
+large currency value
+
+small supporting text
+
+BOTTOM/RIGHT:
+
+decorative graph/wave shape
+
+The decorative wave is an important part of the reference design.
+
+Use SVG/CSS/chart rendering for the decorative wave.
+
+Do NOT generate an image for the wave.
+
+The wave should blend into the card background.
+
+============================================================
+6. CASH COUNTING — EXACT VISUAL TREATMENT
+============================================================
+
+This is one of the main panels.
+
+Header:
+
+Cash Counting
+
+subtitle:
+
+Enter denomination counts for today
+
+Right:
+
+Clear All button
+
+Panel:
+
+dark navy/teal glass surface
+
+green/cyan accent border
+
+Header should have a glowing cash icon.
+
+TABLE HEADER:
+
+Denomination
+Count
+Amount
+
+ROWS:
+
+₹500
+₹200
+₹100
+₹50
+₹20
+₹10
+Coins
+
+Each denomination gets a colored badge.
+
+Use different subtle accent colors similar to reference.
+
+Each row:
+
+[ denomination badge ]
+
+[ - button ]
+
+[ count input ]
+
+[ + button ]
+
+[ calculated amount ]
+
+Buttons:
+
+dark blue glass
+
+subtle border
+
+hover glow
+
+Count input:
+
+dark background
+blue border
+clear readable number
+
+Amount:
+
+yellow/gold emphasis
+
+DO NOT change any cash calculation.
+
+If count changes:
+
+existing calculation must update.
+
+============================================================
+7. CASH TOTAL
+============================================================
+
+At bottom of Cash Counting panel:
+
+large highlighted Cash Total section.
+
+Use:
+
+green/cyan gradient
+
+strong glow
+
+large amount
+
+cash icon
+
+The total MUST remain dynamically calculated.
+
+============================================================
+8. BANK BALANCES — EXACT SECTION
+============================================================
+
+Create a premium blue bank panel.
+
+Header:
+
+Bank icon
+Bank Balances
+Total badge
+
+Table:
+
+Account Name
+Balance
+
+Every bank row:
+
+bank badge/icon
+bank name
+balance
+
+Use the EXISTING bank names.
+
+Do NOT change:
+
+BOB Saving
+BOB Current
+HDFC
+Kotak
+AU
+SBI
+
+If the actual application has additional/other banks,
+use the actual application data.
+
+Do not hardcode reference values.
+
+Rows need:
+
+- proper height
+- subtle gradient
+- separator
+- hover glow
+
+RIGHT SIDE:
+
+Reserve an illustration area.
+
+Local asset:
+
+/assets/reconciliation/bank-illustration.png
+
+IMPORTANT:
+
+Do not generate it.
+
+I will upload it later.
+
+The image should have a subtle blue glow.
+
+============================================================
+9. AEPS WALLET — EXACT SECTION
+============================================================
+
+Purple/violet themed panel.
+
+Header:
+
+AEPS icon
+AEPS Wallet
+Total badge
+
+Table:
+
+Wallet / Source
+Balance
+
+Use existing AEPS companies.
+
+Current examples:
+
+BOB
+Fino
+Payworld
+Digipay
+
+Do not rename them.
+
+Do not hardcode balances.
+
+RIGHT SIDE:
+
+Reserve illustration:
+
+/assets/reconciliation/aeps-illustration.png
+
+Use purple glow around image area.
+
+Do not generate image.
+
+============================================================
+10. TRANSACTIONS — EXACT SECTION
+============================================================
+
+Large right-side transaction panel.
+
+Header:
+
+Transactions
+
+Right:
+
+View All
+
+Controls:
+
+All
+Credit
+Debit
+Search
+Date
+
+Filter buttons should look like dark glass pills.
+
+Active All:
+
+gold highlight.
+
+Credit:
+
+green/cyan indicator.
+
+Debit:
+
+red/pink indicator.
+
+TRANSACTION ROW:
+
+large circular icon
+
+description
+
+time
+
+amount
+
+right chevron
+
+Credit amount:
+
+bright green/cyan
+
+Debit amount:
+
+bright red/pink
+
+Rows:
+
+- comfortable height
+- subtle divider
+- hover glow
+- dark gradient background
+
+Do not use plain HTML list styling.
+
+============================================================
+11. TRANSACTION EMPTY STATE
+============================================================
+
+When there are no transactions:
+
+Do not leave the panel completely blank.
+
+Use a centered polished empty state:
+
+subtle circular icon
+
+No transactions for this date
+
+small supporting text
+
+subtle ambient glow
+
+Do NOT use a generated image.
+
+Use a normal UI icon.
+
+============================================================
+12. BALANCE OVERVIEW
+============================================================
+
+This section must visually match the reference.
+
+Header:
+
+Balance Overview
+
+subtitle:
+
+Cash + Banks + AEPS
+
+LEFT:
+
+large smooth area/line chart.
+
+The chart should have:
+
+- dark chart background
+- glowing gold/orange line
+- subtle filled gradient
+- smooth curves
+
+RIGHT:
+
+donut chart.
+
+Center:
+
+Total
+
+Legend:
+
+Cash
+Banks
+AEPS
+
+Each legend item:
+
+colored dot
+label
+amount
+percentage
+
+Use real existing values.
+
+Do not create fake values.
+
+If historical data doesn't exist:
+
+show polished empty state while preserving the chart area.
+
+============================================================
+13. RECONCILIATION PANEL
+============================================================
+
+This is the final balance section.
+
+Use a strong premium gold/dark treatment.
+
+Header:
+
+Reconciliation
+
+Show three areas:
+
+Expected Balance
+
+System Balance
+
+Difference
+
+Expected Balance:
+
+existing calculation.
+
+System Balance:
+
+existing calculation.
+
+Difference:
+
+existing calculation.
+
+If difference = 0:
+
+green status:
+
+✓ BALANCED
+
+If difference != 0:
+
+red/pink status:
+
+⚠ MISMATCH
+
+Use dynamic status.
+
+Do not hardcode.
+
+============================================================
+14. IMAGE ASSET SYSTEM
+============================================================
+
+ABSOLUTELY NO AUTOMATIC IMAGE GENERATION.
+
+Do not create images.
+
+Do not use stock images.
+
+Do not use remote images.
+
+Do not use base64.
+
+Do not download images.
+
+Do not use AI-generated placeholders.
+
+Create/use:
+
+/public/assets/reconciliation/
+
+Expected assets:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+reconciliation-illustration.png
+
+I will upload these files later.
+
+The code should reference them by exact filename.
+
+Example:
+
+/assets/reconciliation/bank-illustration.png
+
+If a file does not exist:
+
+reserve its area or gracefully hide it.
+
+DO NOT replace it with another image.
+
+============================================================
+15. IMAGE PLACEMENT
+============================================================
+
+The important point is:
+
+Do not simply put an image anywhere inside a card.
+
+The image must occupy the SAME TYPE OF VISUAL SPACE shown in
+the reference.
+
+For example:
+
+Bank illustration:
+
+right side of Bank Balances panel.
+
+AEPS illustration:
+
+right side of AEPS panel.
+
+Sidebar illustration:
+
+bottom of sidebar.
+
+Other future illustrations:
+
+position according to the reference.
+
+============================================================
+16. GLOW SYSTEM
+============================================================
+
+Create reusable CSS glow classes.
+
+Examples:
+
+.glow-green
+.glow-blue
+.glow-purple
+.glow-orange
+.glow-red
+.glow-gold
+
+Use:
+
+box-shadow
+radial-gradient
+linear-gradient
+pseudo-elements
+
+The glow should be visible around:
+
+- KPI cards
+- active sidebar
+- section borders
+- icons
+- charts
+- reconciliation status
+
+============================================================
+17. CARD DEPTH
+============================================================
+
+Every major card should have multiple visual layers:
+
+Layer 1:
+
+dark background
+
+Layer 2:
+
+subtle gradient
+
+Layer 3:
+
+border
+
+Layer 4:
+
+inner highlight
+
+Layer 5:
+
+accent glow
+
+This creates the depth visible in the reference.
+
+Do NOT use simple:
+
+background: #111;
+
+border: 1px solid #222;
+
+for every card.
+
+============================================================
+18. SPACING AND PROPORTIONS
+============================================================
+
+Match the reference proportions.
+
+Do not make:
+
+- cards too thin
+- text too small
+- icons too small
+- rows too compressed
+- sections too empty
+
+Use the screenshot to determine:
+
+- card height
+- panel height
+- sidebar width
+- gaps
+- padding
+- chart size
+- transaction row height
+
+The desktop dashboard should feel dense but premium.
+
+============================================================
+19. TYPOGRAPHY
+============================================================
+
+Use a clean modern font.
+
+Primary:
+
+Inter or current application font.
+
+Hierarchy:
+
+Page title:
+large and bold
+
+Section title:
+medium/large
+
+Label:
+small
+
+Amount:
+large and bold
+
+Secondary text:
+smaller and muted
+
+Important amounts should visually dominate.
+
+============================================================
+20. RESPONSIVE
+============================================================
+
+Desktop is PRIMARY.
+
+Optimize for:
+
+1920x1080
+1600x900
+1440x900
+1366x768
+
+Keep the reference composition on desktop.
+
+For smaller screens:
+
+sidebar can collapse
+
+columns can stack
+
+tables can scroll
+
+But do not compromise the desktop version.
+
+============================================================
+21. EXISTING FUNCTIONALITY MUST REMAIN
+============================================================
+
+Do NOT change:
+
+cash denomination logic
+
+cash total
+
+opening balance
+
+bank balance calculations
+
+AEPS calculations
+
+transaction filtering
+
+transaction search
+
+date navigation
+
+refresh
+
+print
+
+export
+
+expected balance
+
+system balance
+
+difference
+
+balanced/mismatch status
+
+database
+
+API
+
+authentication
+
+permissions
+
+============================================================
+22. NO HARDCODED REFERENCE DATA
+============================================================
+
+Reference numbers are visual examples only.
+
+Never hardcode them.
+
+The UI must use the application's existing state/API/database.
+
+For example:
+
+Reference may show:
+
+₹2,36,785
+
+but if current application calculates:
+
+₹0
+
+display:
+
+₹0
+
+The reference controls appearance,
+not data.
+
+============================================================
+23. IMPORTANT — DO NOT REBUILD
+============================================================
+
+The current implementation already has the correct basic structure.
+
+Modify the existing components/styles.
+
+Do NOT throw away the existing page.
+
+Do NOT create another Daily Reconciliation page.
+
+Do NOT create duplicate routes.
+
+Do NOT duplicate components unnecessarily.
+
+Improve the existing implementation.
+
+============================================================
+24. FINAL VISUAL QA
+============================================================
+
+After implementation:
+
+Run the application.
+
+Open Daily Reconciliation.
+
+Compare the actual browser page with the attached reference image.
+
+Check EVERY section independently:
+
+1. Sidebar
+2. Header
+3. Opening Balance
+4. Cash Total
+5. Bank Total
+6. AEPS Wallet
+7. Difference
+8. Cash Counting
+9. Bank Balances
+10. AEPS Wallet
+11. Transactions
+12. Balance Overview
+13. Reconciliation
+
+Do not only compare the overall page.
+
+Compare each section.
+
+If any section still looks like a generic admin component,
+refine its CSS.
+
+============================================================
+FINAL OBJECTIVE
+============================================================
+
+I want the browser webpage to feel like the SAME DESIGN SYSTEM
+as the reference screenshot.
+
+Not just:
+
+"similar colors"
+
+Not just:
+
+"similar layout"
+
+I want:
+
+same visual language
+same glow treatment
+same card richness
+same hierarchy
+same spacing philosophy
+same section styling
+same premium fintech appearance
+
+while keeping the application's existing real data and functionality.
+
+IMPORTANT:
+
+NO IMAGE GENERATION.
+NO STOCK IMAGES.
+NO REMOTE IMAGES.
+NO LOGIC CHANGES.
+
+ONLY VISUAL RECREATION + EXISTING FUNCTIONALITY.
