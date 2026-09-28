@@ -559,13 +559,16 @@ function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, histo
 
 function Artwork({ src, label, className = "", decorative = false }: { src: string; label: string; className?: string; decorative?: boolean }) {
   const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
   return (
     <div
       className={`da-artwork ${className}`}
       role={decorative ? undefined : "img"}
       aria-label={decorative ? undefined : label}
       aria-hidden={decorative ? true : undefined}
-      data-image-slot={src.split("/").pop()}
+      data-image-slot={src.split("?")[0].split("/").pop()}
     >
       {failed ? <span className="da-artwork-placeholder" aria-hidden="true" /> : (
         <img src={src} alt="" onError={() => setFailed(true)} />
@@ -2356,7 +2359,7 @@ export default function DailyAmount() {
           ))}
         </nav>
       <div className="da-side-art">
-          <Artwork src="/assets/reconciliation/sidebar-finance.png" label="Financial illustration" />
+          <Artwork src="/assets/reconciliation/sidebar-finance.png?v=2" label="Financial illustration" />
         </div>
         <div className="da-side-foot">Daily closeout<br />Stay organized</div>
       </aside>
