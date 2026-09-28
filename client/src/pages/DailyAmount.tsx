@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings } from "lucide-react";
+import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -163,11 +163,15 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
 }
 
 // ─── Card wrapper ─────────────────────────────────────────────────────────────
-function Card({ title, subtitle, accent = "#d4af37", children, className = "", action, id }: { title: string; subtitle?: string; accent?: string; children: React.ReactNode; className?: string; action?: React.ReactNode; id?: string }) {
+function Card({ title, subtitle, accent = "#d4af37", icon, children, className = "", action, id }: { title: string; subtitle?: string; accent?: string; icon?: React.ReactNode; children: React.ReactNode; className?: string; action?: React.ReactNode; id?: string }) {
   return (
     <div id={id} className={`da-panel rounded-xl overflow-hidden flex flex-col ${className}`} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
       <div className="da-card-head px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
-        <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: accent }} />
+        {icon ? (
+          <span className="da-card-icon" style={{ color: accent, background: `${accent}20`, borderColor: `${accent}60` }}>{icon}</span>
+        ) : (
+          <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: accent }} />
+        )}
         <div className="da-card-heading">
           <h3 className="text-[11px] font-bold text-white tracking-wide">{title}</h3>
           {subtitle && <span className="da-card-subtitle">{subtitle}</span>}
@@ -790,6 +794,7 @@ export default function DailyAmount() {
     <div className="da-page text-slate-100" style={{ fontFamily: "'Inter', sans-serif" }}>
       <style>{`
         .da-page {
+          --da-sidebar-width: 128px;
           --da-ink: #edf4ff;
           --da-muted: #91a6c0;
           --da-line: rgba(103, 151, 205, .2);
@@ -1641,6 +1646,46 @@ export default function DailyAmount() {
 
         /* Final reference polish: keep the navy foundation, add brighter glass surfaces and clearer accent lighting. */
         @media screen {
+          .da-date-value {
+            position: relative;
+            display: inline-flex;
+            width: 88px;
+            height: 20px;
+            flex: 0 0 88px;
+            align-items: center;
+            justify-content: center;
+            color: #f4f7fb;
+            font-size: 10px;
+            font-weight: 650;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+          }
+          .da-toolbar > .order-3 .da-date-input {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            opacity: 0;
+            cursor: pointer;
+          }
+          .da-date-value:focus-within { border-radius: 4px; outline: 1px solid rgba(250, 204, 92, .72); outline-offset: 1px; }
+          .da-tx-header-icon { display: inline-flex; width: 18px; height: 18px; flex: 0 0 18px; align-items: center; justify-content: center; border: 1px solid rgba(64, 213, 223, .34); border-radius: 5px; color: #64e2e8; background: linear-gradient(145deg, rgba(17, 131, 144, .34), rgba(11, 49, 75, .52)); box-shadow: 0 0 11px rgba(37, 197, 212, .15), inset 0 1px rgba(255,255,255,.12); }
+
+          .da-card-icon {
+            display: inline-flex;
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid;
+            border-radius: 7px;
+            box-shadow: inset 0 1px rgba(255,255,255,.16), 0 0 11px color-mix(in srgb, currentColor 25%, transparent);
+          }
+          .da-card-icon svg { width: 14px; height: 14px; }
+
           .da-nav-item { transition: color .18s, background .18s, border-color .18s, box-shadow .18s, transform .18s; }
           .da-nav-item:hover { transform: translateX(2px); border-color: rgba(120, 183, 245, .34); background: linear-gradient(100deg, rgba(44, 95, 151, .28), rgba(20, 54, 94, .18)); box-shadow: inset 0 1px rgba(255,255,255,.04), 0 0 16px rgba(47, 133, 226, .12); }
           .da-nav-item.active { border-color: rgba(250, 204, 92, .6); background: linear-gradient(105deg, rgba(219, 163, 42, .34), rgba(36, 78, 127, .54) 72%, rgba(18, 47, 83, .58)); box-shadow: inset 0 1px rgba(255,255,255,.11), inset 0 0 20px rgba(245, 188, 57, .13), 0 0 20px rgba(232, 170, 47, .2), 0 0 34px rgba(46, 126, 213, .1); }
@@ -1675,6 +1720,10 @@ export default function DailyAmount() {
           .da-account-row { border-bottom-color: rgba(134, 177, 221, .2); }
           .da-account-row:nth-of-type(odd) { background: rgba(55, 109, 165, .09); }
           #aeps-panel .da-account-row:nth-of-type(odd) { background: rgba(151, 90, 224, .1); }
+          .da-account-input:disabled { border-color: transparent !important; background: transparent !important; box-shadow: none; color: #eef5ff !important; opacity: 1 !important; cursor: default; }
+          .da-account-row .relative > span { color: #92a9c1; }
+          .da-account-table-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin: 0 2px 3px; padding: 0 clamp(52px, 5.5vw, 98px) 4px 5px; border-bottom: 1px solid rgba(132, 169, 207, .22); color: #9bb2ca; font-size: 9px; font-weight: 650; line-height: 1.2; }
+          .da-account-table-header span:last-child { min-width: 48px; text-align: right; }
           #bank-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06)); box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16); }
           #aeps-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(133, 77, 214, .25), rgba(133, 77, 214, .06)); box-shadow: inset 2px 0 rgba(196, 139, 255, .75), 0 0 15px rgba(154, 86, 255, .17); }
           .da-total-badge { border-color: rgba(105, 183, 255, .46); background: linear-gradient(135deg, rgba(25, 85, 145, .82), rgba(13, 43, 83, .86)); box-shadow: inset 0 1px rgba(255,255,255,.09), 0 0 16px rgba(44, 132, 231, .18); }
@@ -1683,6 +1732,8 @@ export default function DailyAmount() {
           .da-tx-filter { border-color: rgba(118, 171, 208, .3); background: linear-gradient(145deg, rgba(16, 47, 73, .8), rgba(9, 28, 50, .82)); }
           .da-tx-filter.active { border-color: rgba(255, 206, 83, .66); background: linear-gradient(135deg, rgba(180, 125, 28, .42), rgba(65, 54, 29, .4)); box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 15px rgba(244, 183, 58, .2); }
           .da-tx-search, .da-tx-date { border-color: rgba(103, 177, 211, .36); background: linear-gradient(145deg, rgba(7, 29, 51, .92), rgba(6, 20, 39, .94)); }
+          .da-tx-filterbar .da-tx-search-wrap { flex: 1 1 90px; min-width: 78px; max-width: 180px; margin-left: auto; }
+          .da-tx-filterbar .da-tx-search { width: 100%; min-width: 0; }
           .da-tx-item { border-color: rgba(113, 172, 214, .2); box-shadow: inset 0 1px rgba(255,255,255,.035), 0 3px 10px rgba(0,0,0,.12); }
           .da-tx-item[data-type="income"] { background: linear-gradient(100deg, rgba(8, 67, 61, .68), rgba(8, 31, 49, .84)) !important; }
           .da-tx-item[data-type="expense"] { background: linear-gradient(100deg, rgba(75, 28, 53, .67), rgba(35, 22, 47, .84)) !important; }
@@ -1726,6 +1777,7 @@ export default function DailyAmount() {
           .da-nav-item { gap: 7px; padding-right: 6px; padding-left: 6px; font-size: 10px; white-space: nowrap; }
           .da-nav-item svg { width: 15px; height: 15px; }
           .da-dashboard-grid { grid-template-columns: minmax(0, .99fr) minmax(0, 1.01fr) minmax(0, 1.08fr); }
+          .da-tx-date { display: none; }
         }
 
         @media screen and (min-width: 921px) and (max-height: 620px) {
@@ -1739,6 +1791,8 @@ export default function DailyAmount() {
           .da-metric-sub { font-size: 8px; }
           .da-card-head h3, .da-tx-header h3 { font-size: 10px; }
           .da-card-subtitle { font-size: 7px; }
+          .da-card-icon { width: 18px; height: 18px; flex-basis: 18px; border-radius: 5px; }
+          .da-card-icon svg { width: 12px; height: 12px; }
           .da-denom-row { min-height: 27px; gap: 4px; padding: 0 2px; }
           .da-denom-row .da-stepper { width: 20px; height: 20px; }
           .da-denom-row .da-count-input { width: 48px; height: 20px; font-size: 9px; }
@@ -1748,6 +1802,7 @@ export default function DailyAmount() {
           .da-cash-total-band span:first-child { font-size: 10px; }
           .da-cash-total-band > div > span:last-child { font-size: 14px; }
           .da-account-row { height: 17px !important; min-height: 17px !important; }
+          .da-account-table-header { padding-right: 46px; padding-bottom: 2px; font-size: 7px; }
           .da-tx-filterbar { gap: 4px; padding: 4px 6px; }
           .da-tx-filter { min-height: 20px; padding: 0 6px; font-size: 8px; }
           .da-tx-date { width: 90px; height: 20px; font-size: 8px; }
@@ -1782,6 +1837,29 @@ export default function DailyAmount() {
           .da-overview-dot { width: 6px; height: 6px; }
           .da-overview-item span:nth-child(2), .da-overview-item small, .da-overview-item strong { font-size: 7px; }
         }
+
+        @media screen and (max-width: 920px) {
+          .da-account-table-header { padding-right: 54px; font-size: 8px; }
+        }
+
+        @media screen and (min-width: 921px) {
+          .da-sidebar { padding-top: 50px; }
+          .da-side-brand { display: none; }
+          .da-tx-date { display: none; }
+          .da-toolbar { width: calc(100% + var(--da-sidebar-width)); margin-left: calc(-1 * var(--da-sidebar-width)); }
+        }
+
+        @media screen and (min-width: 921px) and (max-width: 1100px) {
+          .da-page { --da-sidebar-width: 120px; }
+          .da-sidebar { flex-basis: 120px; }
+          .da-toolbar { padding-left: 10px; }
+          .da-toolbar > .order-3 { margin-left: 24px; }
+          .da-main { padding-left: 14px; }
+          .da-toolbar > .flex.items-center:first-child > div { width: 28px; height: 28px; }
+          .da-brand-title { font-size: 18px; }
+          .da-date-value { font-size: 10px; }
+          .da-tx-header-icon { width: 16px; height: 16px; flex-basis: 16px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -1790,7 +1868,7 @@ export default function DailyAmount() {
         </div>
         <nav className="da-nav">
           {[
-            { label: "Dashboard", icon: <Wallet size={14} />, target: "top" },
+            { label: "Dashboard", icon: <Home size={14} />, target: "top" },
             { label: "Cash Counting", icon: <Banknote size={14} />, target: "cash-panel" },
             { label: "Bank Balances", icon: <Landmark size={14} />, target: "bank-panel" },
             { label: "AEPS Wallet", icon: <Wallet size={14} />, target: "aeps-panel" },
@@ -1834,24 +1912,28 @@ export default function DailyAmount() {
       >
         <div className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-300" style={{ background: "linear-gradient(145deg, rgba(250,204,21,0.2), rgba(59,130,246,0.16))", border: "1px solid rgba(250,204,21,0.18)" }}>
-            <Banknote size={17} />
+          <BarChart3 size={17} />
           </div>
           <span className="da-brand-title">Daily <em>Reconciliation</em></span>
         </div>
 
         <div className="order-3 sm:order-none flex items-center justify-center gap-1 rounded-lg px-1 py-1 min-w-0 w-full sm:w-auto" style={{ background: "rgba(15,29,57,0.82)", border: "1px solid rgba(148,163,184,0.16)" }}>
+          <CalendarDays size={14} className="shrink-0 text-slate-400 hidden sm:block" />
+          <div className="da-date-value">
+            <span aria-hidden="true">{date.split("-").reverse().join("-")}</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => { setDate(e.target.value); setEditUnlocked(false); setTxSearch(""); }}
+              aria-label="Selected date"
+              className="da-date-input"
+              style={{ colorScheme: "dark" }}
+              data-testid="input-date"
+            />
+          </div>
           <button data-testid="button-prev-date" aria-label="Previous day" onClick={() => changeDate(-1)} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
             <ChevronLeft size={16} />
           </button>
-          <CalendarDays size={14} className="shrink-0 text-slate-400 hidden sm:block" />
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => { setDate(e.target.value); setEditUnlocked(false); setTxSearch(""); }}
-            className="w-[122px] sm:w-[132px] bg-transparent text-white text-xs sm:text-sm font-semibold text-center outline-none cursor-pointer"
-            style={{ colorScheme: "dark" }}
-            data-testid="input-date"
-          />
           <button data-testid="button-next-date" aria-label="Next day" onClick={() => changeDate(1)} disabled={date >= todayStr()} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-30">
             <ChevronRight size={16} />
           </button>
@@ -1935,6 +2017,7 @@ export default function DailyAmount() {
               title="Cash Counting"
               subtitle="Enter denomination counts for today"
               accent="#10b981"
+              icon={<Banknote size={15} />}
               className="h-full"
               id="cash-panel"
               action={editUnlocked ? (
@@ -2004,10 +2087,12 @@ export default function DailyAmount() {
             <Card
               title="Bank Balances"
               accent="#3b82f6"
+              icon={<Landmark size={15} />}
               className="shrink-0"
               id="bank-panel"
               action={<div className="da-card-action-total da-total-badge"><span>Total</span><strong>₹{fmt(bankTotal)}</strong></div>}
             >
+              <div className="da-account-table-header"><span>Account Name</span><span>Balance</span></div>
               <div className="da-illustrated-content da-bank-content">
                 <div className="da-illustrated-rows space-y-0">
                 {[
@@ -2039,10 +2124,12 @@ export default function DailyAmount() {
             <Card
               title="AEPS Wallet"
               accent="#a855f7"
+              icon={<Wallet size={15} />}
               className="shrink-0"
               id="aeps-panel"
               action={<div className="da-card-action-total da-total-badge da-aeps-total-badge"><span>Total</span><strong>₹{fmt(aepsTotal)}</strong></div>}
             >
+              <div className="da-account-table-header"><span>Wallet / Source</span><span>Balance</span></div>
               <div className="da-illustrated-content da-aeps-content">
                 <div className="da-illustrated-rows space-y-0">
                 {[
@@ -2076,7 +2163,7 @@ export default function DailyAmount() {
             {/* Transactions card */}
             <div id="transactions-panel" className="da-panel da-transactions-panel rounded-xl overflow-hidden flex flex-col min-h-0" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
               <div className="da-tx-header px-3 py-2 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
-                <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#f97316" }} />
+                <span className="da-tx-header-icon"><History size={13} /></span>
                 <h3 className="text-[11px] font-bold text-white tracking-wide flex-1">Transactions</h3>
                 {txArray.length > 0 && (
                   <div className="da-tx-totals da-print-hidden hidden xl:flex items-center gap-1 text-[9px]" title={`Income ₹${fmt(incomeTotal)} · expenses ₹${fmt(expenseTotal)}`}>
@@ -2094,18 +2181,6 @@ export default function DailyAmount() {
                 >
                   View All
                 </button>
-                <div className="da-tx-search-wrap da-print-hidden relative flex-1 min-w-[88px] max-w-[150px]">
-                  <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    data-testid="input-tx-search"
-                    type="search"
-                    value={txSearch}
-                    onChange={(e) => setTxSearch(e.target.value)}
-                    placeholder="Search"
-                    className="da-tx-search w-full bg-black/20 text-white rounded-md pl-7 pr-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-orange-400 placeholder:text-slate-600"
-                    style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-                  />
-                </div>
                 {editUnlocked && (
                   <button
                     type="button"
@@ -2137,6 +2212,18 @@ export default function DailyAmount() {
                     {label}
                   </button>
                 ))}
+                <div className="da-tx-search-wrap da-print-hidden relative flex-1 min-w-[88px] max-w-[150px]">
+                  <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    data-testid="input-tx-search"
+                    type="search"
+                    value={txSearch}
+                    onChange={(e) => setTxSearch(e.target.value)}
+                    placeholder="Search"
+                    className="da-tx-search w-full bg-black/20 text-white rounded-md pl-7 pr-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-orange-400 placeholder:text-slate-600"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                  />
+                </div>
                 <input
                   className="da-tx-date da-print-hidden"
                   type="date"
@@ -2306,7 +2393,7 @@ export default function DailyAmount() {
 
           <div className="da-overview" role="group" aria-label="Balance overview">
             <div className="da-overview-title">
-              <Scale size={12} />
+              <BarChart3 size={12} />
               <span>Balance Overview</span>
               <small>Cash + Banks + AEPS</small>
             </div>

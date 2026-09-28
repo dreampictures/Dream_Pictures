@@ -19,8 +19,8 @@ Never request or reuse the user's real PIN to inspect the dashboard. Use an isol
 
 ## Reference composition
 
-At desktop widths, keep transactions in the upper-right column and place reconciliation beside the balance overview on the bottom row. Preserve the mobile stacking behavior.
+At desktop widths, span the header across the full viewport above a compact sidebar, keep transactions in the upper-right column, and place reconciliation beside the balance overview on the bottom row. Use the top header as the single date control and preserve mobile stacking.
 
-**Why:** The supplied reference uses this split; leaving reconciliation nested in the transaction column shortens the transaction feed and diverges from the target.
+**Why:** The supplied reference uses a full-width header and this panel split; a repeated transaction date control wastes filter-row space, and leaving reconciliation nested in the transaction column shortens the transaction feed.
 
-**How to apply:** Treat the visible grid as intentional even if component wrappers group panels differently. Keep visual placement in CSS and avoid changing their data or interaction logic.
+**How to apply:** Treat the visible grid as intentional even if component wrappers group panels differently. Keep visual placement in CSS and avoid changing data or interaction logic.
