@@ -185,7 +185,12 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
   return (
     <div className="da-denom-row flex items-center gap-2 py-1.5">
       <div className="w-14 shrink-0 text-center">
-        <span className="inline-flex min-w-12 justify-center text-xs font-bold text-slate-200 bg-slate-700/80 rounded-md px-1.5 py-1">₹{denom}</span>
+        <span
+          data-denomination={denom}
+          className="da-denom-badge inline-flex min-w-12 justify-center text-xs font-bold text-slate-200 bg-slate-700/80 rounded-md px-1.5 py-1"
+        >
+          ₹{denom}
+        </span>
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <button
@@ -259,10 +264,9 @@ function TotalBar({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function MetricIconSlot({ imageSrc, fallback, slotName, accent }: {
-  imageSrc?: string; fallback: React.ReactNode; slotName: string; accent: string;
+function MetricIconSlot({ fallback, slotName, accent }: {
+  fallback: React.ReactNode; slotName: string; accent: string;
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
   return (
     <div
       className="da-metric-icon w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
@@ -270,36 +274,44 @@ function MetricIconSlot({ imageSrc, fallback, slotName, accent }: {
       aria-hidden="true"
       style={{ background: `${accent}20`, color: accent }}
     >
-      {imageSrc && !imageFailed ? (
-        <img className="da-metric-icon-image" src={imageSrc} alt="" onError={() => setImageFailed(true)} />
-      ) : fallback}
+      {fallback}
     </div>
   );
 }
 
-function MetricCard({ label, accent, icon, iconImage, children, testId, sub, className = "" }: {
-  label: string; accent: string; icon: React.ReactNode; iconImage?: string; children: React.ReactNode; testId: string; sub?: string; className?: string;
+function MetricCard({ label, accent, icon, children, testId, sub, className = "" }: {
+  label: string; accent: string; icon: React.ReactNode; children: React.ReactNode; testId: string; sub?: string; className?: string;
 }) {
   return (
     <div
       data-testid={testId}
       className={`da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2 ${className}`}
     >
-      <MetricIconSlot key={iconImage || testId} imageSrc={iconImage} fallback={icon} slotName={testId} accent={accent} />
+      <MetricIconSlot fallback={icon} slotName={testId} accent={accent} />
       <div className="min-w-0 flex-1">
         <p className="da-metric-label text-[9px] text-slate-400 truncate">{label}</p>
         <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
         {sub && <p className="da-metric-sub text-[8px] text-slate-500 truncate">{sub}</p>}
       </div>
+      <svg className="da-metric-sparkline" viewBox="0 0 160 48" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 37 C18 32 24 34 40 27 C56 20 62 29 78 24 C94 19 104 28 120 18 C136 9 144 15 160 7 L160 48 L0 48 Z" fill="currentColor" opacity=".12" />
+        <path d="M0 37 C18 32 24 34 40 27 C56 20 62 29 78 24 C94 19 104 28 120 18 C136 9 144 15 160 7" fill="none" stroke="currentColor" strokeOpacity=".48" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
+      </svg>
     </div>
   );
 }
 
-function Artwork({ src, label, icon, className = "" }: { src: string; label: string; icon: React.ReactNode; className?: string }) {
+function Artwork({ src, label, className = "", decorative = false }: { src: string; label: string; className?: string; decorative?: boolean }) {
   const [failed, setFailed] = useState(false);
   return (
-    <div className={`da-artwork ${className}`} aria-label={label}>
-      {failed ? <span className="da-artwork-fallback" aria-hidden="true">{icon}</span> : (
+    <div
+      className={`da-artwork ${className}`}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : label}
+      aria-hidden={decorative ? true : undefined}
+      data-image-slot={src.split("/").pop()}
+    >
+      {failed ? <span className="da-artwork-placeholder" aria-hidden="true" /> : (
         <img src={src} alt="" onError={() => setFailed(true)} />
       )}
     </div>
@@ -757,7 +769,17 @@ export default function DailyAmount() {
         x: (index / Math.max(trendValues.length - 1, 1)) * 100,
         y: trendMax > 0 ? 40 - (point.total / trendMax) * 32 : 40,
       }));
-  const trendLinePath = trendPoints.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+  const trendLinePath = trendPoints.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`;
+    const previous = trendPoints[index - 1];
+    const beforePrevious = trendPoints[Math.max(0, index - 2)];
+    const next = trendPoints[Math.min(trendPoints.length - 1, index + 1)];
+    const controlOneX = previous.x + (point.x - beforePrevious.x) / 6;
+    const controlOneY = previous.y + (point.y - beforePrevious.y) / 6;
+    const controlTwoX = point.x - (next.x - previous.x) / 6;
+    const controlTwoY = point.y - (next.y - previous.y) / 6;
+    return `${path} C ${controlOneX} ${controlOneY}, ${controlTwoX} ${controlTwoY}, ${point.x} ${point.y}`;
+  }, "");
   const trendAreaPath = trendPoints.length ? `${trendLinePath} L 100 40 L 0 40 Z` : "";
 
   if (!pin) {
@@ -1174,6 +1196,448 @@ export default function DailyAmount() {
           .da-metric-value { font-size: 12px; }
           .da-metric-sub { font-size: 7px; }
         }
+
+        /* Premium dark-fintech visual refinement */
+        .da-page {
+          background:
+            radial-gradient(ellipse at 68% -12%, rgba(31, 111, 224, .27), transparent 43%),
+            radial-gradient(ellipse at 100% 58%, rgba(121, 63, 217, .13), transparent 35%),
+            radial-gradient(ellipse at 24% 100%, rgba(15, 187, 158, .1), transparent 39%),
+            radial-gradient(ellipse at 50% 42%, rgba(20, 55, 97, .17), transparent 58%),
+            linear-gradient(135deg, #050a17 0%, #08152b 54%, #071126 100%);
+        }
+        .da-sidebar {
+          flex-basis: clamp(150px, 11.6vw, 224px);
+          padding: 15px 12px 13px;
+          border-right-color: rgba(93, 148, 209, .25);
+          background:
+            radial-gradient(ellipse at 50% 76%, rgba(31, 100, 163, .2), transparent 48%),
+            linear-gradient(180deg, #09172d 0%, #071328 62%, #08172c 100%);
+          box-shadow: inset -1px 0 rgba(114, 172, 235, .07), 8px 0 34px rgba(1, 7, 20, .2);
+        }
+        .da-side-brand { justify-content: flex-start; height: 42px; margin-bottom: 18px; padding: 4px 7px; }
+        .da-side-brand-mark { width: 36px; height: 36px; border-radius: 11px; box-shadow: 0 0 20px rgba(234, 176, 51, .2), inset 0 1px rgba(255,255,255,.15); }
+        .da-side-brand-mark svg { width: 20px; height: 20px; }
+        .da-nav { gap: 7px; }
+        .da-nav-item {
+          min-height: 42px;
+          gap: 11px;
+          padding: 0 11px;
+          border-radius: 10px;
+          font-size: clamp(10px, .72vw, 13px);
+        }
+        .da-nav-item svg { width: 18px; height: 18px; }
+        .da-nav-item.active {
+          padding-left: 8px;
+          border-left: 3px solid #f1c552;
+          background: linear-gradient(100deg, rgba(204, 150, 35, .28), rgba(30, 68, 111, .48));
+          box-shadow: inset 0 0 18px rgba(230, 180, 53, .1), 0 0 18px rgba(225, 176, 52, .13);
+        }
+        .da-side-art {
+          inset: auto 0 0;
+          height: clamp(190px, 31vh, 360px);
+          border-top: 1px solid rgba(120, 171, 222, .16);
+          background: linear-gradient(180deg, rgba(8, 23, 44, .35), rgba(8, 23, 44, .86));
+        }
+        .da-side-art::after {
+          background: linear-gradient(180deg, #08172d 0%, rgba(8, 23, 44, .48) 24%, rgba(7, 18, 36, .04) 72%, rgba(6, 15, 31, .28) 100%);
+        }
+        .da-side-art .da-artwork { inset: 0; border: 0; border-radius: 0; background: transparent; }
+        .da-side-art .da-artwork img { object-fit: contain; object-position: center bottom; padding: 9px 4px 3px; opacity: .98; }
+        .da-side-art .da-artwork-placeholder { background: radial-gradient(ellipse at 50% 80%, rgba(225, 170, 46, .09), transparent 69%); }
+        .da-side-foot { z-index: 2; margin-top: auto; padding: 10px 4px 16px; font-size: 10px; }
+        .da-artwork { border: 1px solid rgba(111, 163, 217, .18); border-radius: 10px; background: linear-gradient(145deg, rgba(16, 39, 69, .52), rgba(8, 21, 41, .72)); }
+        .da-artwork-placeholder { display: block; width: 100%; height: 100%; background: radial-gradient(ellipse at 55% 42%, rgba(57, 143, 224, .07), transparent 66%), linear-gradient(135deg, rgba(20, 42, 70, .32), rgba(9, 21, 40, .5)); }
+        .da-artwork img { object-fit: contain; }
+
+        .da-toolbar {
+          flex-basis: 54px;
+          min-height: 54px;
+          gap: 12px;
+          padding: 0 18px;
+          border-bottom-color: rgba(91, 152, 216, .25);
+          background: linear-gradient(90deg, rgba(7, 16, 33, .97), rgba(8, 19, 39, .92));
+          box-shadow: 0 8px 28px rgba(0, 5, 16, .18);
+        }
+        .da-toolbar > .flex.items-center:first-child { gap: 10px; }
+        .da-toolbar > .flex.items-center:first-child > div { width: 38px; height: 38px; border-radius: 11px; }
+        .da-toolbar > .flex.items-center:first-child > div svg { width: 21px; height: 21px; }
+        .da-brand-title { font-size: clamp(15px, 1vw, 19px); letter-spacing: -.35px; }
+        .da-toolbar > .order-3 { min-height: 36px; padding: 3px 7px; border-radius: 10px; }
+        .da-toolbar > .order-3 input { width: 132px; font-size: 12px; }
+        .da-toolbar > .order-3 button { padding: 4px 6px; }
+        .da-toolbar > .ml-auto { gap: 7px; }
+        .da-toolbar > .ml-auto button {
+          height: 35px;
+          padding: 0 10px;
+          border-radius: 9px;
+          font-size: 11px;
+          box-shadow: inset 0 1px rgba(255,255,255,.04), 0 3px 11px rgba(0,0,0,.12);
+        }
+        .da-toolbar > .ml-auto button[data-testid="button-export"] { box-shadow: 0 0 18px rgba(231, 166, 46, .24), inset 0 1px rgba(255,255,255,.42); }
+        .da-main { gap: 13px; padding: 13px 16px 15px; }
+        .da-main > .grid { gap: 11px; }
+
+        .da-metric {
+          min-height: clamp(100px, 10vh, 132px);
+          gap: 14px;
+          padding: 14px 17px;
+          border-radius: 16px;
+          box-shadow: inset 0 1px rgba(255,255,255,.11), 0 8px 24px rgba(0,0,0,.22), 0 0 26px var(--metric-glow, rgba(25,220,170,.18));
+        }
+        .da-metric::before { opacity: .6; }
+        .da-metric::after { display: none; }
+        .da-metric-sparkline { position: absolute; z-index: 0; right: 0; bottom: 0; width: 49%; height: 53%; overflow: visible; opacity: .88; pointer-events: none; }
+        .da-metric-icon {
+          width: clamp(54px, 4.3vw, 72px);
+          height: clamp(58px, 6.4vh, 76px);
+          flex-basis: clamp(54px, 4.3vw, 72px);
+          border-radius: 15px;
+        }
+        .da-metric-icon svg { width: 29px; height: 29px; }
+        .da-metric-label { font-size: clamp(12px, .82vw, 15px); }
+        .da-metric-value { font-size: clamp(20px, 1.45vw, 29px); line-height: 1.15; }
+        .da-metric-sub { font-size: clamp(9px, .66vw, 12px); }
+
+        .da-dashboard-grid {
+          grid-template-rows: minmax(0, 1fr) clamp(122px, 14vh, 160px);
+          gap: 12px;
+        }
+        .da-column { gap: 11px; }
+        .da-panel {
+          position: relative;
+          border-radius: 14px !important;
+          border-color: rgba(100, 155, 214, .35) !important;
+          background: linear-gradient(150deg, rgba(13, 31, 58, .97), rgba(7, 20, 41, .985)) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.045), 0 9px 24px rgba(0, 5, 15, .24), 0 0 18px rgba(43, 127, 212, .08) !important;
+        }
+        .da-panel:hover { border-color: rgba(121, 180, 238, .55) !important; }
+        #cash-panel { border-color: rgba(44, 213, 171, .44) !important; box-shadow: inset 0 1px rgba(255,255,255,.055), 0 0 18px rgba(16, 185, 129, .14), 0 0 36px rgba(16, 185, 129, .07) !important; }
+        #bank-panel { border-color: rgba(75, 158, 255, .45) !important; box-shadow: inset 0 1px rgba(255,255,255,.055), 0 0 19px rgba(37, 119, 235, .16), 0 0 38px rgba(37, 119, 235, .07) !important; }
+        #aeps-panel { border-color: rgba(171, 111, 255, .45) !important; box-shadow: inset 0 1px rgba(255,255,255,.055), 0 0 19px rgba(145, 68, 255, .16), 0 0 38px rgba(145, 68, 255, .08) !important; }
+        #transactions-panel { border-color: rgba(46, 201, 227, .39) !important; box-shadow: inset 0 1px rgba(255,255,255,.055), 0 0 19px rgba(23, 178, 211, .12), 0 0 36px rgba(23, 178, 211, .06) !important; }
+        .da-card-head, .da-tx-header {
+          min-height: 44px;
+          gap: 10px;
+          padding: 7px 12px;
+          border-bottom-color: rgba(121, 169, 217, .21) !important;
+          background: linear-gradient(90deg, rgba(20, 53, 90, .8), rgba(9, 27, 52, .56)) !important;
+        }
+        .da-card-head h3, .da-tx-header h3 { font-size: clamp(12px, .84vw, 15px); }
+        .da-card-head .w-1 { width: 3px; height: 19px; border-radius: 999px; box-shadow: 0 0 9px currentColor; }
+        .da-card-subtitle { margin-top: 2px; font-size: 9px; }
+        .da-card-body { padding: 10px 12px; }
+
+        .da-cash-table-header { padding: 4px 8px 8px; font-size: 10px; border-bottom-color: rgba(115, 159, 205, .25); }
+        .da-denom-row { min-height: clamp(34px, 4.6vh, 51px); gap: 9px; padding: 4px 4px; border-radius: 8px; transition: background .18s; }
+        .da-denom-row:hover { background: rgba(40, 93, 145, .14); }
+        .da-denom-row > div:first-child { width: 62px; }
+        .da-denom-row > div:first-child span { min-width: 54px; padding: 5px 7px; border-radius: 8px; font-size: 11px; }
+        .da-denom-badge { border: 1px solid rgba(255,255,255,.17); box-shadow: inset 0 1px rgba(255,255,255,.2), 0 3px 10px rgba(0,0,0,.14); }
+        .da-denom-badge[data-denomination="500"] { color: #f0e6ff !important; background: linear-gradient(145deg, #8558d8, #5832a0) !important; }
+        .da-denom-badge[data-denomination="200"] { color: #fff0df !important; background: linear-gradient(145deg, #ed9850, #b95c2f) !important; }
+        .da-denom-badge[data-denomination="100"] { color: #e6f2ff !important; background: linear-gradient(145deg, #368dd8, #2457a6) !important; }
+        .da-denom-badge[data-denomination="50"] { color: #e4fdff !important; background: linear-gradient(145deg, #22b9c8, #147190) !important; }
+        .da-denom-badge[data-denomination="20"] { color: #e6fff1 !important; background: linear-gradient(145deg, #31bd89, #1a795d) !important; }
+        .da-denom-badge[data-denomination="10"] { color: #fff3e0 !important; background: linear-gradient(145deg, #bd8544, #765027) !important; }
+        .da-coins-badge { display: inline-flex; min-width: 54px; justify-content: center; border: 1px solid rgba(255, 209, 83, .42); color: #fff3c1; background: linear-gradient(145deg, #9d7122, #644414); box-shadow: 0 0 12px rgba(225, 174, 51, .12); }
+        .da-denom-row .da-stepper {
+          width: 29px;
+          height: 29px;
+          border: 1px solid rgba(83, 155, 220, .32);
+          color: #c2def8;
+          background: linear-gradient(145deg, rgba(23, 52, 82, .94), rgba(10, 28, 51, .96));
+          box-shadow: inset 0 1px rgba(255,255,255,.055);
+        }
+        .da-denom-row .da-stepper:hover:not(:disabled) { border-color: rgba(94, 190, 255, .62); color: white; box-shadow: 0 0 12px rgba(44, 153, 229, .24); }
+        .da-denom-row .da-count-input { width: 72px; height: 29px; border-color: rgba(77, 139, 198, .48) !important; border-radius: 8px; background: rgba(4, 14, 29, .73); font-size: 12px; box-shadow: inset 0 2px 8px rgba(0,0,0,.23); }
+        .da-coins-row .da-count-input { width: 82px; }
+        .da-denom-row > span:last-child { color: #f4d876; font-size: 12px; }
+        .da-cash-total { padding-top: 9px; }
+        .da-cash-total-band {
+          padding: 11px 13px !important;
+          border: 1px solid rgba(37, 224, 166, .4) !important;
+          border-radius: 11px !important;
+          background: linear-gradient(105deg, rgba(8, 86, 70, .68), rgba(5, 52, 58, .65)) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.07), 0 0 17px rgba(15, 210, 155, .16), 0 0 34px rgba(15, 210, 155, .07);
+        }
+        .da-cash-total-band span:first-child { font-size: 13px; }
+        .da-cash-total-band > div > span:last-child { font-size: clamp(18px, 1.2vw, 23px); }
+        .da-cash-illustration { width: 48px; height: 37px; flex: 0 0 48px; border: 0; background: transparent; filter: drop-shadow(0 0 8px rgba(37, 220, 167, .23)); }
+
+        .da-account-row { min-height: clamp(26px, 3.4vh, 38px); gap: 8px; padding: 4px 5px; border-bottom-color: rgba(99, 147, 194, .14); border-radius: 7px; transition: background .16s, border-color .16s; }
+        .da-account-row:hover { background: rgba(41, 104, 163, .14); }
+        .da-account-row > div:first-child span:first-child { width: 22px; height: 22px; border-radius: 7px; font-size: 9px; }
+        .da-account-row > div:first-child span:last-child { font-size: 11px; }
+        .da-account-input { width: 122px; height: 27px; border-color: rgba(72, 133, 194, .45) !important; border-radius: 7px; background: rgba(4, 14, 29, .68); font-size: 11px; }
+        .da-section-total { padding-top: 8px; margin-top: 5px; }
+        .da-section-total span { font-size: 11px; }
+        .da-section-total > span:last-child { font-size: 13px; }
+        .da-illustrated-content { position: relative; flex: 1; min-height: 0; }
+        .da-illustrated-rows { position: relative; z-index: 1; height: 100%; }
+        .da-illustrated-content .da-illustrated-rows { padding-right: clamp(52px, 5.5vw, 98px); }
+        .da-inline-illustration {
+          position: absolute;
+          z-index: 0;
+          top: 50%;
+          right: 0;
+          width: clamp(48px, 5vw, 88px);
+          height: clamp(78px, 10vh, 132px);
+          transform: translateY(-50%);
+          border: 0;
+          border-radius: 12px;
+          opacity: .88;
+          filter: drop-shadow(0 0 12px rgba(53, 147, 247, .24));
+        }
+        .da-bank-illustration { background: radial-gradient(ellipse, rgba(36, 127, 239, .2), transparent 73%); }
+        .da-aeps-illustration { filter: drop-shadow(0 0 12px rgba(165, 94, 255, .32)); background: radial-gradient(ellipse, rgba(145, 74, 243, .2), transparent 73%); }
+        .da-card-action-total { gap: 8px; font-size: 11px; }
+        .da-total-badge {
+          gap: 7px;
+          padding: 5px 9px;
+          border: 1px solid rgba(94, 162, 239, .33);
+          border-radius: 8px;
+          color: #bddcff;
+          background: linear-gradient(135deg, rgba(22, 68, 115, .72), rgba(12, 38, 71, .78));
+          box-shadow: inset 0 1px rgba(255,255,255,.06), 0 0 12px rgba(44, 132, 231, .1);
+        }
+        .da-total-badge span { color: #91b6da; font: 600 9px/1 ui-sans-serif, system-ui; }
+        .da-total-badge strong { color: #f1f7ff; font-size: 12px; }
+        .da-aeps-total-badge { border-color: rgba(181, 119, 255, .38); color: #e0c7ff; background: linear-gradient(135deg, rgba(85, 42, 146, .75), rgba(41, 25, 77, .8)); box-shadow: 0 0 12px rgba(151, 75, 238, .14); }
+
+        .da-transactions-panel { border-radius: 14px !important; }
+        .da-tx-header { min-height: 44px; }
+        .da-view-all { min-height: 28px; padding: 0 10px; border-color: rgba(80, 176, 221, .35); border-radius: 8px; color: #c2efff; background: rgba(11, 76, 105, .38); font-size: 10px; }
+        .da-tx-filterbar { gap: 7px; padding: 8px 10px; border-bottom-color: rgba(98, 166, 207, .18); }
+        .da-tx-filter { min-height: 28px; padding: 0 10px; border-radius: 8px; font-size: 10px; }
+        .da-tx-filter.active { border-color: rgba(255, 195, 61, .52); color: #ffe4a1; background: linear-gradient(135deg, rgba(157, 105, 21, .35), rgba(57, 45, 27, .36)); box-shadow: 0 0 12px rgba(244, 183, 58, .12); }
+        .da-tx-date { width: 122px; height: 28px; border-radius: 8px; font-size: 10px; }
+        .da-tx-search { height: 29px; border-radius: 8px; font-size: 10px; }
+        .da-tx-form { padding: 9px; gap: 7px; border-color: rgba(83, 163, 204, .24) !important; background: linear-gradient(120deg, rgba(7, 39, 58, .56), rgba(8, 25, 45, .6)) !important; }
+        .da-tx-form button, .da-tx-form input { min-height: 29px; font-size: 10px; }
+        .da-tx-item {
+          min-height: 52px;
+          gap: 10px;
+          padding: 7px 9px;
+          border: 1px solid rgba(103, 159, 202, .12);
+          border-left: 2px solid var(--tx-accent, rgba(41, 193, 211, .48));
+          border-radius: 10px;
+          background: linear-gradient(100deg, rgba(11, 36, 62, .78), rgba(8, 25, 46, .78)) !important;
+          transition: transform .16s, border-color .16s, box-shadow .16s, background .16s;
+        }
+        .da-tx-item[data-type="income"] { --tx-accent: rgba(53, 226, 170, .76); }
+        .da-tx-item[data-type="expense"] { --tx-accent: rgba(255, 86, 119, .78); }
+        .da-tx-item:hover { transform: translateX(2px); border-color: rgba(85, 178, 222, .35); background: linear-gradient(100deg, rgba(14, 48, 78, .88), rgba(8, 29, 51, .88)) !important; box-shadow: 0 0 15px rgba(39, 171, 204, .1); }
+        .da-tx-symbol { width: 35px; height: 35px; border-radius: 50% !important; box-shadow: 0 0 11px currentColor; }
+        .da-tx-item[data-type="income"] .da-tx-symbol { box-shadow: 0 0 13px rgba(40, 221, 163, .22); }
+        .da-tx-item[data-type="expense"] .da-tx-symbol { box-shadow: 0 0 13px rgba(244, 73, 112, .2); }
+        .da-tx-description { font-size: 12px; }
+        .da-tx-time { font-size: 10px; }
+        .da-tx-value { font-size: 12px; }
+        .da-tx-arrow { color: #65809b; opacity: .75; }
+        .da-tx-empty { display: flex; min-height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; color: #9bb2ca; text-align: center; }
+        .da-tx-empty-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid rgba(68, 178, 209, .25); border-radius: 15px; color: #65cde0; background: linear-gradient(145deg, rgba(25, 91, 113, .32), rgba(12, 40, 65, .45)); box-shadow: 0 0 20px rgba(48, 182, 205, .12); }
+        .da-tx-empty strong { color: #dce9f7; font-size: 13px; }
+        .da-tx-empty small { color: #7993ad; font-size: 10px; }
+
+        .da-reconciliation-card {
+          border-color: rgba(245, 191, 73, .48) !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, rgba(91, 62, 20, .76), rgba(26, 31, 45, .98) 56%, rgba(16, 27, 43, .98)) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.08), 0 0 19px rgba(229, 166, 47, .15), 0 0 37px rgba(229, 166, 47, .06) !important;
+        }
+        .da-reconciliation-card.is-balanced { border-color: rgba(55, 220, 161, .48) !important; box-shadow: inset 0 1px rgba(255,255,255,.08), 0 0 18px rgba(22, 204, 142, .16), 0 0 36px rgba(22, 204, 142, .07) !important; }
+        .da-reconciliation-card.is-mismatch { border-color: rgba(255, 101, 132, .5) !important; box-shadow: inset 0 1px rgba(255,255,255,.08), 0 0 18px rgba(246, 66, 104, .17), 0 0 36px rgba(246, 66, 104, .07) !important; }
+        .da-reconcile-title { min-height: 40px; padding: 7px 12px !important; border-bottom-color: rgba(238, 191, 93, .22) !important; font-size: 12px !important; }
+        .da-reconciliation-card.is-balanced .da-reconcile-title { border-bottom-color: rgba(67, 216, 161, .2) !important; }
+        .da-reconcile-values .da-reconcile-value { padding: 11px 13px; }
+        .da-reconcile-value p:first-child { color: #a9b7c7; font-size: 10px; }
+        .da-reconcile-value p:nth-child(2) { margin-top: 2px; color: #fff3d0; font-size: clamp(15px, 1vw, 20px); }
+        .da-reconcile-value p:last-child { color: #8194aa; font-size: 9px; }
+        .da-reconciliation-card.is-balanced .da-reconcile-value p:nth-child(2) { color: #b0f6d7; }
+        .da-difference { padding: 10px 13px; }
+        .da-difference > div:first-child p:first-child { color: #aebbd0; font-size: 10px; }
+        .da-difference-value { font-size: clamp(16px, 1.15vw, 22px); text-shadow: 0 0 13px currentColor; }
+        .da-status { padding: 7px 10px; border-radius: 9px; font-size: 10px; box-shadow: 0 0 14px currentColor; }
+        .da-status.text-emerald-400 { box-shadow: 0 0 15px rgba(39, 221, 155, .17); }
+        .da-status.text-red-400 { box-shadow: 0 0 15px rgba(255, 65, 103, .18); }
+        .da-reconciliation-illustration { width: 42px; height: 32px; flex: 0 0 42px; margin-left: auto; border: 0; background: radial-gradient(ellipse, rgba(237, 183, 68, .18), transparent 74%); }
+
+        .da-overview {
+          border-color: rgba(232, 166, 59, .38);
+          border-radius: 14px;
+          background:
+            radial-gradient(ellipse at 88% 8%, rgba(212, 143, 37, .12), transparent 48%),
+            linear-gradient(125deg, rgba(12, 28, 52, .97), rgba(8, 21, 41, .98));
+          box-shadow: inset 0 1px rgba(255,255,255,.05), 0 0 18px rgba(223, 152, 40, .1), 0 0 34px rgba(223, 152, 40, .04);
+          padding: 10px 13px;
+        }
+        .da-overview-title { gap: 9px; margin-bottom: 7px; color: #f3f6fb; font-size: 13px; }
+        .da-overview-title svg { width: 18px; height: 18px; color: #f1bb4f; filter: drop-shadow(0 0 6px rgba(241, 187, 79, .35)); }
+        .da-overview-title small { margin-left: 1px; color: #a3b5c9; font-size: 9px; }
+        .da-overview-content { height: calc(100% - 28px); min-height: 74px; grid-template-columns: minmax(0, 1fr) clamp(60px, 4.2vw, 76px) minmax(130px, 180px); gap: clamp(10px, 1vw, 17px); }
+        .da-overview-chart { border-bottom-color: rgba(247, 177, 65, .34); background: linear-gradient(180deg, rgba(231, 150, 43, .08), transparent); }
+        .da-overview-chart .da-overview-artwork { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; opacity: .14; background: transparent; }
+        .da-overview-chart .da-artwork-placeholder { background: radial-gradient(ellipse at 65% 50%, rgba(242, 174, 60, .08), transparent 75%); }
+        .da-overview-chart svg { position: relative; z-index: 1; }
+        .da-overview-chart svg path:last-child { filter: drop-shadow(0 0 3px rgba(255, 176, 61, .7)); }
+        .da-overview-chart-empty { position: relative; z-index: 2; color: #9fb3c9; font-size: 10px; }
+        .da-overview-donut { width: clamp(60px, 4.2vw, 76px); height: clamp(60px, 4.2vw, 76px); flex-basis: clamp(60px, 4.2vw, 76px); padding: 6px; box-shadow: 0 0 19px rgba(104, 76, 237, .22), 0 0 31px rgba(45, 140, 223, .11); }
+        .da-overview-donut-hole { border-color: rgba(175, 198, 225, .23); background: #09172d; }
+        .da-overview-donut-hole strong { font-size: clamp(8px, .56vw, 11px); }
+        .da-overview-donut-hole small { font-size: 8px; }
+        .da-overview-breakdown { gap: 7px; }
+        .da-overview-item { grid-template-columns: 8px minmax(34px, 1fr) auto auto; gap: 6px; }
+        .da-overview-dot { width: 8px; height: 8px; }
+        .da-overview-item span:nth-child(2) { color: #b0c1d5; font-size: 10px; }
+        .da-overview-item strong { color: #edf4fc; font-size: 10px; }
+        .da-overview-item small { color: #96aac2; font-size: 9px; }
+
+        @media (min-width: 921px) and (max-height: 620px) {
+          .da-toolbar { flex-basis: 42px; min-height: 42px; padding: 0 10px; }
+          .da-toolbar > .flex.items-center:first-child > div { width: 30px; height: 30px; }
+          .da-brand-title { font-size: 14px; }
+          .da-toolbar > .ml-auto button { height: 28px; }
+          .da-main { gap: 6px; padding: 6px 8px 7px; }
+          .da-main > .grid { gap: 6px; }
+          .da-metric { min-height: 66px; gap: 7px; padding: 5px 8px; border-radius: 10px; }
+          .da-metric-icon { width: 42px; height: 48px; flex-basis: 42px; border-radius: 9px; }
+          .da-metric-icon svg { width: 21px; height: 21px; }
+          .da-metric-label { font-size: 9px; }
+          .da-metric-value { font-size: clamp(12px, 1.25vw, 16px); }
+          .da-metric-sub { font-size: 7px; }
+          .da-metric-sparkline { width: 44%; height: 48%; }
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 70px; gap: 7px; }
+          .da-column { gap: 5px; }
+          .da-card-head, .da-tx-header { min-height: 30px; padding: 4px 7px; gap: 6px; }
+          .da-card-head h3, .da-tx-header h3 { font-size: 9px; }
+          .da-card-subtitle { font-size: 6px; }
+          .da-card-body { padding: 4px 6px; }
+          .da-cash-table-header { padding: 0 4px 3px; font-size: 7px; }
+          .da-denom-row { min-height: 22px; gap: 4px; padding: 0 2px; }
+          .da-denom-row > div:first-child { width: 43px; }
+          .da-denom-row > div:first-child span { min-width: 39px; padding: 2px 3px; font-size: 8px; }
+          .da-denom-row .da-stepper { width: 19px; height: 19px; }
+          .da-denom-row .da-count-input { width: 43px; height: 19px; font-size: 9px; }
+          .da-coins-row .da-count-input { width: 54px; }
+          .da-cash-total { padding-top: 3px; }
+          .da-cash-total-band { padding: 4px 6px !important; }
+          .da-cash-total-band span:first-child { font-size: 9px; }
+          .da-cash-total-band > div > span:last-child { font-size: 12px; }
+          .da-cash-illustration { width: 28px; height: 22px; flex-basis: 28px; }
+          .da-account-row { min-height: 16px; gap: 4px; padding: 0 3px; }
+          .da-account-row > div:first-child span:first-child { width: 15px; height: 15px; font-size: 7px; }
+          .da-account-row > div:first-child span:last-child { font-size: 8px; }
+          .da-account-input { width: 96px; height: 15px; font-size: 8px; }
+          .da-section-total { padding-top: 2px; margin-top: 2px; }
+          .da-section-total span { font-size: 8px; }
+          .da-section-total > span:last-child { font-size: 9px; }
+          .da-inline-illustration { width: 42px; height: 62px; }
+          .da-illustrated-content .da-illustrated-rows { padding-right: 46px; }
+          .da-total-badge { gap: 4px; padding: 3px 5px; }
+          .da-total-badge span { font-size: 7px; }
+          .da-total-badge strong { font-size: 8px; }
+          .da-tx-filterbar { gap: 3px; padding: 3px 5px; }
+          .da-tx-filter { min-height: 18px; padding: 0 5px; font-size: 7px; }
+          .da-tx-date { width: 86px; height: 18px; font-size: 7px; }
+          .da-tx-search { height: 19px; font-size: 7px; }
+          .da-tx-item { min-height: 28px; gap: 4px; padding: 3px 4px; }
+          .da-tx-symbol { width: 20px; height: 20px; }
+          .da-tx-description { font-size: 8px; }
+          .da-tx-time { font-size: 7px; }
+          .da-tx-value { font-size: 8px; }
+          .da-tx-arrow { width: 11px; }
+          .da-tx-empty-icon { width: 34px; height: 34px; }
+          .da-tx-empty strong { font-size: 9px; }
+          .da-tx-empty small { font-size: 7px; }
+          .da-reconcile-title { min-height: 28px; padding: 3px 6px !important; font-size: 8px !important; }
+          .da-reconciliation-illustration { width: 29px; height: 21px; flex-basis: 29px; }
+          .da-reconcile-values .da-reconcile-value { padding: 3px 6px; }
+          .da-reconcile-value p:first-child { font-size: 7px; }
+          .da-reconcile-value p:nth-child(2) { font-size: 9px; }
+          .da-reconcile-value p:last-child { display: none; }
+          .da-difference { padding: 3px 6px; }
+          .da-difference-value { font-size: 11px; }
+          .da-status { gap: 2px; padding: 3px 5px; font-size: 7px; }
+          .da-overview { padding: 3px 6px; }
+          .da-overview-title { margin-bottom: 1px; font-size: 8px; }
+          .da-overview-title svg { width: 12px; height: 12px; }
+          .da-overview-title small { font-size: 6px; }
+          .da-overview-content { min-height: 0; height: calc(100% - 14px); grid-template-columns: minmax(0, 1fr) 40px minmax(84px, 105px); gap: 5px; }
+          .da-overview-donut { width: 40px; height: 40px; flex-basis: 40px; padding: 4px; }
+          .da-overview-donut-hole strong { font-size: 6px; }
+          .da-overview-donut-hole small { font-size: 5px; }
+          .da-overview-breakdown { gap: 2px; }
+          .da-overview-item { grid-template-columns: 5px minmax(12px, 1fr) auto auto; gap: 2px; }
+          .da-overview-dot { width: 5px; height: 5px; }
+          .da-overview-item span:nth-child(2), .da-overview-item small { font-size: 6px; }
+          .da-overview-item strong { font-size: 6px; }
+        }
+        @media (max-width: 920px) {
+          .da-sidebar { flex-basis: auto; padding: 5px 8px; }
+          .da-side-brand, .da-side-art, .da-side-foot { display: none; }
+          .da-nav-item { min-height: 36px; gap: 7px; padding: 0 9px; font-size: 10px; }
+          .da-nav-item svg { width: 15px; height: 15px; }
+          .da-toolbar { flex-basis: auto; min-height: 46px; padding: 5px 9px; }
+          .da-main { overflow: visible; gap: 10px; padding: 10px; }
+          .da-main > .grid { gap: 7px; }
+          .da-metric { min-height: 90px; gap: 9px; padding: 8px; border-radius: 12px; }
+          .da-metric-icon { width: 46px; height: 56px; flex-basis: 46px; border-radius: 11px; }
+          .da-metric-icon svg { width: 21px; height: 21px; }
+          .da-metric-label { font-size: 10px; }
+          .da-metric-value { font-size: clamp(13px, 1.8vw, 18px); }
+          .da-metric-sub { font-size: 8px; }
+          .da-dashboard-grid { gap: 8px; }
+          .da-column { gap: 8px; }
+          .da-card-head, .da-tx-header { min-height: 38px; padding: 6px 9px; }
+          .da-card-body { padding: 8px; }
+          .da-overview { min-height: 94px; padding: 8px; }
+          .da-overview-content { min-height: 58px; height: auto; grid-template-columns: minmax(0, 1fr) 58px minmax(100px, 130px); gap: 7px; }
+          .da-overview-donut { width: 58px; height: 58px; flex-basis: 58px; }
+        }
+        @media (max-width: 620px) {
+          .da-main { padding: 8px; gap: 9px; }
+          .da-metric { min-height: 80px; gap: 7px; padding: 7px; }
+          .da-metric-icon { width: 38px; height: 46px; flex-basis: 38px; border-radius: 9px; }
+          .da-metric-icon svg { width: 18px; height: 18px; }
+          .da-metric-label { font-size: 9px; }
+          .da-metric-value { font-size: clamp(11px, 3.4vw, 15px); }
+          .da-metric-sub { font-size: 7px; }
+          .da-dashboard-grid { display: flex; flex-direction: column; gap: 9px; }
+          .da-column:first-child, .da-column:nth-child(2), .da-column:last-child { min-height: 0; }
+          .da-column:first-child > .da-panel { min-height: 345px; }
+          .da-column:nth-child(2) > .da-panel { min-height: 220px; }
+          .da-transactions-panel { min-height: 360px; }
+          .da-overview { min-height: 174px; padding: 9px; }
+          .da-overview-content { height: auto; grid-template-columns: minmax(0, 1fr) 62px; gap: 8px; }
+          .da-overview-chart { grid-column: 1 / -1; min-height: 88px; }
+          .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
+          .da-overview-breakdown { gap: 6px; }
+          .da-overview-item { grid-template-columns: 7px minmax(32px, 1fr) auto auto; gap: 5px; }
+          .da-overview-item span:nth-child(2), .da-overview-item small { font-size: 8px; }
+          .da-overview-item strong { font-size: 8px; }
+          .da-inline-illustration { width: 50px; height: 75px; }
+          .da-illustrated-content .da-illustrated-rows { padding-right: 54px; }
+        }
+        @media (min-width: 921px) and (min-height: 621px) and (max-height: 820px) {
+          .da-column:nth-child(2) > #bank-panel { flex: 1.2 1 0%; min-height: 0; }
+          .da-column:nth-child(2) > #aeps-panel { flex: 1 1 0%; min-height: 0; }
+          .da-account-row { min-height: 20px; gap: 4px; padding: 1px 3px; }
+          .da-account-row > div:first-child span:first-child { width: 17px; height: 17px; font-size: 7px; }
+          .da-account-row > div:first-child span:last-child { font-size: 9px; }
+          .da-account-input { width: 100px; height: 19px; padding: 2px 4px; font-size: 9px; line-height: 1; }
+          .da-section-total { padding-top: 4px; margin-top: 3px; }
+          .da-card-body { padding: 6px 8px; }
+        }
+        @media (min-width: 921px) and (max-height: 620px) {
+          .da-column:nth-child(2) > #bank-panel { flex: 1.2 1 0%; min-height: 0; }
+          .da-column:nth-child(2) > #aeps-panel { flex: 1 1 0%; min-height: 0; }
+          .da-account-row { height: 17px !important; min-height: 17px !important; gap: 3px; padding: 0 3px !important; overflow: hidden; }
+          .da-account-row > div:first-child span:first-child { width: 13px !important; height: 13px !important; min-width: 13px; font-size: 6px; line-height: 1; }
+          .da-account-row > div:first-child span:last-child { font-size: 7px !important; line-height: 1 !important; }
+          .da-account-input { width: 78px; height: 14px !important; min-height: 14px !important; padding: 1px 3px !important; font-size: 8px !important; line-height: 1 !important; }
+          .da-section-total { padding-top: 1px; margin-top: 1px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -1214,8 +1678,8 @@ export default function DailyAmount() {
             </button>
           ))}
         </nav>
-        <div className="da-side-art">
-          <Artwork src="/assets/dailyamount/sidebar-finance.png" label="Financial illustration" icon={<Banknote size={28} />} />
+      <div className="da-side-art">
+          <Artwork src="/assets/reconciliation/sidebar-finance.png" label="Financial illustration" />
         </div>
         <div className="da-side-foot">Daily closeout<br />Stay organized</div>
       </aside>
@@ -1288,7 +1752,7 @@ export default function DailyAmount() {
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
       <div className="da-main" id="top">
         <div className="grid">
-          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} iconImage="/assets/dailyamount/opening-balance.png" testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+          <MetricCard label="Opening Balance" accent="#39d7aa" icon={<WalletCards size={17} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
             {editUnlocked ? (
               <div className="relative w-full">
                 <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
@@ -1305,16 +1769,16 @@ export default function DailyAmount() {
               <span className="text-amber-300">₹{fmt(fields.openingBalance)}</span>
             )}
           </MetricCard>
-          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} iconImage="/assets/dailyamount/cash-total.png" testId="metric-cash-total" sub="Notes + coins">
+          <MetricCard label="Cash Total" accent="#1687ff" icon={<Banknote size={17} />} testId="metric-cash-total" sub="Notes + coins">
             <span className="text-white">₹{fmt(cashTotal)}</span>
           </MetricCard>
-          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} iconImage="/assets/dailyamount/bank-total.png" testId="metric-bank-total" sub="6 accounts">
+          <MetricCard label="Bank Total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
             <span className="text-white">₹{fmt(bankTotal)}</span>
           </MetricCard>
-          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} iconImage="/assets/dailyamount/aeps-wallet.png" testId="metric-aeps-total" sub="4 sources">
+          <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
             <span className="text-white">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} iconImage="/assets/dailyamount/difference.png" testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
@@ -1357,7 +1821,7 @@ export default function DailyAmount() {
                 {/* Coins */}
                 <div className="da-denom-row da-coins-row flex items-center gap-2 py-1 mt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="w-14 shrink-0 text-center">
-                    <span className="text-xs font-bold text-slate-200 bg-slate-700/80 rounded px-1.5 py-0.5">Coins</span>
+                    <span className="da-denom-badge da-coins-badge text-xs font-bold rounded px-1.5 py-0.5">Coins</span>
                   </div>
                   <div className="flex-1" />
                   <div className="relative shrink-0">
@@ -1382,7 +1846,7 @@ export default function DailyAmount() {
                 <div className="da-cash-total-band rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-emerald-400">Cash Total</span>
-                    <Artwork src="/assets/dailyamount/cash-illustration.png" label="Cash illustration" icon={<Coins size={18} />} className="da-artwork-small" />
+                    <Artwork src="/assets/reconciliation/cash-illustration.png" label="Cash illustration" className="da-artwork-small da-cash-illustration" />
                     <span className="text-base font-bold font-mono text-emerald-400">₹{fmt(cashTotal)}</span>
                   </div>
                 </div>
@@ -1398,9 +1862,10 @@ export default function DailyAmount() {
               accent="#3b82f6"
               className="shrink-0"
               id="bank-panel"
-              action={<div className="da-card-action-total"><span>₹{fmt(bankTotal)}</span><Artwork src="/assets/dailyamount/bank-illustration.png" label="Bank illustration" icon={<Landmark size={18} />} className="da-artwork-small" /></div>}
+              action={<div className="da-card-action-total da-total-badge"><span>Total</span><strong>₹{fmt(bankTotal)}</strong></div>}
             >
-              <div className="space-y-0">
+              <div className="da-illustrated-content da-bank-content">
+                <div className="da-illustrated-rows space-y-0">
                 {[
                   { key: "bobSaving", label: "BOB Saving", marker: "BS", markerColor: "#fb923c" },
                   { key: "bobCurrent", label: "BOB Current", marker: "BC", markerColor: "#fb7185" },
@@ -1421,6 +1886,8 @@ export default function DailyAmount() {
                     markerColor={markerColor}
                   />
                 ))}
+                </div>
+                <Artwork src="/assets/reconciliation/bank-illustration.png" label="Bank illustration" className="da-inline-illustration da-bank-illustration" />
               </div>
             </Card>
 
@@ -1430,9 +1897,10 @@ export default function DailyAmount() {
               accent="#a855f7"
               className="shrink-0"
               id="aeps-panel"
-              action={<div className="da-card-action-total"><span>₹{fmt(aepsTotal)}</span><Artwork src="/assets/dailyamount/aeps-illustration.png" label="AEPS illustration" icon={<Wallet size={18} />} className="da-artwork-small da-aeps-artwork" /></div>}
+              action={<div className="da-card-action-total da-total-badge da-aeps-total-badge"><span>Total</span><strong>₹{fmt(aepsTotal)}</strong></div>}
             >
-              <div className="space-y-0">
+              <div className="da-illustrated-content da-aeps-content">
+                <div className="da-illustrated-rows space-y-0">
                 {[
                   { key: "aepsBob", label: "BOB", marker: "B", markerColor: "#fb923c" },
                   { key: "aepsFino", label: "Fino", marker: "F", markerColor: "#60a5fa" },
@@ -1451,6 +1919,8 @@ export default function DailyAmount() {
                     markerColor={markerColor}
                   />
                 ))}
+                </div>
+                <Artwork src="/assets/reconciliation/aeps-illustration.png" label="AEPS illustration" className="da-inline-illustration da-aeps-illustration" />
               </div>
             </Card>
 
@@ -1599,12 +2069,16 @@ export default function DailyAmount() {
                       <Loader2 size={18} className="animate-spin text-slate-600" />
                     </div>
                   ) : txArray.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <p className="text-slate-600 text-xs">No transactions for this date</p>
+                    <div className="da-tx-empty" role="status">
+                      <span className="da-tx-empty-icon"><History size={20} /></span>
+                      <strong>No transactions for this date</strong>
+                      <small>Transactions for the selected day will appear here.</small>
                     </div>
                   ) : filteredTransactions.length === 0 ? (
-                    <div className="flex items-center justify-center h-full">
-                      <p className="text-slate-600 text-xs">No matching transactions</p>
+                    <div className="da-tx-empty" role="status">
+                      <span className="da-tx-empty-icon"><Search size={18} /></span>
+                      <strong>No matching transactions</strong>
+                      <small>Try a different search or filter.</small>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -1612,6 +2086,7 @@ export default function DailyAmount() {
                         <div
                           key={tx.id}
                           data-testid={`tx-item-${tx.id}`}
+                          data-type={tx.type}
                           className="da-tx-item flex items-center gap-2 py-2 px-2.5 rounded-lg border-b border-slate-700/30"
                           style={{ background: "rgba(8,26,44,0.5)" }}
                         >
@@ -1625,6 +2100,7 @@ export default function DailyAmount() {
                           <span className={`da-tx-value text-xs font-bold font-mono shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
                             {tx.type === "income" ? "+" : "−"}₹{fmt(pf(tx.amount))}
                           </span>
+                          <ChevronRight className="da-tx-arrow shrink-0" size={15} aria-hidden="true" />
                           {editUnlocked && (
                             <button
                               data-testid={`button-delete-tx-${tx.id}`}
@@ -1643,9 +2119,10 @@ export default function DailyAmount() {
             </div>
 
             {/* Reconciliation Summary */}
-            <div className="da-panel shrink-0 rounded-xl overflow-hidden" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
+            <div className={`da-panel da-reconciliation-card shrink-0 rounded-xl overflow-hidden ${isBalanced ? "is-balanced" : "is-mismatch"}`} data-balanced={isBalanced} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
               <div className="da-reconcile-title px-3 py-2 flex items-center gap-2 text-[11px] font-bold text-slate-200" style={{ borderBottom: "1px solid rgba(104,141,177,0.14)" }}>
-                <Scale size={13} className="text-amber-300" /> Reconciliation
+                <Scale size={15} className="text-amber-300" /> Reconciliation
+                <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="Reconciliation illustration" className="da-reconciliation-illustration" />
               </div>
               <div className="da-reconcile-values grid grid-cols-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="da-reconcile-value p-3">
@@ -1696,6 +2173,7 @@ export default function DailyAmount() {
                 aria-label={`Saved system balances: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(", ") || "no saved history"}`}
                 title={`Saved daily totals: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(" · ") || "No saved history"}`}
               >
+                <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
                 {trendValues.length ? (
                   <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
                     <defs>
