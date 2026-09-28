@@ -24,3 +24,9 @@ At desktop widths, span the header across the full viewport above a compact side
 **Why:** The supplied reference uses a full-width header and this panel split; a repeated transaction date control wastes filter-row space, and leaving reconciliation nested in the transaction column shortens the transaction feed.
 
 **How to apply:** Treat the visible grid as intentional even if component wrappers group panels differently. Keep visual placement in CSS and avoid changing data or interaction logic.
+
+The Balance Overview donut should be sized in proportion to the card's available content height, with only a small vertical inset; avoid keeping it capped at the former 60–84px size.
+
+**Why:** The user supplied a reference with the donut as a prominent focal element and clarified that the earlier responsive size was still too small.
+
+**How to apply:** When adjusting this panel, enlarge the donut and its center labels together while keeping the historical chart, breakdown, and current-total data behavior intact.

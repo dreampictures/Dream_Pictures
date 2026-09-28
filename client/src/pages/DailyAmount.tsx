@@ -2429,15 +2429,23 @@ export default function DailyAmount() {
         }
         @media screen and (max-width: 620px) {
           .da-overview-content {
-            grid-template-columns: minmax(0, 1fr) 88px;
-            grid-template-rows: minmax(88px, auto) auto;
+            grid-template-columns: minmax(0, 1fr) clamp(104px, 26vw, 152px);
+            grid-template-rows: clamp(104px, 26vw, 152px) auto;
           }
           .da-overview-donut {
-            width: 84px;
-            height: 84px;
-            flex-basis: 84px;
+            width: calc(100% - 4px);
+            height: calc(100% - 4px);
+            flex-basis: auto;
           }
           .da-overview-item small { min-width: 24px; font-size: 10px; }
+        }
+        .da-overview-donut-hole strong { font-size: clamp(10px, 1.4vh, 18px); }
+        .da-overview-donut-hole small { font-size: clamp(8px, 1vh, 12px); }
+        @media screen and (min-width: 621px) and (min-height: 621px) {
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) clamp(160px, 20vh, 210px); }
+        }
+        @media screen and (min-width: 621px) and (max-height: 620px) {
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 108px; }
         }
       `}</style>
 
