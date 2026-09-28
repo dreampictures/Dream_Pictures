@@ -1,0 +1,393 @@
+FINAL VISUAL POLISH — DO NOT REBUILD THE PAGE
+===============================================
+
+The current implementation is now structurally correct.
+
+DO NOT rebuild the layout.
+
+DO NOT create a new dashboard.
+
+DO NOT change the existing functionality.
+
+DO NOT change any calculation, API, database, bank data, AEPS data,
+transaction data, date logic, print, refresh or export functionality.
+
+This is ONLY a final visual-polish pass.
+
+Use the attached reference screenshot as the EXACT visual target.
+
+The current page is still too dark, flat and minimal compared with the
+reference.
+
+==================================================
+1. MAKE THE UI VISUALLY RICHER
+==================================================
+
+The biggest issue is that the current implementation looks like a
+minimal dark admin dashboard.
+
+The reference looks like a premium neon fintech dashboard.
+
+Increase visual depth using:
+
+- layered gradients
+- stronger but controlled glow
+- colored borders
+- inner highlights
+- soft shadows
+- glass-like surfaces
+- accent-colored ambient lighting
+
+Do NOT make everything brighter.
+
+The background should remain dark navy.
+
+The cards should provide most of the visual color.
+
+==================================================
+2. KPI CARDS
+==================================================
+
+Make the 5 KPI cards much closer to the reference.
+
+Cards:
+
+Opening Balance
+Cash Total
+Bank Total
+AEPS Wallet
+Difference
+
+Each card must have:
+
+- large rounded icon container
+- large icon
+- label
+- large amount
+- secondary text
+- decorative bottom-right wave/sparkline
+- colored gradient
+- colored glow
+- subtle border
+
+Use:
+
+Opening Balance → green/teal
+Cash → blue/cyan
+Bank → purple
+AEPS → orange/gold
+Difference → red/pink
+
+The current cards are too flat.
+
+Increase their height slightly and increase icon size.
+
+==================================================
+3. GLOW
+==================================================
+
+The reference has clearly visible ambient glow.
+
+The current implementation has very weak glow.
+
+Increase glow on:
+
+KPI cards
+Cash panel
+Bank panel
+AEPS panel
+Transactions panel
+Reconciliation panel
+Active sidebar item
+Charts
+
+Use multiple layered CSS box shadows and radial gradients.
+
+The glow must remain subtle enough for professional software.
+
+==================================================
+4. CASH COUNTING
+==================================================
+
+The Cash Counting panel currently contains too much empty space.
+
+Make the denomination section visually larger.
+
+Rows:
+
+₹500
+₹200
+₹100
+₹50
+₹20
+₹10
+Coins
+
+Each row should have:
+
+large denomination badge
+minus button
+count input
+plus button
+amount
+
+Make the controls more prominent.
+
+The bottom Cash Total should be a strong green/cyan glowing section.
+
+Keep the existing calculations exactly as they are.
+
+==================================================
+5. BANK BALANCES
+==================================================
+
+Keep all existing bank names and values.
+
+Make the table visually richer.
+
+Increase row height.
+
+Add:
+
+- larger bank badges
+- subtle alternating backgrounds
+- row hover glow
+- better spacing
+- stronger header
+
+Reserve a clearly visible decorative image area on the right.
+
+Use:
+
+/assets/reconciliation/bank-illustration.png
+
+DO NOT generate the image.
+
+==================================================
+6. AEPS WALLET
+==================================================
+
+Keep all existing AEPS company names and values.
+
+Make this card clearly purple/violet.
+
+Add stronger purple glow.
+
+Increase row height and spacing.
+
+Reserve the right side for:
+
+/assets/reconciliation/aeps-illustration.png
+
+DO NOT generate any image.
+
+==================================================
+7. TRANSACTIONS
+==================================================
+
+Make the Transactions panel look more like a premium transaction feed.
+
+Increase transaction row height.
+
+Use large circular icons.
+
+Credit:
+
+green/cyan
+
+Debit:
+
+red/pink
+
+Add subtle row hover glow.
+
+Improve:
+
+All / Credit / Debit filters
+
+Search field
+
+Date selector
+
+View All button
+
+The empty state should also look polished when there are no transactions.
+
+==================================================
+8. RECONCILIATION
+==================================================
+
+The reconciliation card currently looks too flat.
+
+Make it visually stronger.
+
+Use:
+
+dark gold/brown gradient
+
+gold border
+
+soft gold glow
+
+Expected Balance
+System Balance
+Difference
+
+If balanced:
+
+green glow + BALANCED
+
+If mismatch:
+
+red glow + MISMATCH
+
+Use existing values and calculations.
+
+==================================================
+9. BALANCE OVERVIEW
+==================================================
+
+The current Balance Overview is too small.
+
+Increase its visual importance.
+
+It should contain:
+
+LEFT:
+large smooth area/line chart
+
+RIGHT:
+donut chart
+
+Legend:
+
+Cash
+Banks
+AEPS
+
+Use existing real data.
+
+When no historical data exists, keep the empty state but make it visually polished.
+
+==================================================
+10. SIDEBAR
+==================================================
+
+Keep the existing sidebar structure.
+
+Improve:
+
+- active Dashboard glow
+- icon size
+- spacing
+- hover state
+- subtle background gradient
+
+Keep it dark navy.
+
+At bottom reserve:
+
+/assets/reconciliation/sidebar-finance.png
+
+Do NOT generate an image.
+
+==================================================
+11. IMAGE ASSETS
+==================================================
+
+ABSOLUTELY NO IMAGE GENERATION.
+
+Do not create any images.
+
+Do not use stock images.
+
+Do not use remote images.
+
+Do not use base64.
+
+Use only these local paths:
+
+/assets/reconciliation/sidebar-finance.png
+/assets/reconciliation/bank-illustration.png
+/assets/reconciliation/aeps-illustration.png
+/assets/reconciliation/cash-illustration.png
+/assets/reconciliation/balance-overview.png
+/assets/reconciliation/reconciliation-illustration.png
+
+I will upload the actual PNG files later.
+
+If a file does not exist, simply reserve its area or hide it gracefully.
+
+DO NOT replace it with another image.
+
+==================================================
+12. IMPORTANT VISUAL RULE
+==================================================
+
+Do not make the page more compact.
+
+The reference screenshot has large, comfortable, visually rich cards.
+
+Increase:
+
+- card padding
+- icon size
+- row height
+- amount size
+- section header size
+- visual spacing
+
+while keeping the same overall dashboard composition.
+
+==================================================
+13. DO NOT CHANGE THE DATA
+==================================================
+
+The current application logic is correct.
+
+Preserve:
+
+Opening Balance
+Cash Total
+Bank Total
+AEPS Total
+Expected Balance
+System Balance
+Difference
+Cash denomination calculations
+Bank names
+AEPS company names
+Transactions
+
+Everything remains dynamic.
+
+==================================================
+14. FINAL TEST
+==================================================
+
+After changes, open the actual webpage.
+
+Compare it directly against the attached reference.
+
+The result should clearly resemble the reference in:
+
+- colors
+- glow
+- card appearance
+- spacing
+- proportions
+- typography
+- visual hierarchy
+- charts
+- sidebar
+- transaction feed
+
+Do not stop after changing only colors.
+
+This is a VISUAL POLISH task.
+
+Do not rebuild functionality.
+Do not generate images.
+Do not redesign the architecture.
+
+Only make the current implementation visually match the reference much more closely.
