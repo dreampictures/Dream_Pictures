@@ -2333,8 +2333,8 @@ export default function DailyAmount() {
           pointer-events: none;
           opacity: .96;
           background: url("/assets/reconciliation/bank-illustration.png") right center / auto 100% no-repeat;
-          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
-          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
         #bank-panel .da-account-table-header {
           padding-right: var(--da-bank-art-width);
@@ -2364,8 +2364,8 @@ export default function DailyAmount() {
           pointer-events: none;
           opacity: .96;
           background: url("/assets/reconciliation/aeps-illustration.png") right center / auto 100% no-repeat;
-          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
-          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
         .da-overview-title {
           position: relative;
