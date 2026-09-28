@@ -1505,8 +1505,8 @@ export default function DailyAmount() {
         .da-side-art::after {
           background: linear-gradient(180deg, #08172d 0%, rgba(8, 23, 44, .48) 24%, rgba(7, 18, 36, .04) 72%, rgba(6, 15, 31, .28) 100%);
         }
-        .da-side-art .da-artwork { inset: 0; border: 0; border-radius: 0; background: transparent; }
-        .da-side-art .da-artwork img { object-fit: cover; object-position: center bottom; padding: 0; opacity: .98; }
+        .da-side-art .da-artwork { inset: 0; display: block; width: 100%; height: 100%; border: 0; border-radius: 0; background: transparent; }
+        .da-side-art .da-artwork img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; padding: 0; opacity: .98; }
         .da-side-art .da-artwork-placeholder { background: radial-gradient(ellipse at 50% 80%, rgba(225, 170, 46, .09), transparent 69%); }
         .da-side-foot { z-index: 2; margin-top: auto; padding: 10px 4px 16px; font-size: 10px; }
         .da-artwork { border: 1px solid rgba(111, 163, 217, .18); border-radius: 10px; background: linear-gradient(145deg, rgba(16, 39, 69, .52), rgba(8, 21, 41, .72)); }
