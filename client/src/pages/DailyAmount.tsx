@@ -250,20 +250,33 @@ function TotalBar({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function MetricCard({ label, accent, icon, children, testId, sub, className = "" }: {
-  label: string; accent: string; icon: React.ReactNode; children: React.ReactNode; testId: string; sub?: string; className?: string;
+function MetricIconSlot({ imageSrc, label, fallback, slotName, accent }: {
+  imageSrc?: string; label: string; fallback: React.ReactNode; slotName: string; accent: string;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  return (
+    <div
+      className="da-metric-icon w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
+      data-image-slot={slotName}
+      aria-hidden="true"
+      style={{ background: `${accent}20`, color: accent }}
+    >
+      {imageSrc && !imageFailed ? (
+        <img className="da-metric-icon-image" src={imageSrc} alt="" onError={() => setImageFailed(true)} />
+      ) : fallback}
+    </div>
+  );
+}
+
+function MetricCard({ label, accent, icon, iconImage, children, testId, sub, className = "" }: {
+  label: string; accent: string; icon: React.ReactNode; iconImage?: string; children: React.ReactNode; testId: string; sub?: string; className?: string;
 }) {
   return (
     <div
       data-testid={testId}
       className={`da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2 ${className}`}
     >
-      <div
-        className="da-metric-icon w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
-        style={{ background: `${accent}20`, color: accent }}
-      >
-        {icon}
-      </div>
+      <MetricIconSlot key={iconImage || testId} imageSrc={iconImage} label={label} fallback={icon} slotName={testId} accent={accent} />
       <div className="min-w-0 flex-1">
         <p className="da-metric-label text-[9px] text-slate-400 truncate">{label}</p>
         <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
