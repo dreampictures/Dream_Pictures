@@ -1223,7 +1223,7 @@ export default function DailyAmount() {
         }
         .da-panel:hover { border-color: rgba(105, 166, 226, .46) !important; }
         .da-card-head, .da-tx-header { min-height: 31px; padding: 3px 8px; border-bottom-color: rgba(100, 151, 202, .17) !important; background: linear-gradient(90deg, rgba(18, 48, 82, .72), rgba(10, 28, 52, .35)) !important; }
-        .da-card-head h3, .da-tx-header h3 { font-size: 10px; }
+        .da-card-head h3, .da-tx-header h3 { color: #f1f6ff; font-size: 10px; font-weight: 800; letter-spacing: .01em; }
         .da-card-heading { flex: 1; min-width: 0; }
         .da-card-heading h3 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
         .da-card-subtitle { display: block; overflow: hidden; color: #8299b2; font-size: 7px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
@@ -2345,17 +2345,24 @@ export default function DailyAmount() {
         #bank-panel .da-bank-content .da-illustrated-rows {
           padding-right: calc(var(--da-bank-art-width) + var(--da-bank-entry-inset));
         }
-        #bank-panel .da-account-input {
+        #bank-panel .da-account-input,
+        #aeps-panel .da-account-input {
           color: #f8fbff !important;
           font-weight: 700;
           caret-color: #ffd166;
         }
-        #bank-panel .da-account-input:not(:disabled) {
+        #bank-panel .da-account-input:not(:disabled),
+        #aeps-panel .da-account-input:not(:disabled) {
           background: rgba(3, 13, 27, .94) !important;
         }
         #bank-panel .da-account-input:focus-visible {
           border-color: rgba(132, 201, 255, .96) !important;
           outline: 2px solid rgba(87, 166, 244, .42);
+          outline-offset: 1px;
+        }
+        #aeps-panel .da-account-input:focus-visible {
+          border-color: rgba(211, 171, 255, .96) !important;
+          outline: 2px solid rgba(171, 118, 244, .42);
           outline-offset: 1px;
         }
         #bank-panel .da-account-row:nth-child(odd) { background: rgba(20, 56, 98, .32); }
