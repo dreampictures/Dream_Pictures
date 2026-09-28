@@ -821,41 +821,39 @@ export default function DailyAmount() {
         }
         .da-clear-cash:hover { background: rgba(156, 52, 67, .3); }
         .da-metric {
-          position: relative; isolation: isolate; min-height: 57px; overflow: hidden; padding: 6px 8px;
-          border-radius: 9px; border: 1px solid rgba(73, 153, 232, .3);
-          background: linear-gradient(135deg, rgba(13, 34, 61, .97), rgba(9, 24, 46, .96));
-          box-shadow: inset 0 1px rgba(255,255,255,.05), 0 6px 15px rgba(0,0,0,.2), 0 0 16px var(--metric-glow, rgba(73,153,232,.1));
+          position: relative; isolation: isolate; min-height: 112px; overflow: hidden; padding: 12px 14px;
+          border-radius: 16px; border: 1px solid rgba(48, 234, 183, .58);
+          background: linear-gradient(135deg, rgba(5, 71, 60, .97), rgba(5, 43, 51, .98) 58%, rgba(6, 34, 49, .98)) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.09), 0 7px 20px rgba(0,0,0,.22), 0 0 20px var(--metric-glow, rgba(25,220,170,.18));
           transition: transform .18s, border-color .18s, box-shadow .18s;
         }
         .da-metric::before {
           content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-          opacity: .18; background: radial-gradient(ellipse at 100% 100%, currentColor, transparent 67%);
+           opacity: .48; background: radial-gradient(ellipse at 100% 100%, rgba(31, 222, 171, .22), transparent 68%);
         }
         .da-metric::after {
-          content: ""; position: absolute; right: 0; bottom: 0; z-index: -1; width: 64px; height: 26px;
-          opacity: .44; pointer-events: none; background: linear-gradient(180deg, transparent, currentColor);
-          clip-path: polygon(0 82%, 18% 58%, 34% 70%, 51% 33%, 67% 47%, 83% 20%, 100% 0, 100% 100%, 0 100%);
+           content: ""; position: absolute; right: 0; bottom: 0; z-index: -1; width: 96px; height: 48px;
+           opacity: .42; pointer-events: none; background: linear-gradient(180deg, transparent, currentColor);
+           clip-path: polygon(0 80%, 15% 67%, 28% 72%, 43% 53%, 57% 67%, 72% 43%, 85% 52%, 100% 30%, 100% 100%, 0 100%);
         }
         .da-metric:hover { transform: translateY(-1px); border-color: currentColor; box-shadow: 0 0 19px var(--metric-glow, rgba(64,143,225,.16)), inset 0 1px rgba(255,255,255,.07); }
-        .da-metric:nth-child(1) { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .52) !important; background: linear-gradient(120deg, rgba(8, 79, 68, .94), rgba(8, 36, 52, .98)) !important; }
-        .da-metric:nth-child(2) { --metric-glow: rgba(26, 126, 255, .2); color: #36b5ff; border-color: rgba(44, 150, 247, .56) !important; background: linear-gradient(120deg, rgba(10, 62, 123, .94), rgba(8, 30, 64, .98)) !important; }
-        .da-metric:nth-child(3) { --metric-glow: rgba(139, 67, 255, .2); color: #b190ff; border-color: rgba(151, 106, 237, .56) !important; background: linear-gradient(120deg, rgba(62, 32, 128, .92), rgba(29, 25, 67, .98)) !important; }
-        .da-metric:nth-child(4) { --metric-glow: rgba(255, 139, 39, .17); color: #ffb44c; border-color: rgba(244, 150, 40, .53) !important; background: linear-gradient(120deg, rgba(101, 55, 17, .88), rgba(48, 32, 37, .98)) !important; }
-        .da-metric:nth-child(5) { --metric-glow: rgba(255, 48, 99, .2); color: #ff6d92; border-color: rgba(255, 73, 115, .58) !important; background: linear-gradient(120deg, rgba(101, 27, 61, .92), rgba(44, 23, 50, .98)) !important; }
-        .da-metric[data-testid="metric-difference"] { box-shadow: inset 0 1px rgba(255,255,255,.03), 0 0 14px rgba(255, 65, 108, .1); }
-        .da-metric[data-testid="metric-difference"].is-balanced { color: #45d8b3; border-color: rgba(63, 211, 173, .42); background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)); box-shadow: 0 0 14px rgba(51, 207, 156, .1); }
-        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { color: #45d8b3 !important; }
-        .da-metric-icon { position: relative; z-index: 1; width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: rgba(255,255,255,.09) !important; box-shadow: inset 0 1px rgba(255,255,255,.18), 0 5px 13px rgba(0,0,0,.18); }
-        .da-metric:nth-child(1) .da-metric-icon { color: #ecfff7 !important; border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric:nth-child(2) .da-metric-icon { color: #f0f8ff !important; border-color: rgba(113,190,255,.42); background: linear-gradient(145deg, #168cff, #0758c5) !important; box-shadow: 0 0 15px rgba(29,132,255,.23), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric:nth-child(3) .da-metric-icon { color: #faf4ff !important; border-color: rgba(201,153,255,.42); background: linear-gradient(145deg, #a145f1, #6221bd) !important; box-shadow: 0 0 15px rgba(152,69,255,.23), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric:nth-child(4) .da-metric-icon { color: #fff8e9 !important; border-color: rgba(255,195,119,.4); background: linear-gradient(145deg, #f4a438, #b9631a) !important; box-shadow: 0 0 15px rgba(241,139,47,.18), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric:nth-child(5) .da-metric-icon { color: #fff1f4 !important; border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
-        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric:not([data-testid="metric-difference"]) { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; }
+        .da-metric[data-testid="metric-difference"] { --metric-glow: rgba(255, 72, 112, .18); color: #ff8297; border-color: rgba(255, 111, 137, .52) !important; }
+        .da-metric[data-testid="metric-difference"].is-balanced { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .52) !important; }
+        .da-metric-icon { position: relative; z-index: 1; width: 62px; height: 72px; flex: 0 0 62px; border: 1px solid rgba(106,255,218,.4); border-radius: 14px; color: #ecfff7 !important; background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 17px rgba(21,220,164,.24), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric-icon svg { width: 23px; height: 23px; }
+        .da-metric[data-testid="metric-difference"]:not(.is-balanced) .da-metric-icon { color: #fff1f4 !important; border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
         .da-metric > div:last-child { position: relative; z-index: 1; }
-        .da-metric-label { color: #d8e7f2; font-size: 9px; font-weight: 600; letter-spacing: .15px; text-transform: none; }
-        .da-metric-value { font-size: clamp(11px, 1.08vw, 14px); font-weight: 800; letter-spacing: -.25px; line-height: 1.15; }
-        .da-metric-sub { color: #a7bbcf; font-size: 7px; }
+        .da-metric-label { color: #f2f8f5; font-size: clamp(11px, 1.08vw, 15px); font-weight: 500; letter-spacing: .05px; text-transform: none; }
+        .da-metric-value { color: #ffe35a; font-size: clamp(16px, 1.7vw, 24px); font-weight: 800; letter-spacing: -.35px; line-height: 1.12; }
+        .da-metric-value > span, .da-metric-value input { color: #ffe35a !important; }
+        .da-metric-sub { color: #26e18d; font-size: clamp(8px, .78vw, 11px); font-weight: 600; }
+        .da-metric[data-testid="metric-difference"] .da-metric-value,
+        .da-metric[data-testid="metric-difference"] .da-metric-value > span { color: #ff8798 !important; }
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-value,
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-value > span { color: #73e5ba !important; }
+        .da-metric[data-testid="metric-difference"] .da-metric-sub { color: #ffadba; }
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-sub { color: #26e18d; }
         .da-opening-metric-input { height: 19px; }
         .da-dashboard-grid {
           display: grid; flex: 1; min-width: 0; min-height: 0; grid-template-columns: minmax(0, .96fr) minmax(0, .98fr) minmax(0, 1.12fr);
@@ -956,7 +954,8 @@ export default function DailyAmount() {
           .da-main { gap: 6px; padding: 6px 7px 7px; }
           .da-main > .grid { gap: 6px; }
           .da-metric { min-height: 53px; gap: 5px; padding: 4px 5px; border-radius: 7px; }
-          .da-metric-icon { width: 24px; height: 24px; }
+          .da-metric-icon { width: 24px; height: 24px; flex-basis: 24px; }
+          .da-metric-icon svg { width: 14px; height: 14px; }
           .da-metric-label { font-size: 7px; line-height: 1.1; }
           .da-metric-value { font-size: 10px; line-height: 1.15; }
           .da-metric-sub { font-size: 6px; line-height: 1.1; }
@@ -1041,6 +1040,15 @@ export default function DailyAmount() {
           .da-column:first-child { min-height: 400px; }
           .da-column:nth-child(2) { min-height: 400px; }
         }
+        @media (max-width: 920px) and (min-width: 621px) {
+          .da-main > .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .da-metric { min-height: 88px; gap: 9px; padding: 9px; }
+          .da-metric-icon { width: 46px; height: 56px; flex-basis: 46px; }
+          .da-metric-icon svg { width: 20px; height: 20px; }
+          .da-metric-label { font-size: 11px; }
+          .da-metric-value { font-size: clamp(14px, 1.8vw, 17px); }
+          .da-metric-sub { font-size: 9px; }
+        }
         @media (max-width: 620px) {
           .da-main { padding: 8px; }
           .da-toolbar { gap: 6px; }
@@ -1053,6 +1061,12 @@ export default function DailyAmount() {
           .da-toolbar > .ml-auto button[data-testid="button-lock-edit"] { width: auto; padding: 0 7px; font-size: 9px; }
           .da-main > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .da-metric:last-child { grid-column: 1 / -1; }
+          .da-metric { min-height: 88px; gap: 8px; padding: 8px; border-radius: 13px; }
+          .da-metric-icon { width: 42px; height: 54px; flex-basis: 42px; border-radius: 11px; }
+          .da-metric-icon svg { width: 19px; height: 19px; }
+          .da-metric-label { font-size: 10px; }
+          .da-metric-value { font-size: clamp(12px, 3.6vw, 15px); }
+          .da-metric-sub { font-size: 8px; }
           .da-dashboard-grid { display: flex; flex-direction: column; }
           .da-column:first-child, .da-column:nth-child(2), .da-column:last-child { min-height: 0; }
           .da-column:first-child > .da-panel { min-height: 340px; }
@@ -1063,6 +1077,12 @@ export default function DailyAmount() {
           .da-nav-item { padding: 0 6px; }
           .da-nav-item span { display: none; }
           .da-brand-title { font-size: 10px; }
+          .da-metric { gap: 6px; padding: 7px; }
+          .da-metric-icon { width: 36px; height: 48px; flex-basis: 36px; }
+          .da-metric-icon svg { width: 17px; height: 17px; }
+          .da-metric-label { font-size: 9px; }
+          .da-metric-value { font-size: 12px; }
+          .da-metric-sub { font-size: 7px; }
         }
       `}</style>
 
