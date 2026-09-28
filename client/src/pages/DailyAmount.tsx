@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings } from "lucide-react";
+import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings, Calculator } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -20,15 +20,6 @@ function dapiHeaders(pin: string) {
 function pf(v: any): number {
   const n = parseFloat(v);
   return isNaN(n) ? 0 : n;
-}
-
-function dailySystemTotal(entry: any) {
-  const cash =
-    pf(entry.notes10) * 10 + pf(entry.notes20) * 20 + pf(entry.notes50) * 50 +
-    pf(entry.notes100) * 100 + pf(entry.notes200) * 200 + pf(entry.notes500) * 500 + pf(entry.coins);
-  const bank = pf(entry.bobSaving) + pf(entry.bobCurrent) + pf(entry.hdfc) + pf(entry.kotak) + pf(entry.au) + pf(entry.sbi);
-  const aeps = pf(entry.aepsBob) + pf(entry.aepsFino) + pf(entry.aepsPayworld) + pf(entry.aepsDigipay);
-  return cash + bank + aeps;
 }
 
 function fmtInputAmount(n: number) {
@@ -758,33 +749,9 @@ export default function DailyAmount() {
     if (!search) return true;
     return [tx.note, tx.type, String(tx.amount)].some((value) => String(value || "").toLowerCase().includes(search));
   });
-  const trendEntries = dailyHistory
-    .filter((entry) => String(entry.date).slice(0, 10) <= date)
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
-    .slice(-7);
-  const trendValues = trendEntries.map((entry) => ({
-    date: String(entry.date).slice(0, 10),
-    total: dailySystemTotal(entry),
-  }));
-  const trendMax = trendValues.length ? Math.max(...trendValues.map((point) => point.total)) : 0;
-  const trendPoints = trendValues.length === 1
-    ? [{ x: 0, y: trendMax > 0 ? 8 : 40 }, { x: 100, y: trendMax > 0 ? 8 : 40 }]
-    : trendValues.map((point, index) => ({
-        x: (index / Math.max(trendValues.length - 1, 1)) * 100,
-        y: trendMax > 0 ? 40 - (point.total / trendMax) * 32 : 40,
-      }));
-  const trendLinePath = trendPoints.reduce((path, point, index) => {
-    if (index === 0) return `M ${point.x} ${point.y}`;
-    const previous = trendPoints[index - 1];
-    const beforePrevious = trendPoints[Math.max(0, index - 2)];
-    const next = trendPoints[Math.min(trendPoints.length - 1, index + 1)];
-    const controlOneX = previous.x + (point.x - beforePrevious.x) / 6;
-    const controlOneY = previous.y + (point.y - beforePrevious.y) / 6;
-    const controlTwoX = point.x - (next.x - previous.x) / 6;
-    const controlTwoY = point.y - (next.y - previous.y) / 6;
-    return `${path} C ${controlOneX} ${controlOneY}, ${controlTwoX} ${controlTwoY}, ${point.x} ${point.y}`;
-  }, "");
-  const trendAreaPath = trendPoints.length ? `${trendLinePath} L 100 40 L 0 40 Z` : "";
+  // The history request remains unchanged for the page's existing data flow.
+  // The overview curve is decorative and makes no historical claim.
+  void dailyHistory;
 
   if (!pin) {
     return <PinScreen onSuccess={(p) => setPin(p)} />;
@@ -1860,6 +1827,206 @@ export default function DailyAmount() {
           .da-date-value { font-size: 10px; }
           .da-tx-header-icon { width: 16px; height: 16px; flex-basis: 16px; }
         }
+
+        /* Reference-matched overview and compact reconciliation summary. */
+        @media screen and (min-width: 921px) {
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) clamp(104px, 13vh, 140px); }
+          .da-panel.da-reconciliation-card {
+            position: relative;
+            border-color: rgba(236, 183, 88, .72) !important;
+            background:
+              radial-gradient(ellipse at 8% 0%, rgba(249, 174, 54, .28), transparent 56%),
+              radial-gradient(ellipse at 100% 100%, rgba(194, 86, 42, .2), transparent 54%),
+              linear-gradient(140deg, rgba(62, 43, 22, .98), rgba(38, 30, 28, .98) 56%, rgba(27, 27, 35, .99)) !important;
+            box-shadow:
+              inset 0 1px rgba(255, 240, 203, .16),
+              0 0 20px rgba(232, 157, 45, .13),
+              0 8px 22px rgba(0, 5, 15, .24) !important;
+          }
+          .da-panel.da-reconciliation-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(ellipse at 92% 12%, rgba(255, 210, 122, .13), transparent 46%);
+            pointer-events: none;
+          }
+          .da-reconciliation-card {
+            display: block !important;
+            min-height: 0;
+            padding: 8px;
+          }
+          .da-reconcile-layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            grid-template-columns: minmax(0, 1.15fr) minmax(112px, .85fr);
+            align-items: stretch;
+            gap: 9px;
+          }
+          .da-system-block {
+            position: relative;
+            display: grid;
+            min-width: 0;
+            grid-template-columns: 34px minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 7px;
+          }
+          .da-system-icon {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            grid-column: 1;
+            grid-row: 1;
+            place-items: center;
+            border: 1px solid rgba(255, 226, 151, .7);
+            border-radius: 8px;
+            color: #372609;
+            background: linear-gradient(145deg, #ffdf84, #e89b24);
+            box-shadow: inset 0 1px rgba(255,255,255,.58), 0 0 15px rgba(239, 166, 46, .28);
+          }
+          .da-system-primary { min-width: 0; grid-column: 2; grid-row: 1; }
+          .da-system-label { color: #ffe6ac; font-size: 10px; font-weight: 700; line-height: 1.1; }
+          .da-system-amount { overflow: hidden; color: #fff4d9; font: 800 clamp(15px, 1.15vw, 20px)/1.12 ui-monospace, monospace; letter-spacing: -.35px; text-overflow: ellipsis; white-space: nowrap; }
+          .da-system-caption { margin-top: 1px; color: #c9b58f; font-size: 8px; line-height: 1.1; }
+          .da-reconciliation-illustration {
+            position: absolute;
+            top: 0;
+            right: 1px;
+            width: 30px;
+            height: 24px;
+            border: 0;
+            opacity: .18;
+            pointer-events: none;
+            background: transparent;
+          }
+          .da-expected-line {
+            display: flex;
+            min-width: 0;
+            grid-column: 1 / -1;
+            grid-row: 2;
+            align-items: baseline;
+            gap: 5px;
+            padding-top: 4px;
+            border-top: 1px solid rgba(255, 226, 158, .2);
+            white-space: nowrap;
+          }
+          .da-expected-line span { color: #dac79f; font-size: 8px; }
+          .da-expected-line strong { color: #fff0ce; font: 700 11px/1 ui-monospace, monospace; }
+          .da-expected-line small { overflow: hidden; color: #a8936e; font-size: 7px; text-overflow: ellipsis; }
+          .da-difference-box {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 8px;
+            border: 1px solid rgba(255, 203, 103, .44);
+            border-radius: 11px;
+            background: linear-gradient(135deg, rgba(238, 170, 48, .27), rgba(120, 70, 22, .43));
+            box-shadow: inset 0 1px rgba(255,255,255,.13), 0 0 17px rgba(231, 164, 47, .11);
+          }
+          .da-difference-box.is-mismatch { border-color: rgba(255, 142, 117, .62); background: linear-gradient(135deg, rgba(237, 139, 51, .29), rgba(135, 48, 47, .5)); }
+          .da-difference-box.is-balanced { border-color: rgba(78, 226, 166, .52); background: linear-gradient(135deg, rgba(35, 151, 111, .3), rgba(24, 77, 67, .48)); }
+          .da-difference-icon { display: grid; width: 27px; height: 27px; flex: 0 0 27px; place-items: center; border-radius: 50%; color: #fff0d4; background: rgba(255, 244, 220, .16); }
+          .da-difference-box.is-mismatch .da-difference-icon { color: #fff1e8; background: rgba(255, 91, 105, .48); }
+          .da-difference-box.is-balanced .da-difference-icon { color: #d1ffec; background: rgba(34, 203, 142, .28); }
+          .da-difference-copy { min-width: 0; }
+          .da-difference-copy > p { color: #fff0d1; font-size: 9px; font-weight: 700; line-height: 1.1; }
+          .da-difference-value { display: block; overflow: hidden; color: #ffcf68; font: 800 clamp(13px, 1.1vw, 19px)/1.2 ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 0 10px rgba(255, 190, 75, .24); }
+          .da-difference-box.is-mismatch .da-difference-value { color: #ff8b9a; }
+          .da-difference-box.is-balanced .da-difference-value { color: #70edbb; }
+          .da-status { display: inline-flex; width: fit-content; margin-top: 3px; padding: 2px 5px; border: 1px solid currentColor; border-radius: 5px; font-size: 7px; font-weight: 800; line-height: 1; letter-spacing: .04em; }
+          .da-overview { padding: 8px; }
+          .da-overview-title { gap: 8px; margin-bottom: 5px; font-size: 12px; }
+          .da-overview-title svg { width: 16px; height: 16px; }
+          .da-overview-title small { font-size: 8px; }
+          .da-overview-content { height: calc(100% - 22px); min-height: 0; grid-template-columns: minmax(0, 1fr) clamp(62px, 4.8vw, 78px) minmax(110px, .32fr); gap: clamp(7px, .8vw, 12px); }
+          .da-overview-chart { border-radius: 0 0 5px 5px; }
+          .da-overview-chart svg { overflow: hidden; }
+          .da-overview-donut { width: clamp(62px, 4.8vw, 78px); height: clamp(62px, 4.8vw, 78px); flex-basis: clamp(62px, 4.8vw, 78px); padding: 6px; }
+          .da-overview-donut-hole strong { font-size: clamp(9px, .68vw, 12px); }
+          .da-overview-donut-hole small { font-size: 8px; }
+          .da-overview-breakdown { gap: 7px; }
+          .da-overview-item { grid-template-columns: 8px minmax(31px, 1fr) auto auto; gap: 5px; }
+          .da-overview-dot { width: 8px; height: 8px; }
+          .da-overview-item span:nth-child(2) { font-size: 9px; }
+          .da-overview-item strong { font-size: 9px; }
+          .da-overview-item small { font-size: 8px; }
+        }
+        @media screen and (min-width: 921px) and (max-height: 620px) {
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 86px; }
+          .da-reconciliation-card { padding: 5px; }
+          .da-reconcile-layout { grid-template-columns: minmax(0, 1.12fr) minmax(108px, .88fr); gap: 6px; }
+          .da-system-icon { width: 27px; height: 27px; }
+          .da-system-icon svg { width: 19px; height: 19px; }
+          .da-system-label { font-size: 8px; }
+          .da-system-amount { font-size: clamp(13px, 1.15vw, 17px); }
+          .da-system-caption { font-size: 7px; }
+          .da-expected-line { gap: 4px; padding-top: 3px; }
+          .da-expected-line span { font-size: 7px; }
+          .da-expected-line strong { font-size: 9px; }
+          .da-expected-line small { font-size: 6px; }
+          .da-difference-box { gap: 5px; padding: 4px 5px; }
+          .da-difference-icon { width: 22px; height: 22px; flex-basis: 22px; }
+          .da-difference-icon svg { width: 15px; height: 15px; }
+          .da-difference-copy > p { font-size: 8px; }
+          .da-difference-value { font-size: clamp(12px, 1.05vw, 16px); }
+          .da-status { margin-top: 2px; font-size: 6px; }
+          .da-overview { padding: 4px 6px; }
+          .da-overview-title { margin-bottom: 2px; }
+          .da-overview-content { height: calc(100% - 18px); grid-template-columns: minmax(0, 1fr) 62px minmax(110px, .36fr); gap: 6px; }
+          .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; padding: 5px; }
+          .da-overview-breakdown { gap: 5px; }
+          .da-overview-item { grid-template-columns: 7px minmax(26px, 1fr) auto auto; gap: 4px; }
+          .da-overview-dot { width: 7px; height: 7px; }
+          .da-overview-item span:nth-child(2), .da-overview-item strong { font-size: 8px; }
+          .da-overview-item small { font-size: 7px; }
+        }
+        @media screen and (max-width: 920px) {
+          .da-reconciliation-card { min-height: 128px; padding: 9px; }
+          .da-reconcile-layout { display: grid; min-height: 108px; grid-template-columns: minmax(0, 1fr) minmax(130px, .82fr); gap: 10px; }
+          .da-system-block { position: relative; display: grid; min-width: 0; grid-template-columns: 34px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; align-items: center; gap: 5px 7px; }
+          .da-system-icon { display: grid; width: 32px; height: 32px; grid-column: 1; grid-row: 1; place-items: center; border: 1px solid rgba(255,226,151,.7); border-radius: 8px; color: #372609; background: linear-gradient(145deg,#ffdf84,#e89b24); }
+          .da-system-primary { min-width: 0; grid-column: 2; grid-row: 1; }
+          .da-system-label { color: #ffe6ac; font-size: 10px; font-weight: 700; }
+          .da-system-amount { color: #fff4d9; font: 800 17px/1.1 ui-monospace,monospace; }
+          .da-system-caption { color: #c9b58f; font-size: 8px; }
+          .da-reconciliation-illustration { display: none; }
+          .da-expected-line { display: flex; min-width: 0; grid-column: 1/-1; grid-row: 2; align-items: baseline; gap: 5px; padding-top: 5px; border-top: 1px solid rgba(255,226,158,.2); white-space: nowrap; }
+          .da-expected-line span { color: #dac79f; font-size: 8px; }
+          .da-expected-line strong { color: #fff0ce; font: 700 11px/1 ui-monospace,monospace; }
+          .da-expected-line small { color: #a8936e; font-size: 7px; }
+          .da-difference-box { display: flex; min-width: 0; align-items: center; gap: 7px; padding: 7px; border: 1px solid rgba(255,203,103,.44); border-radius: 11px; background: linear-gradient(135deg,rgba(238,170,48,.27),rgba(120,70,22,.43)); }
+          .da-difference-box.is-mismatch { border-color: rgba(255,142,117,.62); background: linear-gradient(135deg,rgba(237,139,51,.29),rgba(135,48,47,.5)); }
+          .da-difference-box.is-balanced { border-color: rgba(78,226,166,.52); background: linear-gradient(135deg,rgba(35,151,111,.3),rgba(24,77,67,.48)); }
+          .da-difference-icon { display: grid; width: 27px; height: 27px; flex: 0 0 27px; place-items: center; border-radius: 50%; color: #fff1e8; background: rgba(255,91,105,.48); }
+          .da-difference-box.is-balanced .da-difference-icon { color: #d1ffec; background: rgba(34,203,142,.28); }
+          .da-difference-copy { min-width: 0; }
+          .da-difference-copy > p { color: #fff0d1; font-size: 9px; font-weight: 700; }
+          .da-difference-value { display: block; color: #ff8b9a; font: 800 15px/1.2 ui-monospace,monospace; }
+          .da-difference-box.is-balanced .da-difference-value { color: #70edbb; }
+          .da-status { display: inline-flex; width: fit-content; margin-top: 4px; padding: 2px 5px; border: 1px solid currentColor; border-radius: 5px; font-size: 7px; font-weight: 800; }
+        }
+        @media screen and (max-width: 620px) {
+          .da-reconcile-layout { grid-template-columns: minmax(0, 1fr) minmax(116px, .82fr); gap: 7px; }
+          .da-expected-line { flex-wrap: wrap; column-gap: 5px; row-gap: 2px; white-space: normal; }
+          .da-expected-line small { flex-basis: 100%; }
+          .da-system-amount { font-size: 15px; }
+          .da-difference-box { gap: 5px; padding: 6px 5px; }
+          .da-difference-icon { width: 23px; height: 23px; flex-basis: 23px; }
+          .da-difference-icon svg { width: 15px; height: 15px; }
+          .da-difference-value { font-size: 13px; }
+          .da-overview-content { height: auto; grid-template-columns: minmax(0, 1fr) 62px; grid-template-rows: minmax(74px, auto) auto; gap: 8px; }
+          .da-overview-chart { grid-column: 1; grid-row: 1; }
+          .da-overview-donut { grid-column: 2; grid-row: 1; }
+          .da-overview-breakdown { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+          .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
+          .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -1939,7 +2106,7 @@ export default function DailyAmount() {
           </button>
         </div>
         {date === todayStr() && (
-          <span className="hidden xl:inline-flex text-[10px] text-amber-300 font-semibold px-2 py-1 rounded-md" style={{ background: "rgba(250,204,21,0.1)" }}>Today</span>
+          <span className="hidden lg:inline-flex text-[10px] text-amber-300 font-semibold px-2 py-1 rounded-md" style={{ background: "rgba(250,204,21,0.1)" }}>Today</span>
         )}
 
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
@@ -2351,41 +2518,34 @@ export default function DailyAmount() {
 
             {/* Reconciliation Summary */}
             <div className={`da-panel da-reconciliation-card shrink-0 rounded-xl overflow-hidden ${isBalanced ? "is-balanced" : "is-mismatch"}`} data-balanced={isBalanced} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
-              <div className="da-reconcile-title px-3 py-2 flex items-center gap-2 text-[11px] font-bold text-slate-200" style={{ borderBottom: "1px solid rgba(104,141,177,0.14)" }}>
-                <Scale size={15} className="text-amber-300" /> Reconciliation
-                <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="Reconciliation illustration" className="da-reconciliation-illustration" />
-              </div>
-              <div className="da-reconcile-values grid grid-cols-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="da-reconcile-value p-3">
-                  <p className="text-xs text-slate-500 mb-0.5">Expected Balance</p>
-                  <p className="text-sm font-bold text-white font-mono">₹{fmt(expectedBalance)}</p>
-                  <p className="text-xs text-slate-600 mt-0.5">Open + Income − Expense</p>
+              <div className="da-reconcile-layout">
+                <div className="da-system-block">
+                  <div className="da-system-icon" aria-hidden="true"><Calculator size={22} /></div>
+                  <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="" decorative className="da-reconciliation-illustration" />
+                  <div className="da-system-primary">
+                    <p className="da-system-label">System Balance</p>
+                    <p className="da-system-amount">₹{fmt(systemBalance)}</p>
+                    <p className="da-system-caption">Cash + Banks + AEPS</p>
+                  </div>
+                  <div className="da-expected-line">
+                    <span>Expected Balance</span>
+                    <strong>₹{fmt(expectedBalance)}</strong>
+                    <small>Opening + Today&apos;s Transactions</small>
+                  </div>
                 </div>
-                <div className="da-reconcile-value p-3" style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
-                  <p className="text-xs text-slate-500 mb-0.5">System Balance</p>
-                  <p className="text-sm font-bold text-yellow-400 font-mono">₹{fmt(systemBalance)}</p>
-                  <p className="text-xs text-slate-600 mt-0.5">Cash + Banks + AEPS</p>
-                </div>
-              </div>
-              <div
-                className={`da-difference px-3 py-2.5 flex items-center justify-between ${isBalanced ? "good" : ""}`}
-                style={{
-                  background: isBalanced ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-                  borderTop: `1px solid ${isBalanced ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`,
-                }}
-              >
-                <div>
-                  <p className="text-xs text-slate-500">Difference</p>
-                  <p className={`da-difference-value text-base font-bold font-mono ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
-                    {difference >= 0 ? "+" : ""}₹{fmt(difference)}
-                  </p>
-                </div>
-                <div
-                  className={`da-status flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${isBalanced ? "text-emerald-400" : "text-red-400"}`}
-                  style={{ background: isBalanced ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)", border: `1px solid ${isBalanced ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}` }}
-                >
-                  {isBalanced ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
-                  {isBalanced ? "BALANCED" : "MISMATCH"}
+                <div className={`da-difference-box ${isBalanced ? "is-balanced" : "is-mismatch"}`}>
+                  <div className="da-difference-icon" aria-hidden="true">
+                    {isBalanced ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+                  </div>
+                  <div className="da-difference-copy">
+                    <p>Difference</p>
+                    <strong className="da-difference-value">
+                      {difference >= 0 ? `+₹${fmt(difference)}` : `−₹${fmt(Math.abs(difference))}`}
+                    </strong>
+                    <span className={`da-status ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
+                      {isBalanced ? "BALANCED" : "MISMATCH"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2401,24 +2561,19 @@ export default function DailyAmount() {
               <div
                 className="da-overview-chart"
                 role="img"
-                aria-label={`Saved system balances: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(", ") || "no saved history"}`}
-                title={`Saved daily totals: ${trendValues.map((point) => `${point.date} ₹${fmt(point.total)}`).join(" · ") || "No saved history"}`}
+                aria-label="Decorative orange area curve"
               >
                 <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
-                {trendValues.length ? (
-                  <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
-                        <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
-                      </linearGradient>
-                    </defs>
-                    <path d={trendAreaPath} fill="url(#da-overview-area-gradient)" />
-                    <path d={trendLinePath} fill="none" stroke="#f3a63f" strokeWidth="1.3" vectorEffect="non-scaling-stroke" />
-                  </svg>
-                ) : (
-                  <div className="da-overview-chart-empty">No saved balance history</div>
-                )}
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
+                      <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 35 C8 35 10 29 18 29 C25 29 29 23 36 24 C44 25 48 31 55 28 C63 25 68 13 75 17 C82 21 86 6 93 9 C96 10 98 14 100 14 L100 40 L0 40 Z" fill="url(#da-overview-area-gradient)" />
+                  <path d="M0 35 C8 35 10 29 18 29 C25 29 29 23 36 24 C44 25 48 31 55 28 C63 25 68 13 75 17 C82 21 86 6 93 9 C96 10 98 14 100 14" fill="none" stroke="#f3a63f" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                </svg>
               </div>
               <div
                 className="da-overview-donut"

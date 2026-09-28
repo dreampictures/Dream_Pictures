@@ -3,11 +3,11 @@ name: DailyAmount visual constraints
 description: Data accuracy, reference composition, and PIN-safe visual QA constraints for DailyAmount.
 ---
 
-DailyAmount dashboard visuals must stay backed by stored entries and existing calculations. Do not invent daily deltas or trend points; charts should use saved history and show an empty state when history is unavailable.
+DailyAmount chart visuals may use decorative static curves when they make no historical claim. The balance donut must use current cash, bank, and AEPS totals and percentages, with a clear zero-total state. Never invent historical data.
 
-**Why:** The user wants the existing database-backed amounts and calculations preserved and explicitly does not want fabricated values.
+**Why:** The user wants the target chart appearance without adding historical logic, while all displayed financial values and donut proportions remain tied to current saved data.
 
-**How to apply:** When changing dashboard metrics or charts, use the authenticated API and saved entries. Limit historical views to the selected date and keep missing-history states explicit.
+**How to apply:** Treat KPI waves and the orange overview curve as decoration, not trends. Derive donut slices and percentages from the existing totals; render a neutral zero state when their sum is zero.
 
 ## PIN-safe visual QA
 
