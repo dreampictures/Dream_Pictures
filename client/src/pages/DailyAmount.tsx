@@ -2470,6 +2470,14 @@ export default function DailyAmount() {
         @media screen and (min-width: 621px) {
           .da-overview-donut-hole strong { font-size: clamp(14px, 1.6vh, 22px); }
           .da-overview-donut-hole small { font-size: clamp(10px, 1vh, 14px); }
+          .da-overview-donut {
+            transform: translateY(-14px);
+            padding: 9px;
+            box-shadow:
+              0 0 13px rgba(61, 156, 255, .5),
+              0 0 28px rgba(61, 156, 255, .34),
+              0 0 44px rgba(166, 122, 255, .24);
+          }
         }
         @media screen and (min-width: 621px) and (min-height: 621px) {
           .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) clamp(160px, 20vh, 210px); }
