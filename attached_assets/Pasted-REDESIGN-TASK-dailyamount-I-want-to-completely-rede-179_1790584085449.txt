@@ -1,0 +1,772 @@
+REDESIGN TASK — /dailyamount
+=========================================
+
+I want to completely redesign ONLY the Daily Reconciliation webpage UI.
+
+IMPORTANT:
+The attached reference screenshot is the PRIMARY visual reference.
+
+Do NOT redesign the business logic.
+Do NOT change calculations.
+Do NOT change database logic.
+Do NOT change API logic.
+Do NOT change existing functionality.
+Do NOT change bank names.
+Do NOT change AEPS company/wallet names.
+Do NOT change transaction calculations.
+Do NOT change cash denomination calculations.
+
+This is a UI/UX redesign only.
+
+--------------------------------------------------
+1. VISUAL DESIGN — FOLLOW THE REFERENCE EXACTLY
+--------------------------------------------------
+
+Create a premium modern dark fintech dashboard inspired by the provided reference image.
+
+Visual direction:
+
+- Deep navy / midnight blue background
+- Dark blue glass-like panels
+- Neon blue glow
+- Neon green glow
+- Purple glow
+- Orange/gold glow
+- Red warning glow
+- Subtle gradients
+- Soft outer shadows
+- Thin glowing borders
+- Rounded corners
+- Premium financial-dashboard appearance
+- High contrast
+- Clean modern typography
+- Dense but organized desktop dashboard
+- Professional accounting / reconciliation software feeling
+
+The page should feel like a premium modern fintech application.
+
+DO NOT make it look like a generic Bootstrap dashboard.
+
+DO NOT use plain flat cards.
+
+Use:
+- gradients
+- glow
+- depth
+- glass/dark surfaces
+- subtle borders
+- hover effects
+- active states
+- smooth transitions
+
+The glow effect is VERY IMPORTANT.
+
+--------------------------------------------------
+2. PAGE STRUCTURE
+--------------------------------------------------
+
+Keep the existing Daily Reconciliation functionality but redesign the layout into:
+
+LEFT:
+Fixed vertical sidebar/navigation
+
+CENTER/MAIN:
+Dashboard content
+
+TOP:
+Header + date controls + action buttons
+
+--------------------------------------------------
+3. LEFT SIDEBAR
+--------------------------------------------------
+
+Create a premium dark navy vertical sidebar.
+
+Navigation items:
+
+- Dashboard
+- Cash Counting
+- Bank Balances
+- AEPS Wallet
+- Transactions
+- Reports
+- Settings
+
+Dashboard should be active.
+
+Active navigation:
+- gold/yellow accent
+- glowing border
+- dark highlighted background
+- rounded active container
+
+Sidebar should contain suitable financial icons.
+
+At the lower portion of sidebar, use a decorative financial illustration.
+
+IMPORTANT:
+Do NOT generate the illustration in code.
+
+Instead create an assets folder and prepare the UI to load the image from a fixed filename.
+
+Example:
+
+/public/assets/reconciliation/
+
+Use:
+
+sidebar-finance.png
+
+I will upload the actual image later using the SAME filename.
+
+Therefore the code MUST automatically load:
+
+/assets/reconciliation/sidebar-finance.png
+
+Do not embed the image as base64.
+
+--------------------------------------------------
+4. TOP HEADER
+--------------------------------------------------
+
+Header should contain:
+
+LEFT:
+Daily Reconciliation
+
+Use a small financial/chart icon beside the title.
+
+Make "Reconciliation" have a subtle gold/yellow accent.
+
+CENTER:
+Date selector:
+
+[ Calendar Icon ] 27-09-2026 [ < ] [ > ]
+
+Use the existing selected date and existing date logic.
+
+RIGHT:
+
+[ Refresh ]
+[ Print ]
+[ Export ▼ ]
+
+Buttons should have:
+
+- dark glass background
+- blue border
+- hover glow
+- smooth transition
+
+Export button can have gold/orange gradient.
+
+DO NOT break existing print/export functionality.
+
+--------------------------------------------------
+5. TOP KPI CARDS
+--------------------------------------------------
+
+Create a horizontal row of premium KPI cards.
+
+Cards:
+
+1. Opening Balance
+2. Cash Total
+3. Bank Total
+4. AEPS Wallet
+5. Difference
+
+Use the EXISTING calculated values.
+
+Do NOT hardcode values.
+
+The current values are only visual examples.
+
+Each card should have:
+
+- unique accent color
+- financial icon
+- large amount
+- small supporting text
+- subtle mini chart/sparkline style decoration
+- glow
+- gradient border
+
+Color direction:
+
+Opening Balance:
+Green/teal
+
+Cash:
+Blue
+
+Bank:
+Purple
+
+AEPS:
+Orange
+
+Difference:
+Red/pink
+
+The Difference card should immediately communicate mismatch using red glow.
+
+--------------------------------------------------
+6. CASH COUNTING PANEL
+--------------------------------------------------
+
+Create a large premium Cash Counting card.
+
+Header:
+
+Cash Counting
+Enter denomination counts for today
+
+Right side:
+
+[ Clear All ]
+
+Keep the existing denomination functionality.
+
+Denominations MUST remain:
+
+₹500
+₹200
+₹100
+₹50
+₹20
+₹10
+Coins
+
+Each row:
+
+DENOMINATION | COUNT | +/- CONTROLS | AMOUNT
+
+Example visual:
+
+₹500      [-] [344] [+]       ₹1,72,000
+
+The count inputs must remain functional.
+
+The amount must continue being calculated from the existing logic.
+
+DO NOT replace calculation logic with static numbers.
+
+At bottom:
+
+Cash Total
+₹2,36,785
+
+This must come from the existing calculation.
+
+Use a strong green glowing total panel.
+
+--------------------------------------------------
+7. BANK BALANCES
+--------------------------------------------------
+
+Create a premium Bank Balances card.
+
+KEEP THE EXISTING BANK NAMES EXACTLY AS THEY CURRENTLY EXIST IN THE APPLICATION.
+
+Do NOT rename, remove, reorder, or invent banks.
+
+The UI should display:
+
+Account Name | Balance
+
+Use the existing database/API values.
+
+Example from current UI:
+
+BOB Saving
+BOB Current
+HDFC
+Kotak
+AU
+SBI
+
+IMPORTANT:
+These are examples from the current page.
+Read the actual existing data from the application and preserve it.
+
+Bank Total must continue using the existing calculation.
+
+Add:
+
+Total: ₹30,195.45
+
+BUT DO NOT hardcode this.
+
+Use the actual calculated total.
+
+--------------------------------------------------
+8. AEPS WALLET
+--------------------------------------------------
+
+Create a separate glowing AEPS Wallet card underneath Bank Balances.
+
+KEEP ALL EXISTING AEPS/WALLET COMPANY NAMES EXACTLY AS CURRENTLY USED.
+
+Do NOT rename or replace them.
+
+Example current entries include:
+
+BOB
+Fino
+Payworld
+Digipay
+
+Again:
+Read actual existing data from the application.
+
+Do not hardcode the example values.
+
+Show:
+
+Wallet / Source | Balance
+
+Show total at the top-right.
+
+Use purple/violet glow.
+
+--------------------------------------------------
+9. TRANSACTIONS PANEL
+--------------------------------------------------
+
+Create a large Transactions panel on the right side.
+
+Header:
+
+Transactions
+
+Top controls:
+
+- All
+- Credit
+- Debit
+- Search
+- Date
+
+Use the EXISTING transaction data.
+
+Do NOT modify transaction logic.
+
+Credit transactions:
+green
+
+Debit transactions:
+red
+
+Each transaction should have:
+
+- icon
+- description/name
+- time
+- amount
+- credit/debit color
+- hover effect
+- subtle separator
+
+Use a modern transaction timeline/list style.
+
+Add right arrow/chevron if appropriate.
+
+--------------------------------------------------
+10. BALANCE OVERVIEW
+--------------------------------------------------
+
+Add a Balance Overview section.
+
+Show:
+
+Cash
+Banks
+AEPS
+
+with a modern visual chart.
+
+Use existing calculated values.
+
+Possible visualization:
+
+- smooth area/line chart
+- donut chart
+- percentage breakdown
+
+The chart must use REAL application values.
+
+Do not create fake/static chart data.
+
+--------------------------------------------------
+11. FINAL BALANCE RECONCILIATION
+--------------------------------------------------
+
+At the bottom/right create a very prominent reconciliation summary.
+
+Show:
+
+System Balance
+
+Expected Balance
+
+Difference
+
+Use the existing calculations.
+
+Example:
+
+System Balance
+₹4,53,452.47
+
+Expected Balance
+₹4,52,209.84
+
+Difference
++₹1,242.63
+
+IMPORTANT:
+
+These values are examples only.
+
+DO NOT hardcode them.
+
+The existing calculation logic must determine them.
+
+If there is a mismatch:
+
+Use red/pink warning styling.
+
+Example:
+
+⚠ Mismatch!
+
+If the difference becomes zero:
+
+Automatically change the UI to a success state.
+
+Example:
+
+✓ Balanced
+
+--------------------------------------------------
+12. IMAGE ASSET SYSTEM — VERY IMPORTANT
+--------------------------------------------------
+
+I will create the visual images separately and upload them later.
+
+Therefore DO NOT ask AI/image generation to create these images.
+
+Create this folder:
+
+/public/assets/dailyamount/
+
+Create/use these exact filenames:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+
+If additional image assets are needed, create additional clearly named files such as:
+
+transaction-illustration.png
+reconciliation-illustration.png
+
+IMPORTANT:
+
+The application must load these files by filename.
+
+Example:
+
+/assets/dailyamount/sidebar-finance.png
+
+Do NOT:
+
+- embed base64
+- generate images dynamically
+- use remote image URLs
+- use random stock images
+- use AI-generated placeholders
+
+If the image does not exist yet, show a graceful placeholder/container so the UI does not break.
+
+When I later upload:
+
+/public/assets/dailyamount/bank-illustration.png
+
+the page should automatically display it.
+
+--------------------------------------------------
+13. ICONS
+--------------------------------------------------
+
+For normal UI icons, use the project's existing icon system
+or Lucide icons.
+
+Do NOT create separate image files for simple UI icons.
+
+Images should only be used for larger decorative/illustrative graphics.
+
+--------------------------------------------------
+14. RESPONSIVE DESIGN
+--------------------------------------------------
+
+Desktop is the primary target because this is an accounting/business dashboard.
+
+Optimize for:
+
+1920x1080
+1600x900
+1440x900
+1366x768
+
+Also make it responsive for smaller screens.
+
+On tablet/mobile:
+
+- sidebar can collapse
+- cards can stack
+- transactions can move below
+- tables can become horizontally scrollable
+
+Do not destroy desktop layout while making mobile responsive.
+
+--------------------------------------------------
+15. ANIMATIONS
+--------------------------------------------------
+
+Use subtle professional animations:
+
+- card hover glow
+- button hover
+- sidebar active transition
+- chart animation
+- transaction hover
+- smooth number transitions if already supported
+
+DO NOT over-animate.
+
+This is financial/accounting software, so it must remain professional.
+
+--------------------------------------------------
+16. COLORS
+--------------------------------------------------
+
+Primary background:
+
+#050B18
+#071225
+#0A1630
+
+Panel colors:
+
+#0B1830
+#0D1D38
+#101F3A
+
+Accent colors:
+
+Gold:
+#F5B82E
+
+Blue:
+#1687FF
+
+Cyan:
+#00D9C0
+
+Green:
+#00D99A
+
+Purple:
+#8B5CF6
+
+Orange:
+#FF9F1C
+
+Red:
+#FF416C
+
+Use gradients and glow carefully.
+
+Do not make the whole page overly bright.
+
+--------------------------------------------------
+17. TYPOGRAPHY
+--------------------------------------------------
+
+Use a clean modern sans-serif font.
+
+Recommended:
+
+Inter
+
+or the project's existing professional font.
+
+Amounts should be visually strong.
+
+Labels should remain smaller and secondary.
+
+--------------------------------------------------
+18. IMPORTANT — PRESERVE ALL EXISTING LOGIC
+--------------------------------------------------
+
+Before modifying anything:
+
+Inspect the existing Daily Reconciliation page.
+
+Identify:
+
+- existing API calls
+- existing database queries
+- existing calculations
+- cash denomination calculations
+- opening balance calculation
+- expected balance calculation
+- system balance calculation
+- difference calculation
+- bank balance data
+- AEPS wallet data
+- transaction data
+- date navigation logic
+- print functionality
+- export functionality
+- refresh functionality
+
+DO NOT rewrite these unless absolutely necessary for UI integration.
+
+The redesign must consume the existing data.
+
+The UI should be a new presentation layer over the existing functionality.
+
+--------------------------------------------------
+19. DO NOT CHANGE THESE
+--------------------------------------------------
+
+DO NOT change:
+
+- bank names
+- AEPS company names
+- transaction names
+- transaction amounts
+- transaction logic
+- cash denomination logic
+- opening balance logic
+- expected balance logic
+- system balance logic
+- difference logic
+- date logic
+- database schema
+- API contracts
+- authentication
+- permissions
+
+unless a change is absolutely required to make the UI work.
+
+--------------------------------------------------
+20. VERY IMPORTANT — NO DATA INVENTION
+--------------------------------------------------
+
+The reference screenshot is ONLY a visual/design reference.
+
+Do not copy its example numbers as hardcoded data.
+
+Use the application's existing real data.
+
+For example:
+
+If the application currently has 6 banks,
+display those 6 banks.
+
+If it has 4 AEPS companies,
+display those 4.
+
+If transaction data changes,
+the UI must automatically update.
+
+If cash count changes,
+Cash Total must immediately update.
+
+If bank balance changes,
+Bank Total must update.
+
+If AEPS balance changes,
+AEPS Total must update.
+
+If transactions change,
+Expected Balance must update according to the existing calculation.
+
+--------------------------------------------------
+21. COMPONENT STRUCTURE
+--------------------------------------------------
+
+Keep the code clean and componentized.
+
+Suggested components:
+
+DailyReconciliation
+├── Sidebar
+├── Header
+├── DateNavigator
+├── ActionButtons
+├── SummaryCards
+├── CashCounting
+├── BankBalances
+├── AepsWallet
+├── Transactions
+├── BalanceOverview
+└── ReconciliationSummary
+
+Use reusable components where appropriate.
+
+Do NOT unnecessarily rewrite unrelated pages.
+
+--------------------------------------------------
+22. PAGE SCOPE
+--------------------------------------------------
+
+VERY IMPORTANT:
+
+Only redesign the Daily Reconciliation page.
+
+Do NOT redesign:
+
+- Khaata
+- Cameti
+- Homepage
+- Services
+- Admin dashboard
+- Applications
+- other pages
+
+unless explicitly requested later.
+
+--------------------------------------------------
+23. FINAL REQUIREMENT
+--------------------------------------------------
+
+The final result should visually feel like:
+
+"Premium dark fintech reconciliation software"
+
+with:
+
+- navy background
+- neon glow
+- gold highlights
+- blue/purple/green/orange cards
+- modern sidebar
+- premium financial illustrations
+- clean data tables
+- professional transaction feed
+- beautiful reconciliation summary
+
+The provided reference image should be treated as the PRIMARY visual direction.
+
+First inspect the existing implementation and understand the current data flow.
+
+Then redesign only the UI.
+
+After implementation, verify that every existing calculation and interaction still works exactly as before.
