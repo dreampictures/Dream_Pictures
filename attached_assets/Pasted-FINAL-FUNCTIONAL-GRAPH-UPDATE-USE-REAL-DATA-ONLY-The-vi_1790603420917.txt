@@ -1,0 +1,276 @@
+FINAL FUNCTIONAL GRAPH UPDATE — USE REAL DATA ONLY
+
+The visual design is now approved.
+
+DO NOT redesign the page again.
+
+DO NOT change the current UI styling, layout, colors, gradients,
+glows, cards, spacing, sidebar, header or component structure.
+
+Now we are moving to the FUNCTIONAL DATA phase.
+
+==================================================
+1. BALANCE OVERVIEW — REAL HISTORICAL DATA
+==================================================
+
+Connect the orange Balance Overview area chart to REAL historical
+Daily Reconciliation data from the existing database/API.
+
+DO NOT generate fake historical data.
+
+DO NOT create random chart points.
+
+DO NOT hardcode chart values.
+
+Use only records that actually exist.
+
+Preferred chart metric:
+
+System Balance / total reconciled balance for each historical date.
+
+The chart should show the actual value for each available date.
+
+Example concept:
+
+Date       System Balance
+27-09      actual database value
+28-09      actual database value
+29-09      actual database value
+
+Only use dates for which real data exists.
+
+If there is no historical data:
+
+show a clean empty state such as:
+
+"No historical reconciliation data available"
+
+Do NOT draw a fake graph.
+
+==================================================
+2. KPI CARD SPARKLINES — REAL DATA
+==================================================
+
+Connect the decorative KPI waves to real historical data.
+
+Opening Balance:
+use historical opening balance records.
+
+Cash Total:
+use historical cash totals.
+
+Bank Total:
+use historical bank totals.
+
+AEPS Wallet:
+use historical AEPS totals.
+
+Difference:
+use historical reconciliation difference values.
+
+The existing KPI amounts must remain exactly as they are.
+
+Only the small decorative historical wave/sparkline should become
+data-driven.
+
+DO NOT change the calculation logic.
+
+==================================================
+3. CURRENT DATE
+==================================================
+
+The selected reconciliation date must remain the source of truth.
+
+When the user changes the date:
+
+- KPI values update using existing logic
+- Balance Overview data remains historically accurate
+- current selected date should be reflected correctly
+- do not mix future dates
+- do not create missing records
+
+==================================================
+4. DATE RANGE
+==================================================
+
+Add a small chart range control if it fits the existing design:
+
+7D
+30D
+90D
+
+Default:
+
+30D
+
+Important:
+
+If the database contains fewer records than the selected range,
+show only the available real records.
+
+Never fill missing dates with fake values.
+
+==================================================
+5. CHART TOOLTIP
+==================================================
+
+Add a polished tooltip.
+
+On hover show:
+
+Date
+Actual amount
+
+For example:
+
+28 Sep 2026
+System Balance: ₹4,53,452.47
+
+Use Indian currency formatting.
+
+==================================================
+6. DONUT CHART
+==================================================
+
+Keep the current donut chart design.
+
+It must remain connected to REAL current values:
+
+Cash
+Banks
+AEPS
+
+Calculate percentages dynamically.
+
+Cash % =
+Cash Total / System Balance × 100
+
+Banks % =
+Bank Total / System Balance × 100
+
+AEPS % =
+AEPS Total / System Balance × 100
+
+If System Balance is zero:
+
+show a clean zero-state.
+
+Do not hardcode percentages.
+
+==================================================
+7. IMPORTANT DATA INTEGRITY
+==================================================
+
+Do NOT modify:
+
+- cash calculations
+- opening balance calculations
+- bank calculations
+- AEPS calculations
+- transaction calculations
+- expected balance
+- system balance
+- difference
+- database schema unless absolutely required for existing
+  historical reconciliation records
+- existing APIs
+- authentication
+
+Reuse existing historical reconciliation records if they already exist.
+
+If historical data does NOT currently exist in the database,
+DO NOT invent it.
+
+Instead implement the chart so that it automatically starts
+showing real history once records become available.
+
+==================================================
+8. KPI SPARKLINE BEHAVIOR
+==================================================
+
+The small waves inside the five KPI cards should remain subtle.
+
+Do NOT turn them into large charts.
+
+Keep the exact approved visual style:
+
+Opening Balance → green/teal
+Cash Total → blue
+Bank Total → purple
+AEPS Wallet → orange
+Difference → red/pink when negative/mismatch
+
+Only replace the decorative fake/static curve with real data-driven
+sparkline values.
+
+==================================================
+9. PERFORMANCE
+==================================================
+
+Do not make a separate API request for every date.
+
+Prefer one historical-data request for the selected range.
+
+Reuse existing React Query/data-fetching architecture.
+
+Do not introduce unnecessary dependencies if the existing project
+already has a chart library.
+
+==================================================
+10. EMPTY / NEW SYSTEM STATE
+==================================================
+
+If there are no historical records:
+
+Do NOT display:
+
+- fake graph
+- random curve
+- fake previous balance
+- fake percentage
+- fake historical values
+
+Instead show:
+
+"No historical data yet"
+
+while keeping the chart container visually intact.
+
+==================================================
+11. FINAL QA
+==================================================
+
+Test these cases:
+
+1. Current date with existing data
+2. Previous date
+3. Date with no transactions
+4. Date with no historical reconciliation record
+5. System Balance = 0
+6. Difference = 0
+7. Difference negative
+8. Difference positive
+9. Cash only
+10. Bank only
+11. AEPS only
+12. All three balances
+
+Make sure no NaN, Infinity, broken chart or incorrect percentage
+appears.
+
+==================================================
+MOST IMPORTANT
+
+THE DESIGN IS APPROVED.
+
+DO NOT REDESIGN THE PAGE.
+
+DO NOT CHANGE THE CURRENT VISUAL STYLE.
+
+ONLY CONNECT THE EXISTING CHARTS/SPARKLINES TO REAL HISTORICAL
+APPLICATION DATA.
+
+NO FAKE DATA.
+NO RANDOM DATA.
+NO HARDCODED HISTORY.
+NO BUSINESS LOGIC CHANGES.
