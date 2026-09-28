@@ -2315,7 +2315,10 @@ export default function DailyAmount() {
           .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
         }
-        #bank-panel { --da-bank-art-width: clamp(76px, 28%, 150px); }
+        #bank-panel {
+          --da-bank-art-width: clamp(76px, 28%, 150px);
+          --da-bank-entry-inset: clamp(24px, 3vw, 36px);
+        }
         #bank-panel .da-card-head,
         #bank-panel .da-card-body {
           position: relative;
@@ -2337,10 +2340,10 @@ export default function DailyAmount() {
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
         #bank-panel .da-account-table-header {
-          padding-right: var(--da-bank-art-width);
+          padding-right: calc(var(--da-bank-art-width) + var(--da-bank-entry-inset));
         }
         #bank-panel .da-bank-content .da-illustrated-rows {
-          padding-right: var(--da-bank-art-width);
+          padding-right: calc(var(--da-bank-art-width) + var(--da-bank-entry-inset));
         }
         #bank-panel .da-account-row:nth-child(odd) { background: rgba(20, 56, 98, .32); }
         #bank-panel .da-account-row:hover {
