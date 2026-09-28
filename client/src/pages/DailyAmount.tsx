@@ -2318,33 +2318,40 @@ export default function DailyAmount() {
           .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
         }
-        #bank-panel .da-card-head,
-        #bank-panel .da-card-body {
-          position: relative;
-          z-index: 1;
-        }
-        #bank-panel .da-card-head {
-          background: linear-gradient(90deg, rgba(12, 34, 64, .78), rgba(9, 27, 52, .64)) !important;
-        }
-        #bank-panel::before {
-          content: "";
-          position: absolute;
-          z-index: 0;
-          inset: 0;
-          border-radius: inherit;
-          pointer-events: none;
-          opacity: .48;
-          background:
-            linear-gradient(rgba(3, 16, 34, .14), rgba(3, 16, 34, .2)),
-            url("/assets/reconciliation/bank-illustration.png") center / cover no-repeat;
-        }
+        #bank-panel { --da-bank-art-width: clamp(76px, 28%, 150px); }
         #bank-panel .da-account-table-header {
-          position: relative;
-          z-index: 1;
-          background: rgba(3, 16, 34, .45);
+          padding-right: var(--da-bank-art-width);
         }
-        #bank-panel .da-bank-content .da-illustrated-rows { padding-right: 0; }
-        #bank-panel .da-account-row { background: rgba(3, 16, 31, .4); }
+        #bank-panel .da-bank-content .da-illustrated-rows {
+          padding-right: var(--da-bank-art-width);
+        }
+        #bank-panel .da-account-row:nth-child(odd) { background: rgba(20, 56, 98, .32); }
+        #bank-panel .da-account-row:hover {
+          background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06));
+          box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16);
+        }
+        #bank-panel .da-bank-illustration {
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: var(--da-bank-art-width);
+          height: auto;
+          transform: none;
+          overflow: hidden;
+          border: 0;
+          border-radius: 0;
+          opacity: .98;
+          background: radial-gradient(ellipse at 72% 52%, rgba(36, 127, 239, .24), transparent 74%);
+        }
+        #bank-panel .da-bank-illustration img {
+          position: absolute;
+          inset: 0;
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -2571,11 +2578,11 @@ export default function DailyAmount() {
             {/* Bank Balances */}
             <Card
               title="Bank Balances"
-              accent="#3b82f6"
+              accent="#f4c84c"
               icon={<Landmark size={15} />}
               className="shrink-0"
               id="bank-panel"
-              action={<div className="da-card-action-total da-total-badge"><span>Total</span><strong>₹{fmt(bankTotal)}</strong></div>}
+              action={<div className="da-card-action-total da-total-badge"><span>Total:</span><strong>₹{fmt(bankTotal)}</strong><ChevronRight size={14} aria-hidden="true" /></div>}
             >
               <div className="da-account-table-header"><span>Account Name</span><span>Balance</span></div>
               <div className="da-illustrated-content da-bank-content">
@@ -2601,6 +2608,7 @@ export default function DailyAmount() {
                   />
                 ))}
                 </div>
+                <Artwork src="/assets/reconciliation/bank-illustration.png" label="Bank building illustration" className="da-inline-illustration da-bank-illustration" />
               </div>
             </Card>
 
