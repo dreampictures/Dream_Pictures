@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet } from "lucide-react";
+import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, CalendarDays, Coins, Download, Landmark, Printer, RefreshCw, Scale, Search, Wallet, ArrowUpRight, FileText, Settings } from "lucide-react";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -154,12 +154,15 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
 }
 
 // ─── Card wrapper ─────────────────────────────────────────────────────────────
-function Card({ title, accent = "#d4af37", children, className = "", action }: { title: string; accent?: string; children: React.ReactNode; className?: string; action?: React.ReactNode }) {
+function Card({ title, subtitle, accent = "#d4af37", children, className = "", action, id }: { title: string; subtitle?: string; accent?: string; children: React.ReactNode; className?: string; action?: React.ReactNode; id?: string }) {
   return (
-    <div className={`da-panel rounded-xl overflow-hidden flex flex-col ${className}`} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
+    <div id={id} className={`da-panel rounded-xl overflow-hidden flex flex-col ${className}`} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
       <div className="da-card-head px-3 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
         <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: accent }} />
-        <h3 className="text-[11px] font-bold text-white tracking-wide flex-1">{title}</h3>
+        <div className="da-card-heading">
+          <h3 className="text-[11px] font-bold text-white tracking-wide">{title}</h3>
+          {subtitle && <span className="da-card-subtitle">{subtitle}</span>}
+        </div>
         {action}
       </div>
       <div className="da-card-body p-3 flex-1 flex flex-col min-h-0">{children}</div>
@@ -247,13 +250,13 @@ function TotalBar({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function MetricCard({ label, accent, icon, children, testId, sub }: {
-  label: string; accent: string; icon: React.ReactNode; children: React.ReactNode; testId: string; sub?: string;
+function MetricCard({ label, accent, icon, children, testId, sub, className = "" }: {
+  label: string; accent: string; icon: React.ReactNode; children: React.ReactNode; testId: string; sub?: string; className?: string;
 }) {
   return (
     <div
       data-testid={testId}
-      className="da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2"
+      className={`da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2 ${className}`}
       style={{ background: "linear-gradient(140deg, rgba(17,42,71,0.97), rgba(11,30,52,0.92))", border: `1px solid ${accent}35`, boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 4px 12px rgba(0,0,0,0.12)" }}
     >
       <div
@@ -267,6 +270,17 @@ function MetricCard({ label, accent, icon, children, testId, sub }: {
         <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
         {sub && <p className="da-metric-sub text-[8px] text-slate-500 truncate">{sub}</p>}
       </div>
+    </div>
+  );
+}
+
+function Artwork({ src, label, icon, className = "" }: { src: string; label: string; icon: React.ReactNode; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className={`da-artwork ${className}`} aria-label={label}>
+      {failed ? <span className="da-artwork-fallback" aria-hidden="true">{icon}</span> : (
+        <img src={src} alt="" onError={() => setFailed(true)} />
+      )}
     </div>
   );
 }
@@ -286,6 +300,8 @@ export default function DailyAmount() {
   const [txAmount, setTxAmount] = useState("");
   const [txNote, setTxNote] = useState("");
   const [txSearch, setTxSearch] = useState("");
+  const [txFilter, setTxFilter] = useState<"all" | "income" | "expense">("all");
+  const [activeSection, setActiveSection] = useState("top");
   const [autoFilledBalance, setAutoFilledBalance] = useState(false);
 
   // ── Auto-logout after 20 min inactivity ───────────────────────────────────
@@ -683,6 +699,7 @@ export default function DailyAmount() {
   const difference = systemBalance - expectedBalance;
   const isBalanced = Math.abs(difference) < 0.01;
   const filteredTransactions = txArray.filter((tx) => {
+    if (txFilter !== "all" && tx.type !== txFilter) return false;
     const search = txSearch.trim().toLowerCase();
     if (!search) return true;
     return [tx.note, tx.type, String(tx.amount)].some((value) => String(value || "").toLowerCase().includes(search));
@@ -692,11 +709,104 @@ export default function DailyAmount() {
     return <PinScreen onSuccess={(p) => setPin(p)} />;
   }
 
-  const bg = "radial-gradient(ellipse at 50% -32%, rgba(30,78,125,0.42), transparent 60%), linear-gradient(135deg, #07172b 0%, #091b32 55%, #071529 100%)";
-
   return (
-    <div className="da-page h-screen overflow-hidden flex flex-col text-slate-100" style={{ background: bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="da-page text-slate-100" style={{ fontFamily: "'Inter', sans-serif" }}>
       <style>{`
+        .da-page {
+          --da-ink: #edf4ff;
+          --da-muted: #91a6c0;
+          --da-line: rgba(103, 151, 205, .2);
+          display: flex;
+          width: 100%;
+          height: 100dvh;
+          overflow: hidden;
+          color: var(--da-ink);
+          background:
+            radial-gradient(ellipse at 74% -32%, rgba(31, 111, 199, .24), transparent 54%),
+            radial-gradient(ellipse at 38% 110%, rgba(15, 154, 136, .07), transparent 46%),
+            linear-gradient(135deg, #050b18 0%, #08152b 54%, #071226 100%);
+          color-scheme: dark;
+        }
+        .da-page * { box-sizing: border-box; }
+        .da-page button, .da-page input { font: inherit; }
+        .da-sidebar {
+          z-index: 2;
+          display: flex;
+          flex: 0 0 128px;
+          min-width: 0;
+          min-height: 0;
+          flex-direction: column;
+          padding: 10px 8px 8px;
+          border-right: 1px solid rgba(112, 157, 204, .2);
+          background: linear-gradient(180deg, rgba(7, 19, 39, .98), rgba(6, 16, 33, .98));
+        }
+        .da-side-brand { display: flex; align-items: center; justify-content: center; height: 29px; margin-bottom: 11px; color: #f3c65a; }
+        .da-side-brand-mark {
+          display: grid; width: 27px; height: 27px; place-items: center; border-radius: 8px;
+          border: 1px solid rgba(244, 192, 68, .32); background: linear-gradient(145deg, #183a61, #122746);
+          box-shadow: 0 0 14px rgba(234, 176, 51, .14);
+        }
+        .da-nav { display: flex; flex-direction: column; gap: 4px; }
+        .da-nav-item {
+          display: flex; align-items: center; gap: 7px; min-height: 29px; padding: 0 7px;
+          border: 1px solid transparent; border-radius: 7px; background: transparent; color: #91a7c0;
+          text-align: left; font-size: 9px; cursor: pointer;
+          transition: color .18s, border-color .18s, background .18s, box-shadow .18s;
+        }
+        .da-nav-item:hover { color: #dceafb; border-color: rgba(102, 157, 216, .2); background: rgba(41, 91, 145, .16); }
+        .da-nav-item.active {
+          color: #f3ca61; border-color: rgba(240, 189, 63, .4);
+          background: linear-gradient(100deg, rgba(201, 149, 34, .22), rgba(32, 61, 94, .45));
+          box-shadow: inset 0 0 15px rgba(230, 180, 53, .09), 0 0 12px rgba(225, 176, 52, .08);
+        }
+        .da-nav-item:disabled { opacity: .48; cursor: not-allowed; }
+        .da-nav-item svg { flex: 0 0 auto; }
+        .da-side-art {
+          height: 82px; min-height: 55px; margin-top: auto; overflow: hidden;
+          border: 1px solid rgba(68, 127, 180, .24); border-radius: 9px;
+          background: linear-gradient(155deg, rgba(20, 50, 82, .58), rgba(11, 26, 49, .8));
+        }
+        .da-side-foot { padding-top: 6px; color: #607991; font-size: 8px; line-height: 1.4; text-align: center; }
+        .da-artwork {
+          position: relative; display: grid; min-width: 0; min-height: 0; place-items: center;
+          overflow: hidden; color: #89b9ed; background:
+            radial-gradient(circle at 55% 40%, rgba(57, 143, 224, .2), transparent 65%),
+            linear-gradient(135deg, rgba(20, 57, 94, .76), rgba(12, 28, 52, .78));
+        }
+        .da-artwork img { width: 100%; height: 100%; object-fit: contain; }
+        .da-artwork-fallback { display: grid; width: 100%; height: 100%; place-items: center; opacity: .6; }
+        .da-side-art .da-artwork { width: 100%; height: 100%; color: #f0c659; background: radial-gradient(ellipse at 50% 95%, rgba(225, 170, 46, .25), transparent 70%); }
+        .da-app-main { display: flex; flex: 1; min-width: 0; min-height: 0; flex-direction: column; }
+        .da-toolbar {
+          display: flex; flex: 0 0 40px; align-items: center; gap: 9px; min-width: 0; min-height: 40px;
+          padding: 0 10px; border-bottom: 1px solid rgba(96, 165, 250, .16);
+          background: rgba(8, 14, 31, .94); backdrop-filter: blur(16px);
+        }
+        .da-toolbar > .flex.items-center:first-child { gap: 7px; }
+        .da-toolbar > .flex.items-center:first-child > div { width: 27px; height: 27px; }
+        .da-brand-title { display: block; color: #f4f7fb; white-space: nowrap; font-size: 12px; font-weight: 700; letter-spacing: -.2px; text-shadow: 0 0 12px rgba(236, 186, 74, .1); }
+        .da-brand-title em { color: #f2c75a; font-style: normal; }
+        .da-toolbar > .flex.items-center:first-child > div { color: #f2c75a; box-shadow: 0 0 15px rgba(234, 176, 51, .1); }
+        .da-toolbar > .order-3 {
+          order: 0; width: auto; flex: 0 0 auto; min-height: 28px; padding: 2px 4px;
+          border-radius: 7px; background: linear-gradient(130deg, rgba(12, 31, 57, .96), rgba(10, 25, 48, .96)) !important;
+          border: 1px solid rgba(100, 145, 192, .24) !important;
+        }
+        .da-toolbar > .order-3 button { padding: 2px 4px; }
+        .da-toolbar > .order-3 input { width: 112px; font-size: 10px; }
+        .da-toolbar > .ml-auto { margin-left: auto; gap: 4px; }
+        .da-toolbar > .ml-auto button {
+          height: 27px; padding: 0 7px; border: 1px solid rgba(92, 144, 197, .25);
+          border-radius: 6px; background: linear-gradient(145deg, rgba(17, 42, 70, .74), rgba(10, 28, 50, .78));
+          box-shadow: inset 0 1px rgba(255,255,255,.025); white-space: nowrap;
+        }
+        .da-toolbar > .ml-auto button:hover { border-color: rgba(102, 178, 255, .5); box-shadow: 0 0 13px rgba(42, 136, 224, .14); }
+        .da-toolbar > .ml-auto button[data-testid="button-export"] { border-color: rgba(255, 218, 120, .8); background: linear-gradient(135deg, #ffd565, #eaa52c); box-shadow: 0 3px 13px rgba(231, 166, 46, .17); }
+        .da-main {
+          display: flex; flex: 1; min-width: 0; min-height: 0; flex-direction: column;
+          gap: 7px; overflow: hidden; padding: 7px 9px 8px;
+        }
+        .da-main > .grid { display: grid; flex: 0 0 auto; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
         .da-clear-cash {
           display: inline-flex;
           align-items: center;
@@ -711,88 +821,288 @@ export default function DailyAmount() {
           white-space: nowrap;
         }
         .da-clear-cash:hover { background: rgba(156, 52, 67, .3); }
+        .da-metric {
+          position: relative; min-height: 57px; overflow: hidden; padding: 6px 7px;
+          border-radius: 8px; border: 1px solid rgba(73, 153, 232, .3);
+          background: linear-gradient(135deg, rgba(13, 34, 61, .97), rgba(9, 24, 46, .96));
+          box-shadow: inset 0 1px rgba(255,255,255,.035), 0 5px 15px rgba(0,0,0,.18);
+          transition: transform .18s, border-color .18s, box-shadow .18s;
+        }
+        .da-metric::after {
+          content: ""; position: absolute; right: 3px; bottom: 2px; width: 39px; height: 22px;
+          opacity: .36; background: currentColor;
+          clip-path: polygon(0 85%, 20% 61%, 39% 69%, 57% 30%, 74% 48%, 100% 0, 100% 100%, 0 100%);
+        }
+        .da-metric:hover { transform: translateY(-1px); box-shadow: 0 0 15px rgba(64, 143, 225, .12), inset 0 1px rgba(255,255,255,.05); }
+        .da-metric:nth-child(1) { color: #45d8b3; border-color: rgba(63, 211, 173, .42) !important; background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)) !important; }
+        .da-metric:nth-child(2) { color: #36b5ff; border-color: rgba(44, 150, 247, .44) !important; background: linear-gradient(120deg, rgba(12, 56, 105, .86), rgba(10, 31, 62, .96)) !important; }
+        .da-metric:nth-child(3) { color: #b190ff; border-color: rgba(151, 106, 237, .45) !important; background: linear-gradient(120deg, rgba(57, 34, 114, .8), rgba(29, 27, 67, .96)) !important; }
+        .da-metric:nth-child(4) { color: #ffb44c; border-color: rgba(244, 150, 40, .45) !important; background: linear-gradient(120deg, rgba(112, 62, 15, .74), rgba(54, 35, 28, .96)) !important; }
+        .da-metric:nth-child(5) { color: #ff6d92; border-color: rgba(255, 73, 115, .48) !important; background: linear-gradient(120deg, rgba(98, 29, 62, .72), rgba(45, 24, 52, .96)) !important; }
+        .da-metric[data-testid="metric-difference"] { box-shadow: inset 0 1px rgba(255,255,255,.03), 0 0 14px rgba(255, 65, 108, .1); }
+        .da-metric[data-testid="metric-difference"].is-balanced { color: #45d8b3; border-color: rgba(63, 211, 173, .42); background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)); box-shadow: 0 0 14px rgba(51, 207, 156, .1); }
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { color: #45d8b3 !important; }
+        .da-metric-icon { position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,.09) !important; }
+        .da-metric > div:last-child { position: relative; z-index: 1; }
+        .da-metric-label { color: #c3d2e3; font-size: 8px; text-transform: none; }
+        .da-metric-value { font-size: clamp(10px, 1vw, 13px); line-height: 1.2; }
+        .da-metric-sub { color: #a7bbcf; font-size: 7px; }
+        .da-opening-metric-input { height: 19px; }
+        .da-dashboard-grid {
+          display: grid; flex: 1; min-width: 0; min-height: 0; grid-template-columns: minmax(0, .96fr) minmax(0, .98fr) minmax(0, 1.12fr);
+          gap: 8px;
+        }
+        .da-column { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 7px; overflow: hidden; }
+        .da-column:first-child > .da-panel { flex: 1; min-height: 0; }
+        .da-panel {
+          border-radius: 9px; border: 1px solid rgba(80, 132, 190, .36) !important;
+          background: linear-gradient(150deg, rgba(12, 29, 54, .97), rgba(8, 22, 43, .97)) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.03), 0 7px 20px rgba(0, 5, 15, .19) !important;
+          transition: border-color .18s, box-shadow .18s;
+        }
+        .da-panel:hover { border-color: rgba(105, 166, 226, .46) !important; }
+        .da-card-head, .da-tx-header { min-height: 31px; padding: 3px 8px; border-bottom-color: rgba(100, 151, 202, .17) !important; background: linear-gradient(90deg, rgba(18, 48, 82, .72), rgba(10, 28, 52, .35)) !important; }
+        .da-card-head h3, .da-tx-header h3 { font-size: 10px; }
+        .da-card-heading { flex: 1; min-width: 0; }
+        .da-card-heading h3 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
+        .da-card-subtitle { display: block; overflow: hidden; color: #8299b2; font-size: 7px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+        .da-card-body { padding: 6px 7px; }
+        .da-cash-table-header { padding: 1px 5px 4px; font-size: 8px; }
+        .da-denom-row { min-height: 26px; padding-top: 2px; padding-bottom: 2px; }
+        .da-denom-row > div:first-child { width: 48px; }
+        .da-denom-row > div:first-child span { min-width: 42px; padding: 3px 5px; font-size: 9px; }
+        .da-denom-row .da-stepper { width: 20px; height: 20px; }
+        .da-denom-row .da-count-input { width: 46px; height: 20px; padding: 0 2px; font-size: 10px; }
+        .da-coins-row { margin-top: 0; }
+        .da-coins-row .da-count-input { width: 60px; }
+        .da-cash-total { padding-top: 5px; }
+        .da-cash-total-band { padding: 6px 7px; box-shadow: 0 0 13px rgba(33, 208, 153, .08); }
+        .da-cash-total-band > div { min-width: 0; }
+        .da-cash-total-band > div > span { font-size: 14px; }
+        .da-account-row { min-height: 20px; gap: 5px; padding-top: 1px; padding-bottom: 1px; }
+        .da-account-row > div:first-child span:first-child { width: 17px; height: 17px; }
+        .da-account-row > div:first-child span:last-child { font-size: 9px; }
+        .da-account-input { height: 19px; padding-top: 0; padding-bottom: 0; font-size: 9px; }
+        .da-section-total { padding-top: 3px; margin-top: 0; }
+        .da-section-total span { font-size: 9px; }
+        .da-section-total > span:last-child { font-size: 10px; }
+        .da-card-action-total { display: flex; align-items: center; gap: 5px; color: #9dc8f0; font-size: 9px; font-weight: 700; font-family: ui-monospace, monospace; white-space: nowrap; }
+        .da-card-action-total .da-artwork-small { width: 23px; height: 20px; flex-basis: 23px; }
+        .da-aeps-artwork { color: #c6a3fa; background: radial-gradient(circle, rgba(147, 87, 244, .27), transparent 70%), rgba(33, 20, 61, .4); }
+        .da-system-summary { padding: 6px; }
+        .da-system-summary-components { gap: 3px; margin-bottom: 4px; }
+        .da-system-summary-components p { font-size: 9px; margin-bottom: 0; line-height: 1.15; }
+        .da-system-line { padding-top: 4px; }
+        .da-system-line > span, .da-system-line > span:first-child { font-size: 10px; }
+        .da-system-line > span:last-child { font-size: 13px; }
+        .da-transactions-panel { flex: 1; min-height: 0; }
+        .da-tx-header { gap: 6px; }
+        .da-tx-header h3 { flex: 1; }
+        .da-tx-header .da-tx-totals { display: none; }
+        .da-tx-search-wrap { max-width: 116px; min-width: 78px; }
+        .da-tx-search { height: 22px; font-size: 9px; }
+        .da-tx-filterbar { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; padding: 4px 7px; border-bottom: 1px solid rgba(104, 141, 177, .12); }
+        .da-tx-filter {
+          display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 21px; padding: 0 7px;
+          border: 1px solid rgba(100, 139, 178, .2); border-radius: 6px; color: #9bafc3;
+          background: rgba(10, 26, 47, .65); font-size: 8px; cursor: pointer; transition: .16s;
+        }
+        .da-tx-filter:hover { color: #e4edf6; border-color: rgba(100, 165, 224, .42); }
+        .da-tx-filter.active { color: #f5d06b; border-color: rgba(242, 192, 72, .42); background: rgba(166, 116, 24, .2); box-shadow: 0 0 9px rgba(241, 181, 63, .08); }
+        .da-tx-date { width: 96px; height: 21px; margin-left: auto; padding: 0 4px; border: 1px solid rgba(100, 139, 178, .2); border-radius: 6px; color: #a9bfd3; background: rgba(10, 26, 47, .65); font-size: 8px; }
+        .da-tx-form { padding: 5px; gap: 5px; }
+        .da-tx-form button, .da-tx-form input { min-height: 23px; padding-top: 2px; padding-bottom: 2px; font-size: 9px; }
+        .da-tx-item { min-height: 31px; gap: 6px; padding: 3px 5px; transition: background .15s; }
+        .da-tx-item:hover { background: rgba(47, 83, 117, .17) !important; }
+        .da-tx-symbol { width: 21px; height: 21px; }
+        .da-tx-description { font-size: 9px; line-height: 1.15; }
+        .da-tx-time { font-size: 8px; line-height: 1.1; }
+        .da-tx-value { font-size: 9px; }
+        .da-reconcile-title { padding: 5px 7px; font-size: 9px; }
+        .da-reconcile-values .da-reconcile-value { padding: 5px 7px; }
+        .da-reconcile-value p:first-child { font-size: 8px; }
+        .da-reconcile-value p:nth-child(2) { font-size: 11px; }
+        .da-reconcile-value p:last-child { margin-top: 2px; font-size: 7px; }
+        .da-difference { padding: 5px 7px; }
+        .da-difference-value { font-size: 13px; }
+        .da-status { gap: 3px; padding: 3px 5px; font-size: 8px; }
+        .da-artwork-small { width: 30px; height: 24px; flex: 0 0 30px; border-radius: 5px; opacity: .78; }
+        .da-overview { position: relative; flex: 1 0 75px; min-height: 75px; overflow: hidden; padding: 6px 7px; border: 1px solid rgba(91, 146, 202, .3); border-radius: 9px; background: linear-gradient(125deg, rgba(13, 30, 54, .94), rgba(9, 22, 43, .96)); box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .da-overview-title { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: #e5edf7; font-size: 9px; font-weight: 700; }
+        .da-overview-breakdown { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+        .da-overview-item { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 3px 4px; align-items: center; min-width: 0; }
+        .da-overview-dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 7px currentColor; }
+        .da-overview-item span:nth-child(2) { color: #9aafc4; font-size: 7px; }
+        .da-overview-item strong { grid-column: 2; overflow: hidden; color: #e2ebf5; font-size: 8px; font-family: ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }
+        .da-overview-item small { grid-column: 2; color: #7f97ae; font-size: 7px; }
+        .da-overview-bar { display: flex; height: 5px; overflow: hidden; margin-top: 5px; border-radius: 999px; background: rgba(6, 17, 32, .9); box-shadow: inset 0 0 0 1px rgba(118, 154, 192, .12); }
+        .da-overview-bar span { min-width: 0; transition: width .25s ease; }
+        .da-overview-bar .cash { background: #32c89b; box-shadow: 0 0 8px rgba(50, 200, 155, .7); }
+        .da-overview-bar .banks { background: #3d9cff; box-shadow: 0 0 8px rgba(61, 156, 255, .65); }
+        .da-overview-bar .aeps { background: #a67aff; box-shadow: 0 0 8px rgba(166, 122, 255, .65); }
+        .da-overview-art { position: absolute; right: 5px; bottom: 5px; width: 34px; height: 25px; opacity: .25; pointer-events: none; }
+        .da-nav-status { position: absolute; left: 136px; top: 7px; z-index: 12; padding: 6px 9px; border-radius: 7px; color: #d6e2f0; background: #112542; border: 1px solid rgba(103, 151, 205, .3); font-size: 10px; }
         @media (min-width: 1024px) and (max-height: 520px) {
-          .da-toolbar { min-height: 40px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
-          .da-main { gap: 8px !important; padding: 8px !important; }
-          .da-main > .grid { gap: 6px !important; }
-          .da-dashboard-grid, .da-column { gap: 7px !important; }
-          .da-metric { gap: 6px !important; padding: 5px 6px !important; border-radius: 8px !important; }
-          .da-metric-icon { width: 25px !important; height: 25px !important; }
-          .da-metric-label { font-size: 8px !important; line-height: 1.1 !important; }
-          .da-metric-value { font-size: 11px !important; line-height: 1.15 !important; }
-          .da-metric-sub { font-size: 7px !important; line-height: 1.1 !important; }
-          .da-opening-metric-input { height: 20px !important; font-size: 10px !important; }
-          .da-card-head { min-height: 28px !important; padding: 3px 8px !important; }
-          .da-card-body { padding: 5px !important; }
-          .da-cash-table-header { gap: 5px !important; padding: 0 5px 3px !important; font-size: 8px !important; }
-          .da-denom-row { min-height: 24px !important; gap: 5px !important; padding-top: 1px !important; padding-bottom: 1px !important; }
-          .da-denom-row > div:first-child { width: 50px !important; }
-          .da-denom-row > div:first-child span { min-width: 42px !important; padding: 2px 4px !important; font-size: 10px !important; }
-          .da-denom-row .da-stepper { width: 19px !important; height: 19px !important; padding: 0 !important; }
-          .da-denom-row .da-count-input { width: 54px !important; height: 19px !important; padding: 0 2px !important; font-size: 10px !important; }
-          .da-coins-row { margin-top: 0 !important; }
-          .da-coins-row .da-count-input { width: 68px !important; }
-          .da-cash-total { padding-top: 4px !important; }
-          .da-cash-total-band { padding: 5px 7px !important; }
-          .da-cash-total-band span { font-size: 10px !important; }
-          .da-cash-total-band > div > span { font-size: 13px !important; }
-          .da-clear-cash { height: 21px; padding: 0 5px; font-size: 8px; }
-          .da-account-row { min-height: 18px !important; gap: 5px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
-          .da-account-row > div:first-child span:first-child { width: 16px !important; height: 16px !important; }
-          .da-account-row > div:first-child span:last-child { font-size: 9px !important; }
-          .da-account-input { height: 18px !important; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 9px !important; }
-          .da-section-total { padding-top: 3px !important; margin-top: 0 !important; }
-          .da-section-total span { font-size: 9px !important; }
-          .da-section-total > span:last-child { font-size: 10px !important; }
-          .da-system-summary { padding: 6px !important; }
-          .da-system-summary-components { gap: 3px !important; margin-bottom: 4px !important; }
-          .da-system-summary-components p { font-size: 9px !important; margin-bottom: 0 !important; line-height: 1.15 !important; }
-          .da-system-line { padding-top: 4px !important; }
-          .da-system-line > span, .da-system-line > span:first-child { font-size: 10px !important; }
-          .da-system-line > span:last-child { font-size: 13px !important; }
-          .da-tx-header { gap: 6px !important; padding: 3px 7px !important; }
-          .da-tx-header h3 { font-size: 10px !important; }
-          .da-tx-search { height: 22px !important; font-size: 9px !important; }
-          .da-tx-form { padding: 5px !important; gap: 5px !important; }
-          .da-tx-form button, .da-tx-form input { min-height: 22px !important; padding-top: 2px !important; padding-bottom: 2px !important; font-size: 9px !important; }
-          .da-tx-item { min-height: 32px !important; gap: 6px !important; padding: 2px 5px !important; }
-          .da-tx-symbol { width: 21px !important; height: 21px !important; }
-          .da-tx-description { font-size: 10px !important; line-height: 1.15 !important; }
-          .da-tx-time { font-size: 8px !important; line-height: 1.1 !important; }
-          .da-tx-value { font-size: 9px !important; }
-          .da-reconcile-title { padding: 4px 7px !important; font-size: 9px !important; }
-          .da-reconcile-values .da-reconcile-value { padding: 4px 6px !important; }
-          .da-reconcile-value p:first-child { font-size: 8px !important; }
-          .da-reconcile-value p:nth-child(2) { font-size: 10px !important; }
+          .da-toolbar { flex-basis: 37px; min-height: 37px; }
+          .da-main { gap: 6px; padding: 6px 7px 7px; }
+          .da-main > .grid { gap: 6px; }
+          .da-metric { min-height: 53px; gap: 5px; padding: 4px 5px; border-radius: 7px; }
+          .da-metric-icon { width: 24px; height: 24px; }
+          .da-metric-label { font-size: 7px; line-height: 1.1; }
+          .da-metric-value { font-size: 10px; line-height: 1.15; }
+          .da-metric-sub { font-size: 6px; line-height: 1.1; }
+          .da-opening-metric-input { height: 18px; font-size: 9px; }
+          .da-dashboard-grid, .da-column { gap: 5px; }
+          .da-card-head, .da-tx-header { min-height: 26px; padding: 2px 6px; }
+          .da-card-subtitle { font-size: 6px; }
+          .da-card-body { padding: 4px 5px; }
+          .da-cash-table-header { padding: 0 4px 3px; font-size: 7px; }
+          .da-denom-row { min-height: 23px; gap: 4px; padding-top: 1px; padding-bottom: 1px; }
+          .da-denom-row > div:first-child { width: 42px; }
+          .da-denom-row > div:first-child span { min-width: 37px; padding: 2px 3px; font-size: 8px; }
+          .da-denom-row .da-stepper { width: 17px; height: 17px; padding: 0; }
+          .da-denom-row .da-count-input { width: 39px; height: 17px; padding: 0 2px; font-size: 9px; }
+          .da-coins-row .da-count-input { width: 53px; }
+          .da-cash-total { padding-top: 3px; }
+          .da-cash-total-band { padding: 4px 6px; }
+          .da-cash-total-band span { font-size: 9px; }
+          .da-cash-total-band > div > span { font-size: 12px; }
+          .da-clear-cash { height: 19px; padding: 0 5px; font-size: 7px; }
+          .da-account-row { min-height: 16px; gap: 4px; padding-top: 0; padding-bottom: 0; }
+          .da-account-row > div:first-child span:first-child { width: 14px; height: 14px; }
+          .da-account-row > div:first-child span:last-child { font-size: 8px; }
+          .da-account-input { height: 15px; padding: 0 3px 0 14px; font-size: 8px; }
+          .da-section-total { padding-top: 1px; }
+          .da-section-total span { font-size: 8px; }
+          .da-section-total > span:last-child { font-size: 9px; }
+          .da-overview { flex-basis: 66px; min-height: 66px; padding: 4px 5px; }
+          .da-overview-title { margin-bottom: 3px; font-size: 8px; }
+          .da-overview-breakdown { gap: 2px; }
+          .da-overview-item { gap: 2px 3px; }
+          .da-overview-item span:nth-child(2), .da-overview-item small { font-size: 6px; }
+          .da-overview-item strong { font-size: 7px; }
+          .da-overview-bar { height: 4px; margin-top: 3px; }
+          .da-overview-art { width: 28px; height: 18px; }
+          .da-tx-filterbar { gap: 3px; padding: 3px 5px; }
+          .da-tx-filter { min-height: 18px; padding: 0 5px; font-size: 7px; }
+          .da-tx-date { width: 87px; height: 18px; font-size: 7px; }
+          .da-tx-search-wrap { max-width: 98px; min-width: 68px; }
+          .da-tx-search { height: 19px; font-size: 8px; }
+          .da-tx-form { padding: 4px; gap: 4px; }
+          .da-tx-form button, .da-tx-form input { min-height: 19px; padding-top: 1px; padding-bottom: 1px; font-size: 8px; }
+          .da-tx-item { min-height: 26px; gap: 4px; padding: 2px 4px; }
+          .da-tx-symbol { width: 18px; height: 18px; }
+          .da-tx-description { font-size: 8px; }
+          .da-tx-time { font-size: 7px; }
+          .da-tx-value { font-size: 8px; }
+          .da-reconcile-title { padding: 3px 5px; font-size: 8px; }
+          .da-reconcile-values .da-reconcile-value { padding: 3px 5px; }
+          .da-reconcile-value p:first-child { font-size: 7px; }
+          .da-reconcile-value p:nth-child(2) { font-size: 9px; }
           .da-reconcile-value p:last-child { display: none; }
-          .da-difference { padding: 4px 7px !important; }
-          .da-difference-value { font-size: 12px !important; }
-          .da-status { gap: 3px !important; padding: 3px 5px !important; font-size: 8px !important; }
+          .da-difference { padding: 3px 5px; }
+          .da-difference-value { font-size: 11px; }
+          .da-status { gap: 2px; padding: 2px 4px; font-size: 7px; }
         }
         @media print {
           @page { size: landscape; margin: 10mm; }
           html, body, #root { height: auto !important; overflow: visible !important; background: #fff !important; }
-          .da-page, .da-main, .da-dashboard-grid, .da-column { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; color: #111827 !important; }
+          .da-page, .da-app-main, .da-main, .da-dashboard-grid, .da-column { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; color: #111827 !important; }
+          .da-sidebar { display: none !important; }
           .da-dashboard-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; flex: none !important; gap: 8px !important; }
           .da-column { display: flex !important; flex-direction: column !important; gap: 8px !important; }
           .da-panel .flex-1 { flex: none !important; }
-          .da-toolbar, .da-print-hidden { display: none !important; }
+          .da-toolbar, .da-print-hidden, .da-tx-filterbar { display: none !important; }
           .da-panel { overflow: visible !important; background: #fff !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; backdrop-filter: none !important; break-inside: avoid; }
           .da-panel *, .da-metric * { color: #111827 !important; }
           .da-metric { background: #f8fafc !important; border-color: #cbd5e1 !important; }
         }
+        @media (max-width: 920px) {
+          .da-page { height: auto; min-height: 100dvh; overflow: visible; flex-direction: column; }
+          .da-sidebar { position: sticky; top: 0; flex-basis: auto; min-height: 48px; padding: 5px 8px; border-right: 0; border-bottom: 1px solid rgba(112, 157, 204, .2); }
+          .da-side-brand, .da-side-art, .da-side-foot { display: none; }
+          .da-nav { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+          .da-nav-item { flex: 0 0 auto; min-height: 34px; padding: 0 9px; }
+          .da-app-main { min-height: 0; }
+          .da-toolbar { flex-wrap: wrap; min-height: 46px; padding: 5px 9px; }
+          .da-main { overflow: visible; }
+          .da-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .da-column { overflow: visible; }
+          .da-column:last-child { grid-column: 1 / -1; min-height: 430px; }
+          .da-column:first-child { min-height: 400px; }
+          .da-column:nth-child(2) { min-height: 400px; }
+        }
+        @media (max-width: 620px) {
+          .da-main { padding: 8px; }
+          .da-toolbar { gap: 6px; }
+          .da-brand-title { font-size: 11px; }
+          .da-toolbar > .order-3 { order: 3; }
+          .da-toolbar > .ml-auto { margin-left: auto; }
+          .da-toolbar > .ml-auto button { width: 30px; padding: 0; font-size: 0; justify-content: center; }
+          .da-toolbar > .ml-auto button[data-testid="button-export"] { width: auto; padding: 0 7px; font-size: 10px; }
+          .da-toolbar > .ml-auto button[data-testid="button-unlock-edit"],
+          .da-toolbar > .ml-auto button[data-testid="button-lock-edit"] { width: auto; padding: 0 7px; font-size: 9px; }
+          .da-main > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .da-metric:last-child { grid-column: 1 / -1; }
+          .da-dashboard-grid { display: flex; flex-direction: column; }
+          .da-column:first-child, .da-column:nth-child(2), .da-column:last-child { min-height: 0; }
+          .da-column:first-child > .da-panel { min-height: 340px; }
+          .da-transactions-panel { min-height: 350px; }
+          .da-tx-search-wrap { max-width: 135px; }
+        }
+        @media (max-width: 390px) {
+          .da-nav-item { padding: 0 6px; }
+          .da-nav-item span { display: none; }
+          .da-brand-title { font-size: 10px; }
+        }
       `}</style>
 
+      <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
+        <div className="da-side-brand">
+          <span className="da-side-brand-mark"><Scale size={16} /></span>
+        </div>
+        <nav className="da-nav">
+          {[
+            { label: "Dashboard", icon: <Wallet size={14} />, target: "top" },
+            { label: "Cash Counting", icon: <Banknote size={14} />, target: "cash-panel" },
+            { label: "Bank Balances", icon: <Landmark size={14} />, target: "bank-panel" },
+            { label: "AEPS Wallet", icon: <Wallet size={14} />, target: "aeps-panel" },
+            { label: "Transactions", icon: <ArrowUpRight size={14} />, target: "transactions-panel" },
+            { label: "Reports", icon: <FileText size={14} />, target: "reports", unavailable: true },
+            { label: "Settings", icon: <Settings size={14} />, target: "settings", unavailable: true },
+          ].map((item) => (
+            <button
+              key={item.target}
+              type="button"
+              className={`da-nav-item ${activeSection === item.target ? "active" : ""}`}
+              disabled={item.unavailable}
+              title={item.unavailable ? `${item.label} is not available on this page` : item.label}
+              aria-current={activeSection === item.target ? "page" : undefined}
+              onClick={() => {
+                if (item.unavailable) return;
+                setActiveSection(item.target);
+                document.getElementById(item.target)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }}
+            >
+              {item.icon}<span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="da-side-art">
+          <Artwork src="/assets/dailyamount/sidebar-finance.png" label="Financial illustration" icon={<Banknote size={28} />} />
+        </div>
+        <div className="da-side-foot">Daily closeout<br />Stay organized</div>
+      </aside>
+      <div className="da-app-main">
       {/* ── Header and daily controls ─────────────────────────────────────── */}
       <header
         className="da-toolbar relative z-10 shrink-0 flex flex-wrap sm:flex-nowrap items-center gap-2 px-3 lg:px-4 py-2 sm:py-0 min-h-[54px]"
-        style={{ background: "rgba(8,14,31,0.96)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(96,165,250,0.16)" }}
       >
         <div className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-300" style={{ background: "linear-gradient(145deg, rgba(250,204,21,0.2), rgba(59,130,246,0.16))", border: "1px solid rgba(250,204,21,0.18)" }}>
             <Banknote size={17} />
           </div>
-          <span className="hidden sm:block text-white font-bold text-sm tracking-tight">Daily Reconciliation</span>
+          <span className="da-brand-title">Daily <em>Reconciliation</em></span>
         </div>
 
         <div className="order-3 sm:order-none flex items-center justify-center gap-1 rounded-lg px-1 py-1 min-w-0 w-full sm:w-auto" style={{ background: "rgba(15,29,57,0.82)", border: "1px solid rgba(148,163,184,0.16)" }}>
@@ -850,9 +1160,9 @@ export default function DailyAmount() {
       </header>
 
       {/* ── Dashboard Body ────────────────────────────────────────────────── */}
-      <div className="da-main flex-1 min-h-0 flex flex-col gap-2.5 lg:gap-3 overflow-y-auto lg:overflow-hidden p-2.5 lg:p-3">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-2.5 shrink-0">
-          <MetricCard label="Opening balance" accent="#f2c94c" icon={<Banknote size={16} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
+      <div className="da-main" id="top">
+        <div className="grid">
+          <MetricCard label="Opening balance" accent="#39d7aa" icon={<Banknote size={16} />} testId="metric-opening-balance" sub={autoFilledBalance ? "Carry forward" : "Carry-in"}>
             {editUnlocked ? (
               <div className="relative w-full">
                 <span className="absolute left-1 top-1/2 -translate-y-1/2 text-amber-300/70 text-[10px]">₹</span>
@@ -861,39 +1171,38 @@ export default function DailyAmount() {
                   value={fields.openingBalance}
                   onChange={(value) => updateField("openingBalance", value)}
                   placeholder="0"
-                  className="da-opening-metric-input w-full bg-slate-950/40 text-amber-200 text-right rounded px-1 py-0.5 pl-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-amber-400"
+                  className="da-opening-metric-input w-full bg-slate-950/40 text-emerald-200 text-right rounded px-1 py-0.5 pl-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-emerald-400"
                   style={{ border: "1px solid rgba(109,145,179,0.28)" }}
                 />
               </div>
             ) : (
-              <span className="text-amber-200">₹{fmt(fields.openingBalance)}</span>
+              <span className="text-emerald-200">₹{fmt(fields.openingBalance)}</span>
             )}
           </MetricCard>
-          <MetricCard label="Cash total" accent="#34d399" icon={<Coins size={17} />} testId="metric-cash-total" sub="Counted notes + coins">
-            <span className="text-emerald-300">₹{fmt(cashTotal)}</span>
+          <MetricCard label="Cash total" accent="#1687ff" icon={<Coins size={17} />} testId="metric-cash-total" sub="Notes + coins">
+            <span className="text-blue-300">₹{fmt(cashTotal)}</span>
           </MetricCard>
-          <MetricCard label="Bank total" accent="#60a5fa" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
-            <span className="text-blue-300">₹{fmt(bankTotal)}</span>
+          <MetricCard label="Bank total" accent="#8b5cf6" icon={<Landmark size={17} />} testId="metric-bank-total" sub="6 accounts">
+            <span className="text-purple-300">₹{fmt(bankTotal)}</span>
           </MetricCard>
-          <MetricCard label="AEPS wallet" accent="#c084fc" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
-            <span className="text-purple-300">₹{fmt(aepsTotal)}</span>
+          <MetricCard label="AEPS wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources">
+            <span className="text-orange-300">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Expected balance" accent="#fbbf24" icon={<Scale size={17} />} testId="metric-expected-balance" sub="Opening + net transactions">
-            <span className="text-amber-200">₹{fmt(expectedBalance)}</span>
-          </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={isBalanced ? <CheckCircle size={17} /> : <AlertTriangle size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={isBalanced ? <CheckCircle size={17} /> : <AlertTriangle size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
 
-        <div className="da-dashboard-grid flex-1 min-h-0 flex flex-col gap-2.5 lg:grid lg:gap-3" style={{ gridTemplateColumns: "minmax(300px,1.08fr) minmax(300px,0.95fr) minmax(350px,1.16fr)" }}>
+        <div className="da-dashboard-grid">
 
           {/* ══ COLUMN 1 — Cash Counting ══════════════════════════════════ */}
-          <div className="da-column lg:h-full lg:overflow-y-auto lg:overflow-x-hidden">
+          <div className="da-column">
             <Card
               title="Cash Counting"
+              subtitle="Enter denomination counts for today"
               accent="#10b981"
               className="h-full"
+              id="cash-panel"
               action={editUnlocked ? (
                 <button type="button" className="da-clear-cash da-print-hidden" onClick={clearCashCounts} title="Clear cash denominations and coins">
                   <Trash2 size={11} /> Clear All
@@ -947,6 +1256,7 @@ export default function DailyAmount() {
                 <div className="da-cash-total-band rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-emerald-400">Cash Total</span>
+                    <Artwork src="/assets/dailyamount/cash-illustration.png" label="Cash illustration" icon={<Coins size={18} />} className="da-artwork-small" />
                     <span className="text-base font-bold font-mono text-emerald-400">₹{fmt(cashTotal)}</span>
                   </div>
                 </div>
@@ -955,9 +1265,15 @@ export default function DailyAmount() {
           </div>
 
           {/* ══ COLUMN 2 — Banks / AEPS / System Balance ══════════════════ */}
-          <div className="da-column lg:h-full lg:overflow-y-auto lg:overflow-x-hidden flex flex-col gap-2.5 lg:gap-3">
+          <div className="da-column">
             {/* Bank Balances */}
-            <Card title="Bank Balances" accent="#3b82f6" className="shrink-0">
+            <Card
+              title="Bank Balances"
+              accent="#3b82f6"
+              className="shrink-0"
+              id="bank-panel"
+              action={<div className="da-card-action-total"><span>₹{fmt(bankTotal)}</span><Artwork src="/assets/dailyamount/bank-illustration.png" label="Bank illustration" icon={<Landmark size={18} />} className="da-artwork-small" /></div>}
+            >
               <div className="space-y-0">
                 {[
                   { key: "bobSaving", label: "BOB Saving", marker: "BS", markerColor: "#fb923c" },
@@ -980,11 +1296,16 @@ export default function DailyAmount() {
                   />
                 ))}
               </div>
-              <TotalBar label="Bank Total" value={bankTotal} color="#3b82f6" />
             </Card>
 
             {/* AEPS Wallet */}
-            <Card title="AEPS Wallet" accent="#a855f7" className="shrink-0">
+            <Card
+              title="AEPS Wallet"
+              accent="#a855f7"
+              className="shrink-0"
+              id="aeps-panel"
+              action={<div className="da-card-action-total"><span>₹{fmt(aepsTotal)}</span><Artwork src="/assets/dailyamount/aeps-illustration.png" label="AEPS illustration" icon={<Wallet size={18} />} className="da-artwork-small da-aeps-artwork" /></div>}
+            >
               <div className="space-y-0">
                 {[
                   { key: "aepsBob", label: "BOB", marker: "B", markerColor: "#fb923c" },
@@ -1005,37 +1326,42 @@ export default function DailyAmount() {
                   />
                 ))}
               </div>
-              <TotalBar label="AEPS Total" value={aepsTotal} color="#a855f7" />
             </Card>
 
-            {/* System Balance */}
-            <div className="da-panel da-system-summary rounded-xl p-3 shrink-0" style={{ background: "linear-gradient(115deg, rgba(105,81,36,0.27), rgba(38,43,47,0.3))", border: "1px solid rgba(228,188,82,0.33)" }}>
-              <div className="da-system-summary-components grid grid-cols-3 gap-2 mb-2.5">
-                <div className="text-center">
-                  <p className="text-xs text-emerald-400 mb-0.5">Cash</p>
-                  <p className="text-xs font-bold text-white font-mono">₹{fmt(cashTotal)}</p>
+            {/* Balance Overview */}
+            <div className="da-overview" aria-label="Balance overview by category">
+              <div className="da-overview-title"><Scale size={12} /> Balance Overview</div>
+              <div className="da-overview-breakdown">
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#32c89b", background: "#32c89b" }} />
+                  <span>Cash</span><strong>₹{fmt(cashTotal)}</strong>
+                  <small>{systemBalance ? ((cashTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
                 </div>
-                <div className="text-center" style={{ borderLeft: "1px solid rgba(255,255,255,0.07)", borderRight: "1px solid rgba(255,255,255,0.07)" }}>
-                  <p className="text-xs text-blue-400 mb-0.5">Banks</p>
-                  <p className="text-xs font-bold text-white font-mono">₹{fmt(bankTotal)}</p>
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#3d9cff", background: "#3d9cff" }} />
+                  <span>Banks</span><strong>₹{fmt(bankTotal)}</strong>
+                  <small>{systemBalance ? ((bankTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
                 </div>
-                <div className="text-center">
-                  <p className="text-xs text-purple-400 mb-0.5">AEPS</p>
-                  <p className="text-xs font-bold text-white font-mono">₹{fmt(aepsTotal)}</p>
+                <div className="da-overview-item">
+                  <span className="da-overview-dot" style={{ color: "#a67aff", background: "#a67aff" }} />
+                  <span>AEPS</span><strong>₹{fmt(aepsTotal)}</strong>
+                  <small>{systemBalance ? ((aepsTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small>
                 </div>
               </div>
-              <div className="da-system-line flex justify-between items-center pt-2" style={{ borderTop: "1px solid rgba(212,175,55,0.15)" }}>
-                <span className="text-xs font-bold text-yellow-400">System Balance</span>
-                <span className="text-lg font-bold font-mono text-yellow-400">₹{fmt(systemBalance)}</span>
+              <div className="da-overview-bar" role="img" aria-label={`Cash ${systemBalance ? ((cashTotal / systemBalance) * 100).toFixed(1) : "0"}%, banks ${systemBalance ? ((bankTotal / systemBalance) * 100).toFixed(1) : "0"}%, AEPS ${systemBalance ? ((aepsTotal / systemBalance) * 100).toFixed(1) : "0"}%`}>
+                <span className="cash" style={{ width: `${systemBalance ? (cashTotal / systemBalance) * 100 : 0}%` }} />
+                <span className="banks" style={{ width: `${systemBalance ? (bankTotal / systemBalance) * 100 : 0}%` }} />
+                <span className="aeps" style={{ width: `${systemBalance ? (aepsTotal / systemBalance) * 100 : 0}%` }} />
               </div>
+              <Artwork src="/assets/dailyamount/balance-overview.png" label="Balance overview illustration" icon={<Scale size={18} />} className="da-overview-art" />
             </div>
           </div>
 
           {/* ══ COLUMN 3 — Transactions + Reconciliation ══════════════════ */}
-          <div className="da-column lg:h-full lg:overflow-hidden flex flex-col gap-2.5 lg:gap-3">
+          <div className="da-column">
 
             {/* Transactions card */}
-            <div className="da-panel flex-1 rounded-xl overflow-hidden flex flex-col min-h-0" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
+            <div id="transactions-panel" className="da-panel da-transactions-panel rounded-xl overflow-hidden flex flex-col min-h-0" style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025), 0 8px 22px rgba(1,9,20,0.13)" }}>
               <div className="da-tx-header px-3 py-2 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid rgba(104,143,182,0.2)", background: "linear-gradient(90deg, rgba(19,48,79,0.7), rgba(11,32,56,0.44))" }}>
                 <div className="w-1 h-3.5 rounded-full shrink-0" style={{ background: "#f97316" }} />
                 <h3 className="text-[11px] font-bold text-white tracking-wide flex-1">Transactions</h3>
@@ -1068,6 +1394,35 @@ export default function DailyAmount() {
                     <Plus size={12} /> Add
                   </button>
                 )}
+              </div>
+
+              <div className="da-tx-filterbar da-print-hidden" aria-label="Filter transactions by type">
+                {([
+                  ["all", "All"],
+                  ["income", "Credit"],
+                  ["expense", "Debit"],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`da-tx-filter ${txFilter === value ? "active" : ""}`}
+                    aria-pressed={txFilter === value}
+                    data-testid={`button-tx-filter-${value}`}
+                    onClick={() => setTxFilter(value)}
+                  >
+                    {value === "income" && <span aria-hidden="true" style={{ color: "#41d3a1" }}>●</span>}
+                    {value === "expense" && <span aria-hidden="true" style={{ color: "#fa7584" }}>●</span>}
+                    {label}
+                  </button>
+                ))}
+                <input
+                  className="da-tx-date da-print-hidden"
+                  type="date"
+                  value={date}
+                  aria-label="Transaction date"
+                  data-testid="input-tx-date"
+                  onChange={(e) => { setDate(e.target.value); setEditUnlocked(false); setTxSearch(""); }}
+                />
               </div>
 
               <div className="flex flex-col flex-1 min-h-0 p-2.5 gap-2">
@@ -1256,6 +1611,7 @@ export default function DailyAmount() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

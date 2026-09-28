@@ -7,16 +7,21 @@ import {
   Banknote,
   CalendarDays,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
+  CircleDollarSign,
   Download,
+  FileText,
   Landmark,
   LockKeyhole,
   Plus,
   Printer,
   RefreshCw,
   Search,
+  Scale,
+  Settings,
   Trash2,
   Unlock,
   WalletCards,
@@ -146,6 +151,16 @@ function Metric({
   );
 }
 
+function ImageSlot({ src, label, icon }: { src: string; label: string; icon: React.ReactNode }) {
+  const [unavailable, setUnavailable] = useState(false);
+  return (
+    <div className="da-art" aria-label={label}>
+      {!unavailable ? <img src={src} alt="" onError={() => setUnavailable(true)} /> : null}
+      {unavailable && <div className="da-art-fallback">{icon}<span>{label}</span></div>}
+    </div>
+  );
+}
+
 export function ReferenceRedesign() {
   const [date, setDate] = useState(DEMO_DATE);
   const [records, setRecords] = useState<Record<string, DayRecord>>({
@@ -153,6 +168,7 @@ export function ReferenceRedesign() {
   });
   const [editing, setEditing] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "income" | "expense">("all");
   const [txType, setTxType] = useState<"income" | "expense">("income");
   const [txAmount, setTxAmount] = useState("");
   const [txNote, setTxNote] = useState("");
@@ -179,14 +195,14 @@ export function ReferenceRedesign() {
   const balanced = Math.abs(difference) < 0.01;
   const filteredTransactions = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return transactions;
-    return transactions.filter(
+    return transactions.filter((tx) => filterType === "all" || tx.type === filterType).filter(
       (tx) =>
+        !term ||
         tx.note.toLowerCase().includes(term) ||
         tx.type.includes(term) ||
         String(tx.amount).includes(term),
     );
-  }, [transactions, search]);
+  }, [transactions, search, filterType]);
 
   const updateField = (key: FieldKey, value: number) => {
     if (!editing) return;
@@ -601,13 +617,253 @@ export function ReferenceRedesign() {
           .da-workspace { min-height: 0; }
           .da-actions, .da-form, .da-add-open, .da-delete, .da-stepper { display: none !important; }
         }
+        .da-redesign {
+          --ink: #e8f1fb; --muted: #90a6c1; --line: rgba(97, 148, 204, .24);
+          height: 100dvh; min-height: 100dvh; overflow: hidden; color: var(--ink);
+          background: radial-gradient(ellipse at 75% -30%, rgba(29, 105, 192, .25), transparent 55%),
+            radial-gradient(ellipse at 43% 105%, rgba(18, 153, 131, .08), transparent 45%),
+            linear-gradient(135deg, #050d1d 0%, #08152b 55%, #071126 100%);
+          font-family: "DM Sans", "Trebuchet MS", sans-serif;
+        }
+        .da-shell { height: 100%; max-width: 1920px; padding: 0; display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 0; }
+        .da-sidebar { display: flex; min-height: 0; flex-direction: column; padding: 11px 8px 9px; border-right: 1px solid rgba(112, 157, 204, .2); background: linear-gradient(180deg, rgba(7, 19, 39, .98), rgba(6, 16, 33, .98)); }
+        .da-side-brand { display: flex; align-items: center; justify-content: center; height: 30px; margin-bottom: 14px; color: #f2c653; }
+        .da-side-brand-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; border: 1px solid rgba(244, 192, 68, .32); background: linear-gradient(145deg, #183a61, #122746); box-shadow: 0 0 14px rgba(234, 176, 51, .14); }
+        .da-nav { display: flex; flex-direction: column; gap: 4px; }
+        .da-nav-item { display: flex; align-items: center; gap: 8px; min-height: 31px; padding: 0 8px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #91a7c0; text-align: left; font-size: 9px; cursor: pointer; transition: color .18s, border-color .18s, background .18s, transform .18s; }
+        .da-nav-item:hover { color: #d9e9fb; border-color: rgba(102, 157, 216, .2); background: rgba(41, 91, 145, .16); }
+        .da-nav-item.active { color: #f3ca61; border-color: rgba(240, 189, 63, .4); background: linear-gradient(100deg, rgba(201, 149, 34, .22), rgba(32, 61, 94, .45)); box-shadow: inset 0 0 15px rgba(230, 180, 53, .09), 0 0 12px rgba(225, 176, 52, .08); }
+        .da-nav-item svg { flex: 0 0 auto; }
+        .da-side-art { margin-top: auto; height: 108px; min-height: 60px; overflow: hidden; border: 1px solid rgba(68, 127, 180, .24); border-radius: 9px; background: linear-gradient(155deg, rgba(20, 50, 82, .55), rgba(11, 26, 49, .74)); }
+        .da-side-art .da-art { width: 100%; height: 100%; border: 0; border-radius: 0; }
+        .da-side-foot { padding-top: 7px; color: #607991; font-size: 8px; line-height: 1.45; text-align: center; }
+        .da-main { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 0 10px 9px; }
+        .da-header { min-height: 42px; flex: 0 0 auto; gap: 10px; }
+        .da-brand { gap: 8px; }
+        .da-brand-mark { display: none; }
+        .da-brand-title { font-size: 14px; letter-spacing: -.25px; }
+        .da-brand-title span { color: #f2c75a; }
+        .da-date-nav { border-radius: 7px; background: linear-gradient(130deg, rgba(12, 31, 57, .96), rgba(10, 25, 48, .96)); box-shadow: 0 0 16px rgba(31, 115, 196, .06); }
+        .da-actions { gap: 5px; }
+        .da-action { border-radius: 7px; box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .da-action.primary { color: #1b2638; border-color: rgba(255, 218, 120, .8); background: linear-gradient(135deg, #ffd565, #eaa52c); box-shadow: 0 3px 13px rgba(231, 166, 46, .17); }
+        .da-action.primary:hover { box-shadow: 0 0 17px rgba(241, 181, 63, .3); }
+        .da-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 6px 0 8px; }
+        .da-metric { position: relative; min-height: 55px; overflow: hidden; padding: 7px 8px; border-radius: 8px; }
+        .da-metric::after { content: ""; position: absolute; width: 44px; height: 24px; right: 4px; bottom: 2px; opacity: .38; background: currentColor; clip-path: polygon(0 87%, 22% 57%, 40% 68%, 58% 24%, 74% 46%, 100% 0, 100% 100%, 0 100%); }
+        .da-metric.gold { color: #49ddb3; border-color: rgba(63, 211, 173, .4); background: linear-gradient(120deg, rgba(10, 73, 71, .8), rgba(10, 36, 55, .95)); }
+        .da-metric.green { color: #36b5ff; border-color: rgba(44, 150, 247, .44); background: linear-gradient(120deg, rgba(12, 56, 105, .86), rgba(10, 31, 62, .96)); }
+        .da-metric.blue { color: #b190ff; border-color: rgba(151, 106, 237, .45); background: linear-gradient(120deg, rgba(57, 34, 114, .8), rgba(29, 27, 67, .96)); }
+        .da-metric.violet { color: #ffb44c; border-color: rgba(244, 150, 40, .45); background: linear-gradient(120deg, rgba(112, 62, 15, .74), rgba(54, 35, 28, .96)); }
+        .da-metric.red { color: #ff6d92; border-color: rgba(255, 73, 115, .48); background: linear-gradient(120deg, rgba(98, 29, 62, .72), rgba(45, 24, 52, .96)); }
+        .da-metric.red.good { color: #55d8aa; border-color: rgba(52, 200, 146, .45); background: linear-gradient(120deg, rgba(16, 77, 68, .8), rgba(12, 38, 57, .96)); }
+        .da-metric-icon { z-index: 1; }
+        .da-metric-copy { z-index: 1; }
+        .da-eyebrow { color: #bbcade; font-size: 8px; text-transform: none; }
+        .da-metric strong { font-size: clamp(11px, 1.15vw, 15px); }
+        .da-metric small { font-size: 7px; }
+        .da-workspace { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, .97fr) minmax(0, 1.08fr); gap: 8px; }
+        .da-column { gap: 8px; }
+        .da-card, .da-reconcile { border-color: rgba(80, 132, 190, .34); border-radius: 9px; background: linear-gradient(150deg, rgba(12, 29, 54, .97), rgba(8, 22, 43, .97)); box-shadow: inset 0 1px rgba(255,255,255,.03), 0 7px 20px rgba(0, 5, 15, .19); }
+        .da-card:hover, .da-reconcile:hover { border-color: rgba(105, 166, 226, .45); }
+        .da-card-head { min-height: 37px; padding: 0 9px; border-bottom-color: rgba(100, 151, 202, .17); background: linear-gradient(90deg, rgba(18, 48, 82, .72), rgba(10, 28, 52, .35)); }
+        .da-card-head h2 { font-size: 10px; }
+        .da-card-subtitle { color: #758da8; font-size: 8px; }
+        .da-card-body { padding: 7px 9px; }
+        .da-cash-table { height: 100%; }
+        .da-table-head { grid-template-columns: minmax(62px, .85fr) minmax(100px, 1.2fr) minmax(66px, .85fr); padding: 2px 6px 5px; font-size: 8px; }
+        .da-denom-row { grid-template-columns: minmax(62px, .85fr) minmax(100px, 1.2fr) minmax(66px, .85fr); min-height: 29px; gap: 5px; padding: 2px 5px; }
+        .da-denom-chip { padding: 3px 6px; font-size: 9px; }
+        .da-stepper { width: 20px; height: 20px; }
+        .da-count-input { height: 21px; }
+        .da-cash-result { font-size: 9px; }
+        .da-cash-total { padding-top: 6px; }
+        .da-total-band { padding: 7px 8px; border-color: rgba(45, 211, 155, .38); background: linear-gradient(100deg, rgba(12, 98, 79, .32), rgba(9, 58, 62, .25)); box-shadow: 0 0 12px rgba(33, 208, 153, .06); }
+        .da-total-band strong { font-size: 14px; }
+        .da-account-card { flex: 0 0 auto; }
+        .da-account-card .da-card-head { min-height: 34px; }
+        .da-account-card .da-card-body { padding: 4px 8px 6px; }
+        .da-account-line { min-height: 23px; grid-template-columns: minmax(0, 1fr) minmax(78px, 39%); gap: 6px; }
+        .da-account-name { gap: 5px; font-size: 9px; }
+        .da-bank-glyph { width: 17px; height: 17px; flex-basis: 17px; }
+        .da-amount-input { height: 20px; font-size: 9px !important; }
+        .da-section-total { padding-top: 4px; }
+        .da-section-total span { font-size: 9px; }
+        .da-section-total strong { font-size: 11px; }
+        .da-mid-total { position: relative; flex: 1 1 auto; min-height: 90px; padding: 8px 9px; border-color: rgba(236, 187, 65, .36); background: linear-gradient(120deg, rgba(85, 63, 22, .3), rgba(17, 36, 57, .82)); overflow: hidden; }
+        .da-mid-total::after { content: ""; position: absolute; inset: auto 0 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(242, 187, 60, .65), transparent); }
+        .da-mid-components span { color: #9bb0c6; font-size: 8px; }
+        .da-mid-components strong { font-size: 9px; }
+        .da-mid-components small { display: block; margin-top: 2px; color: #7089a4; font-size: 7px; }
+        .da-system-line strong { font-size: 14px; }
+        .da-mid-label { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; color: #f1ca62; font-size: 9px; font-weight: 700; }
+        .da-breakdown { display: flex; height: 5px; gap: 2px; overflow: hidden; margin: 5px 0 7px; border-radius: 8px; background: rgba(255,255,255,.06); }
+        .da-breakdown span { min-width: 2px; border-radius: 6px; transition: width .2s ease; }
+        .da-breakdown .cash-segment { background: #2bc9a0; }
+        .da-breakdown .bank-segment { background: #398ff2; }
+        .da-breakdown .aeps-segment { background: #9c74ed; }
+        .da-art { position: relative; display: grid; place-items: center; min-width: 0; overflow: hidden; border: 1px solid rgba(100, 158, 213, .2); border-radius: 7px; background: radial-gradient(ellipse at 50% 100%, rgba(30, 121, 193, .18), rgba(16, 40, 70, .2) 70%); }
+        .da-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .da-art-fallback { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(112, 180, 238, .52); }
+        .da-art-fallback span { color: #6b88a5; font-size: 7px; }
+        .da-side-art .da-art-fallback svg { width: 24px; height: 24px; color: #d6a746; }
+        .da-head-art { width: 39px; height: 29px; margin-left: auto; border: 0; background: transparent; }
+        .da-head-art .da-art-fallback span { display: none; }
+        .da-head-art .da-art-fallback svg { width: 25px; height: 25px; }
+        .da-account-card .da-card-head > .da-art { width: 38px; height: 28px; margin-left: 2px; border: 0; background: transparent; }
+        .da-account-card .da-card-head > .da-art .da-art-fallback span { display: none; }
+        .da-account-card .da-card-head > .da-art .da-art-fallback svg { width: 24px; height: 24px; }
+        .da-mid-total > .da-art { position: absolute; top: 8px; right: 8px; width: 38px; height: 34px; border: 0; opacity: .42; pointer-events: none; }
+        .da-mid-total > .da-art .da-art-fallback span { display: none; }
+        .da-cash-total .da-art { width: 34px; height: 26px; border: 0; background: transparent; }
+        .da-cash-total .da-art .da-art-fallback span { display: none; }
+        .da-cash-total .da-art .da-art-fallback svg { width: 20px; height: 20px; color: #4bd5b0; }
+        .da-cash-total .da-total-band { gap: 5px; }
+        .da-transactions-head { gap: 6px; }
+        .da-transactions-head .da-search-wrap { display: none; }
+        .da-tx-toolbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-bottom: 1px solid rgba(104, 141, 177, .12); }
+        .da-filter-group { display: flex; gap: 3px; }
+        .da-filter { height: 22px; padding: 0 7px; border: 1px solid rgba(101, 140, 178, .23); border-radius: 6px; background: rgba(13, 33, 58, .8); color: #8ca3bc; font-size: 8px; cursor: pointer; transition: .16s; }
+        .da-filter:hover { border-color: rgba(112, 180, 238, .46); color: #e4eef8; }
+        .da-filter.active { color: #f3c956; border-color: rgba(243, 195, 75, .4); background: rgba(178, 128, 26, .18); }
+        .da-tx-toolbar .da-search-wrap { min-width: 70px; }
+        .da-tx-toolbar .da-search { height: 23px; padding-left: 25px; font-size: 8px !important; }
+        .da-tx-toolbar .da-date-input { flex: 0 0 98px; width: 98px; font-size: 8px !important; }
+        .da-tx-totals { margin-left: auto; font-size: 8px; gap: 5px; }
+        .da-tx-row { min-height: 35px; padding: 3px 5px; }
+        .da-tx-symbol { width: 22px; height: 22px; flex-basis: 22px; }
+        .da-tx-meta strong { font-size: 9px; }
+        .da-tx-meta span { font-size: 8px; margin-top: 2px; }
+        .da-tx-value { font-size: 9px; }
+        .da-tx-list { min-height: 80px; padding: 4px 6px; }
+        .da-tx-row:hover { background: rgba(44, 103, 158, .17); }
+        .da-locked-hint { padding: 6px 9px; font-size: 8px; }
+        .da-reconcile { flex: 0 0 auto; border-color: rgba(231, 177, 50, .5); background: linear-gradient(120deg, rgba(77, 57, 23, .88), rgba(31, 38, 52, .96)); box-shadow: 0 0 20px rgba(221, 162, 35, .1), inset 0 1px rgba(255,255,255,.04); }
+        .da-reconcile-title { padding: 6px 9px; font-size: 9px; }
+        .da-reconcile-title svg { color: #ffce54; }
+        .da-reconcile-values { grid-template-columns: 1fr 1fr; }
+        .da-reconcile-value { padding: 6px 8px; }
+        .da-reconcile-value span { font-size: 8px; }
+        .da-reconcile-value strong { font-size: 11px; }
+        .da-reconcile-value small { font-size: 7px; }
+        .da-difference { padding: 6px 8px; background: rgba(173, 42, 74, .21); }
+        .da-difference.good { background: rgba(17, 131, 88, .2); }
+        .da-diff-label { font-size: 8px; }
+        .da-diff-amount { font-size: 13px; }
+        .da-status { padding: 4px 6px; font-size: 8px; }
+        @media (min-width: 1400px) {
+          .da-shell { grid-template-columns: 154px minmax(0, 1fr); }
+          .da-sidebar { padding: 17px 12px 12px; }
+          .da-nav-item { min-height: 39px; font-size: 11px; }
+          .da-main { padding: 0 18px 14px; }
+          .da-header { min-height: 52px; }
+          .da-metrics { gap: 11px; padding: 10px 0 12px; }
+          .da-metric { min-height: 70px; }
+          .da-workspace { gap: 12px; }
+          .da-column { gap: 12px; }
+          .da-denom-row { min-height: 38px; }
+          .da-account-line { min-height: 31px; }
+          .da-tx-row { min-height: 45px; }
+        }
+        @media (max-height: 520px) and (min-width: 721px) {
+          .da-side-art { height: 54px; }
+          .da-side-foot { padding-top: 3px; font-size: 7px; }
+          .da-side-brand { margin-bottom: 8px; }
+          .da-nav-item { min-height: 27px; }
+          .da-header { min-height: 36px; }
+          .da-metrics { padding: 4px 0 6px; }
+          .da-metric { min-height: 47px; padding: 5px 6px; }
+          .da-metric-icon { width: 24px; height: 24px; flex-basis: 24px; }
+          .da-workspace, .da-column { gap: 5px; }
+          .da-card-head { min-height: 29px; }
+          .da-card-subtitle { display: none; }
+          .da-denom-row { min-height: 25px; }
+          .da-account-card .da-card-head { min-height: 25px; }
+          .da-account-card .da-card-body { padding: 1px 7px 3px; }
+          .da-account-line { min-height: 16px; }
+          .da-section-total { padding-top: 1px; }
+          .da-amount-input { height: 17px; }
+          .da-tx-toolbar { padding: 4px 6px; }
+          .da-tx-row { min-height: 29px; }
+          .da-reconcile-title, .da-reconcile-value, .da-difference { padding-top: 4px; padding-bottom: 4px; }
+          .da-mid-total { min-height: 76px; padding: 5px 7px; }
+        }
+        @media (max-width: 720px) {
+          .da-redesign { height: auto; min-height: 100dvh; overflow: visible; }
+          .da-shell { height: auto; min-height: 100dvh; display: flex; flex-direction: column; }
+          .da-sidebar { min-height: 0; flex-direction: row; align-items: center; gap: 8px; padding: 7px 9px; border-right: 0; border-bottom: 1px solid rgba(112, 157, 204, .2); overflow-x: auto; }
+          .da-side-brand { flex: 0 0 28px; height: 28px; margin: 0; }
+          .da-side-art, .da-side-foot { display: none; }
+          .da-nav { flex-direction: row; gap: 4px; }
+          .da-nav-item { min-height: 30px; padding: 0 8px; white-space: nowrap; }
+          .da-nav-item span { display: none; }
+          .da-main { min-height: 0; padding: 0 10px 14px; }
+          .da-header { min-height: 44px; flex-wrap: wrap; padding: 7px 0; }
+          .da-brand-title { font-size: 12px; }
+          .da-date-nav { order: 3; }
+          .da-header-spacer { display: none; }
+          .da-actions { margin-left: auto; }
+          .da-action { width: 30px; padding: 0; font-size: 0; gap: 0; }
+          .da-action.primary { width: auto; padding: 0 8px; font-size: 9px; gap: 4px; }
+          .da-action.editing { width: auto; padding: 0 8px; font-size: 9px; gap: 4px; }
+          .da-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .da-metric:last-child { grid-column: 1 / -1; }
+          .da-workspace { display: flex; flex-direction: column; min-height: 0; }
+          .da-column { min-height: 0 !important; }
+          .da-card.cash-card { min-height: 0; }
+          .da-cash-table { height: auto; }
+          .da-account-line { min-height: 32px; grid-template-columns: minmax(0, 1fr) minmax(110px, 42%); }
+          .da-card.tx-card { min-height: 380px; }
+          .da-tx-list { min-height: 120px; }
+          .da-tx-toolbar { flex-wrap: wrap; }
+          .da-tx-toolbar .da-search-wrap { flex: 1 1 120px; }
+          .da-tx-toolbar .da-date-input { flex-basis: 112px; }
+        }
+        @media (max-width: 390px) {
+          .da-nav-item { padding: 0 6px; }
+          .da-nav-item span { display: none; }
+          .da-metric { gap: 6px; padding: 6px; }
+          .da-metric-icon { width: 25px; height: 25px; flex-basis: 25px; }
+          .da-tx-totals { display: none; }
+        }
       `}</style>
       <div className="da-shell">
         <span className="sr-only" role="status">{notice}</span>
+        <aside className="da-sidebar" aria-label="Primary navigation">
+          <div className="da-side-brand"><span className="da-side-brand-mark"><CircleDollarSign size={17} /></span></div>
+          <nav className="da-nav">
+            {[
+              { label: "Dashboard", icon: <WalletCards size={14} />, target: "top" },
+              { label: "Cash Counting", icon: <Banknote size={14} />, target: "cash-panel" },
+              { label: "Bank Balances", icon: <Landmark size={14} />, target: "bank-panel" },
+              { label: "AEPS Wallet", icon: <WalletCards size={14} />, target: "aeps-panel" },
+              { label: "Transactions", icon: <ArrowUpRight size={14} />, target: "transactions-panel" },
+              { label: "Reports", icon: <FileText size={14} />, target: "reports" },
+              { label: "Settings", icon: <Settings size={14} />, target: "settings" },
+            ].map((item, index) => (
+              <button
+                key={item.label}
+                className={`da-nav-item ${index === 0 ? "active" : ""}`}
+                onClick={() => {
+                  if (item.target === "reports" || item.target === "settings") setNotice(`${item.label} is available in the full application`);
+                  else document.getElementById(item.target)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }}
+                title={item.label}
+              >
+                {item.icon}<span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="da-side-art">
+            <ImageSlot src="/assets/dailyamount/sidebar-finance.png" label="Closeout" icon={<Banknote size={25} />} />
+          </div>
+          <div className="da-side-foot">Daily closeout<br />Stay organized</div>
+        </aside>
+        <div className="da-main" id="top">
         <header className="da-header">
           <div className="da-brand">
             <div className="da-brand-mark"><Banknote size={17} /></div>
-            <div className="da-brand-title">Daily Reconciliation</div>
+            <div className="da-brand-title">Daily <span>Reconciliation</span></div>
           </div>
           <div className="da-date-nav" aria-label="Choose reconciliation date">
             <button className="da-icon-button" onClick={() => shiftDate(-1)} aria-label="Previous day"><ChevronLeft size={16} /></button>
@@ -617,12 +873,12 @@ export function ReferenceRedesign() {
           </div>
           <div className="da-header-spacer" />
           <div className="da-actions">
-            <button className="da-action da-icon-only" onClick={resetDemo} title="Refresh sample data" aria-label="Refresh sample data"><RefreshCw size={13} /></button>
+            <button className="da-action" onClick={resetDemo} title="Refresh sample data" aria-label="Refresh sample data"><RefreshCw size={13} /> Refresh</button>
             <button className={`da-action ${editing ? "editing" : ""}`} onClick={() => { setEditing((current) => !current); setNotice(editing ? "Editing locked" : "Editing enabled"); }}>
               {editing ? <><Unlock size={12} /> Editing</> : <><LockKeyhole size={12} /> Edit</>}
             </button>
-            <button className="da-action da-icon-only" onClick={() => window.print()} title="Print reconciliation" aria-label="Print reconciliation"><Printer size={13} /></button>
-            <button className="da-action primary" onClick={exportCsv} title="Export as CSV"><Download size={13} /> Export</button>
+            <button className="da-action" onClick={() => window.print()} title="Print reconciliation"><Printer size={13} /> Print</button>
+            <button className="da-action primary" onClick={exportCsv} title="Export as CSV"><Download size={13} /> Export <ChevronDown size={11} /></button>
           </div>
         </header>
 
@@ -635,19 +891,18 @@ export function ReferenceRedesign() {
               </div>
             ) : undefined}
           </Metric>
-          <Metric label="Cash total" value={`₹${money(cashTotal)}`} icon={<Banknote size={17} />} tone="green" sub="Counted notes + coins" />
-          <Metric label="Bank total" value={`₹${money(bankTotal)}`} icon={<Landmark size={17} />} tone="blue" sub="6 accounts" />
-          <Metric label="AEPS wallet" value={`₹${money(aepsTotal)}`} icon={<WalletCards size={17} />} tone="violet" sub="4 sources" />
-          <Metric label="Expected balance" value={`₹${money(expectedBalance)}`} icon={<CircleCheck size={17} />} tone="orange" sub="Opening + net transactions" />
+          <Metric label="Cash total" value={`₹${money(cashTotal)}`} icon={<Banknote size={17} />} tone="green" sub="Notes + coins" />
+          <Metric label="Bank total" value={`₹${money(bankTotal)}`} icon={<Landmark size={17} />} tone="blue" sub={`${bankAccounts.length} accounts`} />
+          <Metric label="AEPS wallet" value={`₹${money(aepsTotal)}`} icon={<WalletCards size={17} />} tone="violet" sub={`${walletAccounts.length} sources`} />
           <Metric label="Difference" value={`${difference >= 0 ? "+" : "−"}₹${money(Math.abs(difference))}`} icon={balanced ? <Check size={18} /> : <AlertTriangle size={17} />} tone={`red ${balanced ? "good" : ""}`} sub={balanced ? "Accounts agree" : "Needs review"} />
         </section>
 
         <main className="da-workspace">
           <section className="da-column">
-            <article className="da-card cash-card">
+            <article className="da-card cash-card" id="cash-panel">
               <div className="da-card-head">
                 <span className="da-section-icon"><Banknote size={17} /></span>
-                <h2>Cash counting</h2>
+                <div><h2>Cash counting</h2><div className="da-card-subtitle">Enter denomination counts for today</div></div>
                 <span className="da-head-spacer" />
                 {editing && <button className="da-subtle-button" onClick={() => {
                   const cleared = { ...fields, notes10: 0, notes20: 0, notes50: 0, notes100: 0, notes200: 0, notes500: 0, coins: 0 };
@@ -684,19 +939,20 @@ export function ReferenceRedesign() {
                   <span className="da-cash-result">₹{money(fields.coins)}</span>
                 </div>
                 <div className="da-cash-total">
-                  <div className="da-total-band"><span>Cash total</span><strong>₹{money(cashTotal)}</strong></div>
+                  <div className="da-total-band"><span>Cash total</span><ImageSlot src="/assets/dailyamount/cash-illustration.png" label="Cash" icon={<Banknote size={20} />} /><strong>₹{money(cashTotal)}</strong></div>
                 </div>
               </div>
             </article>
           </section>
 
           <section className="da-column">
-            <article className="da-card da-account-card">
+            <article className="da-card da-account-card" id="bank-panel">
               <div className="da-card-head">
                 <span className="da-section-icon" style={{ color: "#7db6ea" }}><Landmark size={16} /></span>
                 <h2>Bank balances</h2>
                 <span className="da-head-spacer" />
-                <span className="da-count">6 accounts</span>
+                <span className="da-count">₹{money(bankTotal)}</span>
+                <ImageSlot src="/assets/dailyamount/bank-illustration.png" label="Bank" icon={<Landmark size={23} />} />
               </div>
               <div className="da-card-body">
                 {bankAccounts.map((account) => (
@@ -709,12 +965,13 @@ export function ReferenceRedesign() {
               </div>
             </article>
 
-            <article className="da-card da-account-card wallet-card">
+            <article className="da-card da-account-card wallet-card" id="aeps-panel">
               <div className="da-card-head">
                 <span className="da-section-icon" style={{ color: "#c09af2" }}><WalletCards size={16} /></span>
                 <h2>AEPS wallet</h2>
                 <span className="da-head-spacer" />
-                <span className="da-count">4 sources</span>
+                <span className="da-count">₹{money(aepsTotal)}</span>
+                <ImageSlot src="/assets/dailyamount/aeps-illustration.png" label="AEPS" icon={<WalletCards size={23} />} />
               </div>
               <div className="da-card-body">
                 {walletAccounts.map((account) => (
@@ -728,25 +985,48 @@ export function ReferenceRedesign() {
             </article>
 
             <div className="da-mid-total">
+              <div className="da-mid-label"><Landmark size={12} /> Balance overview</div>
               <div className="da-mid-components">
-                <div><span>Cash</span><strong>₹{money(cashTotal)}</strong></div>
-                <div><span>Banks</span><strong>₹{money(bankTotal)}</strong></div>
-                <div><span>AEPS</span><strong>₹{money(aepsTotal)}</strong></div>
+                <div><span>Cash</span><strong>₹{money(cashTotal)}</strong><small>{systemBalance ? ((cashTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small></div>
+                <div><span>Banks</span><strong>₹{money(bankTotal)}</strong><small>{systemBalance ? ((bankTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small></div>
+                <div><span>AEPS</span><strong>₹{money(aepsTotal)}</strong><small>{systemBalance ? ((aepsTotal / systemBalance) * 100).toFixed(1) : "0.0"}%</small></div>
+              </div>
+              <div className="da-breakdown" aria-label={`Balance distribution: cash ${cashTotal}, banks ${bankTotal}, AEPS ${aepsTotal}`}>
+                <span className="cash-segment" style={{ width: `${systemBalance ? (cashTotal / systemBalance) * 100 : 0}%` }} />
+                <span className="bank-segment" style={{ width: `${systemBalance ? (bankTotal / systemBalance) * 100 : 0}%` }} />
+                <span className="aeps-segment" style={{ width: `${systemBalance ? (aepsTotal / systemBalance) * 100 : 0}%` }} />
               </div>
               <div className="da-system-line"><span><Landmark size={14} /> System balance</span><strong>₹{money(systemBalance)}</strong></div>
+              <ImageSlot src="/assets/dailyamount/balance-overview.png" label="Balance mix" icon={<CircleCheck size={24} />} />
             </div>
           </section>
 
           <section className="da-column">
-            <article className="da-card tx-card">
+            <article className="da-card tx-card" id="transactions-panel">
               <div className="da-card-head da-transactions-head">
                 <span className="da-section-icon" style={{ color: "#75dfbd" }}><ArrowUpRight size={17} /></span>
                 <h2>Transactions</h2>
+                <span className="da-head-spacer" />
+                <div className="da-tx-totals"><span className="da-income">+₹{money(incomeTotal)}</span><span className="da-expense">−₹{money(expenseTotal)}</span></div>
                 <div className="da-search-wrap da-header-search">
                   <Search size={13} className="da-search-icon" />
                   <input className="da-input da-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search description, amount..." aria-label="Search transactions" />
                 </div>
                 {editing && <button className="da-add-open da-header-add" onClick={() => { setFormError(""); document.getElementById("da-new-tx-amount")?.focus(); }}><Plus size={13} /> Add</button>}
+              </div>
+              <div className="da-tx-toolbar">
+                <div className="da-filter-group" aria-label="Filter transaction type">
+                  {(["all", "income", "expense"] as const).map((type) => (
+                    <button key={type} className={`da-filter ${filterType === type ? "active" : ""}`} onClick={() => setFilterType(type)}>
+                      {type === "all" ? "All" : type === "income" ? "Credit" : "Debit"}
+                    </button>
+                  ))}
+                </div>
+                <div className="da-search-wrap">
+                  <Search size={11} className="da-search-icon" />
+                  <input className="da-input da-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search transactions…" aria-label="Search transactions" />
+                </div>
+                <input className="da-input da-date-input" type="date" value={date} onChange={(event) => chooseDate(event.target.value)} aria-label="Filter transactions by date" />
               </div>
               {editing ? (
                 <form className="da-form" onSubmit={(event) => { event.preventDefault(); addTransaction(); }}>
@@ -781,18 +1061,19 @@ export function ReferenceRedesign() {
             </article>
 
             <article className="da-reconcile">
-              <div className="da-reconcile-title"><CircleCheck size={14} /> Reconciliation</div>
+              <div className="da-reconcile-title"><Scale size={14} /> Final balance reconciliation</div>
               <div className="da-reconcile-values">
+                <div className="da-reconcile-value"><span>System balance</span><strong style={{ color: "#f4ca58" }}>₹{money(systemBalance)}</strong><small>Cash + banks + AEPS</small></div>
                 <div className="da-reconcile-value"><span>Expected balance</span><strong>₹{money(expectedBalance)}</strong><small>Opening + income − expense</small></div>
-                <div className="da-reconcile-value"><span>System balance</span><strong style={{ color: "#efca62" }}>₹{money(systemBalance)}</strong><small>Cash + banks + AEPS</small></div>
               </div>
               <div className={`da-difference ${balanced ? "good" : ""}`}>
                 <div><span className="da-diff-label">Difference</span><strong className="da-diff-amount">{difference >= 0 ? "+" : "−"}₹{money(Math.abs(difference))}</strong></div>
-                <span className="da-status">{balanced ? <Check size={12} /> : <AlertTriangle size={12} />}{balanced ? "BALANCED" : "MISMATCH"}</span>
+                <span className="da-status">{balanced ? <Check size={12} /> : <AlertTriangle size={12} />}{balanced ? "BALANCED" : "MISMATCH — REVIEW"}</span>
               </div>
             </article>
           </section>
         </main>
+        </div>
       </div>
     </div>
   );
