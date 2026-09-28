@@ -1638,6 +1638,150 @@ export default function DailyAmount() {
           .da-account-input { width: 78px; height: 14px !important; min-height: 14px !important; padding: 1px 3px !important; font-size: 8px !important; line-height: 1 !important; }
           .da-section-total { padding-top: 1px; margin-top: 1px; }
         }
+
+        /* Final reference polish: keep the navy foundation, add brighter glass surfaces and clearer accent lighting. */
+        @media screen {
+          .da-nav-item { transition: color .18s, background .18s, border-color .18s, box-shadow .18s, transform .18s; }
+          .da-nav-item:hover { transform: translateX(2px); border-color: rgba(120, 183, 245, .34); background: linear-gradient(100deg, rgba(44, 95, 151, .28), rgba(20, 54, 94, .18)); box-shadow: inset 0 1px rgba(255,255,255,.04), 0 0 16px rgba(47, 133, 226, .12); }
+          .da-nav-item.active { border-color: rgba(250, 204, 92, .6); background: linear-gradient(105deg, rgba(219, 163, 42, .34), rgba(36, 78, 127, .54) 72%, rgba(18, 47, 83, .58)); box-shadow: inset 0 1px rgba(255,255,255,.11), inset 0 0 20px rgba(245, 188, 57, .13), 0 0 20px rgba(232, 170, 47, .2), 0 0 34px rgba(46, 126, 213, .1); }
+
+          .da-metric { border-width: 1px; box-shadow: inset 0 1px rgba(255,255,255,.16), inset 0 -1px rgba(0,0,0,.18), 0 9px 24px rgba(0,4,14,.24), 0 0 24px var(--metric-glow, rgba(25,220,170,.2)), 0 0 42px color-mix(in srgb, var(--metric-glow, rgba(25,220,170,.2)) 58%, transparent); }
+          .da-metric::before { opacity: .95; background: radial-gradient(ellipse at 8% 0%, rgba(255,255,255,.12), transparent 52%), radial-gradient(ellipse at 100% 100%, color-mix(in srgb, currentColor 34%, transparent), transparent 67%); }
+          .da-metric::after { display: block; opacity: .18; }
+          .da-metric-sparkline { opacity: .98; filter: drop-shadow(0 0 5px currentColor); }
+          .da-metric-icon { border-color: rgba(255,255,255,.36); box-shadow: 0 0 18px currentColor, inset 0 1px rgba(255,255,255,.42), inset 0 -7px 14px rgba(0,0,0,.12); }
+
+          .da-panel {
+            border-color: rgba(111, 176, 239, .42) !important;
+            background: radial-gradient(ellipse at 12% 0%, rgba(59, 132, 207, .12), transparent 44%), linear-gradient(145deg, rgba(15, 37, 68, .985), rgba(8, 22, 44, .99) 70%) !important;
+            box-shadow: inset 0 1px rgba(255,255,255,.09), inset 0 -1px rgba(0,0,0,.2), 0 9px 25px rgba(0,5,16,.26), 0 0 18px rgba(51, 137, 224, .12), 0 0 35px rgba(51, 137, 224, .055) !important;
+          }
+          #cash-panel { border-color: rgba(47, 224, 177, .56) !important; background: radial-gradient(ellipse at 5% 0%, rgba(42, 220, 168, .2), transparent 49%), radial-gradient(ellipse at 95% 100%, rgba(26, 158, 190, .12), transparent 53%), linear-gradient(145deg, #0d2c3a, #081b32 76%) !important; box-shadow: inset 0 1px rgba(255,255,255,.11), 0 0 18px rgba(22, 202, 155, .2), 0 0 38px rgba(22, 202, 155, .09) !important; }
+          #bank-panel { border-color: rgba(75, 160, 255, .56) !important; background: radial-gradient(ellipse at 3% 0%, rgba(48, 137, 255, .2), transparent 50%), radial-gradient(ellipse at 100% 100%, rgba(27, 103, 206, .12), transparent 55%), linear-gradient(145deg, #102a4d, #091a34 76%) !important; box-shadow: inset 0 1px rgba(255,255,255,.1), 0 0 19px rgba(43, 135, 255, .2), 0 0 39px rgba(43, 135, 255, .09) !important; }
+          #aeps-panel { border-color: rgba(183, 121, 255, .6) !important; background: radial-gradient(ellipse at 4% 0%, rgba(157, 79, 255, .24), transparent 53%), radial-gradient(ellipse at 100% 100%, rgba(107, 57, 203, .18), transparent 56%), linear-gradient(145deg, #28174b, #11152f 78%) !important; box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 20px rgba(145, 74, 255, .22), 0 0 40px rgba(145, 74, 255, .1) !important; }
+          #transactions-panel { border-color: rgba(56, 213, 233, .5) !important; background: radial-gradient(ellipse at 2% 0%, rgba(37, 198, 221, .16), transparent 48%), linear-gradient(145deg, #102b48, #091b35 75%) !important; box-shadow: inset 0 1px rgba(255,255,255,.1), 0 0 19px rgba(26, 191, 218, .18), 0 0 38px rgba(26, 191, 218, .075) !important; }
+          .da-card-head, .da-tx-header { border-bottom-color: rgba(141, 190, 237, .27) !important; box-shadow: inset 0 1px rgba(255,255,255,.08); }
+          #cash-panel > .da-card-head { background: linear-gradient(90deg, rgba(15, 116, 91, .72), rgba(9, 48, 58, .64)) !important; }
+          #bank-panel > .da-card-head { background: linear-gradient(90deg, rgba(24, 86, 155, .76), rgba(13, 38, 70, .68)) !important; }
+          #aeps-panel > .da-card-head { background: linear-gradient(90deg, rgba(94, 47, 156, .82), rgba(39, 28, 82, .72)) !important; }
+          #transactions-panel > .da-tx-header { background: linear-gradient(90deg, rgba(13, 101, 126, .72), rgba(11, 39, 70, .64)) !important; }
+
+          .da-denom-row { transition: background .18s, box-shadow .18s; }
+          .da-denom-row:hover { background: linear-gradient(90deg, rgba(27, 122, 123, .19), rgba(27, 92, 139, .08)); box-shadow: inset 2px 0 rgba(61, 222, 184, .64), 0 0 13px rgba(35, 174, 170, .09); }
+          .da-denom-row .da-stepper { border-color: rgba(93, 177, 239, .44); background: linear-gradient(145deg, rgba(31, 73, 111, .98), rgba(11, 36, 65, .98)); box-shadow: inset 0 1px rgba(255,255,255,.1), 0 2px 8px rgba(0,0,0,.14); }
+          .da-denom-row .da-count-input { border-color: rgba(91, 160, 218, .58) !important; background: linear-gradient(180deg, rgba(5, 20, 39, .94), rgba(7, 17, 34, .94)); }
+          .da-cash-total-band { border-color: rgba(58, 245, 188, .58) !important; background: linear-gradient(105deg, rgba(11, 125, 92, .82), rgba(7, 83, 86, .76), rgba(5, 49, 66, .75)) !important; box-shadow: inset 0 1px rgba(255,255,255,.15), 0 0 20px rgba(24, 221, 166, .23), 0 0 39px rgba(24, 221, 166, .1); }
+
+          .da-account-row { border-bottom-color: rgba(134, 177, 221, .2); }
+          .da-account-row:nth-of-type(odd) { background: rgba(55, 109, 165, .09); }
+          #aeps-panel .da-account-row:nth-of-type(odd) { background: rgba(151, 90, 224, .1); }
+          #bank-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06)); box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16); }
+          #aeps-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(133, 77, 214, .25), rgba(133, 77, 214, .06)); box-shadow: inset 2px 0 rgba(196, 139, 255, .75), 0 0 15px rgba(154, 86, 255, .17); }
+          .da-total-badge { border-color: rgba(105, 183, 255, .46); background: linear-gradient(135deg, rgba(25, 85, 145, .82), rgba(13, 43, 83, .86)); box-shadow: inset 0 1px rgba(255,255,255,.09), 0 0 16px rgba(44, 132, 231, .18); }
+          .da-aeps-total-badge { border-color: rgba(194, 142, 255, .56); background: linear-gradient(135deg, rgba(119, 61, 190, .86), rgba(55, 35, 105, .9)); box-shadow: 0 0 16px rgba(151, 75, 238, .22); }
+
+          .da-tx-filter { border-color: rgba(118, 171, 208, .3); background: linear-gradient(145deg, rgba(16, 47, 73, .8), rgba(9, 28, 50, .82)); }
+          .da-tx-filter.active { border-color: rgba(255, 206, 83, .66); background: linear-gradient(135deg, rgba(180, 125, 28, .42), rgba(65, 54, 29, .4)); box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 15px rgba(244, 183, 58, .2); }
+          .da-tx-search, .da-tx-date { border-color: rgba(103, 177, 211, .36); background: linear-gradient(145deg, rgba(7, 29, 51, .92), rgba(6, 20, 39, .94)); }
+          .da-tx-item { border-color: rgba(113, 172, 214, .2); box-shadow: inset 0 1px rgba(255,255,255,.035), 0 3px 10px rgba(0,0,0,.12); }
+          .da-tx-item[data-type="income"] { background: linear-gradient(100deg, rgba(8, 67, 61, .68), rgba(8, 31, 49, .84)) !important; }
+          .da-tx-item[data-type="expense"] { background: linear-gradient(100deg, rgba(75, 28, 53, .67), rgba(35, 22, 47, .84)) !important; }
+          .da-tx-item[data-type="income"]:hover { box-shadow: 0 0 17px rgba(39, 215, 163, .17); }
+          .da-tx-item[data-type="expense"]:hover { box-shadow: 0 0 17px rgba(244, 73, 112, .17); }
+          .da-tx-empty-icon { border-color: rgba(75, 211, 230, .38); background: linear-gradient(145deg, rgba(24, 129, 150, .4), rgba(14, 45, 78, .58)); box-shadow: 0 0 24px rgba(48, 182, 205, .18), inset 0 1px rgba(255,255,255,.1); }
+
+          .da-reconciliation-card { border-color: rgba(252, 195, 84, .62) !important; background: radial-gradient(ellipse at 0% 0%, rgba(219, 150, 43, .24), transparent 58%), linear-gradient(135deg, rgba(87, 58, 21, .9), rgba(31, 31, 43, .98) 64%, rgba(17, 28, 45, .99)) !important; box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 20px rgba(229, 166, 47, .2), 0 0 40px rgba(229, 166, 47, .09) !important; }
+          .da-reconciliation-card.is-balanced { border-color: rgba(65, 234, 169, .62) !important; box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 20px rgba(22, 204, 142, .22), 0 0 40px rgba(22, 204, 142, .1) !important; }
+          .da-reconciliation-card.is-mismatch { border-color: rgba(255, 109, 139, .64) !important; box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 20px rgba(246, 66, 104, .23), 0 0 40px rgba(246, 66, 104, .1) !important; }
+          .da-reconcile-title { background: linear-gradient(90deg, rgba(157, 105, 28, .48), rgba(42, 38, 41, .26)); }
+          .da-reconciliation-card.is-balanced .da-reconcile-title { background: linear-gradient(90deg, rgba(13, 112, 83, .4), rgba(22, 50, 51, .2)); }
+          .da-reconciliation-card.is-mismatch .da-reconcile-title { background: linear-gradient(90deg, rgba(128, 35, 61, .48), rgba(50, 32, 48, .24)); }
+
+          .da-overview { border-color: rgba(240, 178, 70, .5); background: radial-gradient(ellipse at 88% 0%, rgba(241, 161, 43, .18), transparent 49%), linear-gradient(125deg, rgba(14, 34, 62, .99), rgba(8, 21, 42, .99)); box-shadow: inset 0 1px rgba(255,255,255,.09), 0 0 19px rgba(223, 152, 40, .14), 0 0 36px rgba(223, 152, 40, .06); }
+          .da-overview-chart { border-bottom-color: rgba(255, 184, 64, .56); background: linear-gradient(180deg, rgba(248, 166, 48, .13), rgba(30, 64, 83, .03) 76%, transparent); }
+          .da-overview-chart svg path:last-child { filter: drop-shadow(0 0 5px rgba(255, 176, 61, .9)); }
+          .da-overview-donut { box-shadow: 0 0 20px rgba(104, 76, 237, .3), 0 0 34px rgba(45, 140, 223, .17); }
+        }
+
+        @media screen and (min-width: 921px) {
+          .da-column:nth-child(3) { display: contents; }
+          .da-column:nth-child(3) > .da-transactions-panel { grid-column: 3; grid-row: 1; min-height: 0; }
+          .da-column:nth-child(3) > .da-reconciliation-card { grid-column: 3; grid-row: 2; min-height: 0; }
+          .da-reconciliation-card { display: grid; grid-template-rows: 32px minmax(0, 1fr) 34px; min-height: 0; }
+          .da-reconcile-title { grid-row: 1; min-height: 32px; padding: 3px 8px !important; }
+          .da-reconcile-values { grid-row: 2; min-height: 0; }
+          .da-reconcile-values .da-reconcile-value { min-width: 0; padding: 4px 8px !important; }
+          .da-reconcile-value p { line-height: 1.15; }
+          .da-reconcile-value p:first-child { font-size: 9px; }
+          .da-reconcile-value p:nth-child(2) { font-size: 13px; }
+          .da-reconcile-value p:last-child { font-size: 7px; }
+          .da-difference { grid-row: 3; min-height: 34px; padding: 2px 8px; }
+          .da-difference > div:first-child p { line-height: 1.1; }
+          .da-difference-value { font-size: 14px; line-height: 1.05; }
+          .da-status { padding: 3px 7px; font-size: 9px; }
+        }
+
+        @media screen and (min-width: 921px) and (max-width: 1100px) {
+          .da-sidebar { flex-basis: 132px; padding-left: 5px; padding-right: 5px; }
+          .da-nav-item { gap: 7px; padding-right: 6px; padding-left: 6px; font-size: 10px; white-space: nowrap; }
+          .da-nav-item svg { width: 15px; height: 15px; }
+          .da-dashboard-grid { grid-template-columns: minmax(0, .99fr) minmax(0, 1.01fr) minmax(0, 1.08fr); }
+        }
+
+        @media screen and (min-width: 921px) and (max-height: 620px) {
+          .da-main { padding-left: 2px; }
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 86px; }
+          .da-metric { padding: 5px 8px; }
+          .da-metric-icon { width: 46px; height: 50px; flex-basis: 46px; border-radius: 10px; }
+          .da-metric-icon svg { width: 24px; height: 24px; }
+          .da-metric-label { font-size: 10px; }
+          .da-metric-value { font-size: clamp(13px, 1.35vw, 16px); }
+          .da-metric-sub { font-size: 8px; }
+          .da-card-head h3, .da-tx-header h3 { font-size: 10px; }
+          .da-card-subtitle { font-size: 7px; }
+          .da-denom-row { min-height: 27px; gap: 4px; padding: 0 2px; }
+          .da-denom-row .da-stepper { width: 20px; height: 20px; }
+          .da-denom-row .da-count-input { width: 48px; height: 20px; font-size: 9px; }
+          .da-coins-row .da-count-input { width: 56px; }
+          .da-denom-row > div:first-child span { font-size: 9px; }
+          .da-cash-total-band { padding: 5px 7px !important; }
+          .da-cash-total-band span:first-child { font-size: 10px; }
+          .da-cash-total-band > div > span:last-child { font-size: 14px; }
+          .da-account-row { height: 17px !important; min-height: 17px !important; }
+          .da-tx-filterbar { gap: 4px; padding: 4px 6px; }
+          .da-tx-filter { min-height: 20px; padding: 0 6px; font-size: 8px; }
+          .da-tx-date { width: 90px; height: 20px; font-size: 8px; }
+          .da-tx-search { height: 21px; font-size: 8px; }
+          .da-tx-item { min-height: 32px; padding: 4px 5px; }
+          .da-tx-symbol { width: 23px; height: 23px; }
+          .da-tx-description, .da-tx-value { font-size: 9px; }
+          .da-tx-empty-icon { width: 38px; height: 38px; }
+          .da-tx-empty strong { font-size: 10px; }
+          .da-tx-empty small { font-size: 8px; }
+          .da-reconciliation-card { display: grid; grid-template-columns: minmax(0, 2fr) minmax(90px, 1fr); grid-template-rows: 23px minmax(0, 1fr); }
+          .da-reconcile-title { grid-column: 1 / -1; min-height: 23px !important; padding: 2px 6px !important; font-size: 9px !important; }
+          .da-reconcile-values { grid-column: 1; grid-row: 2; min-height: 0; border-bottom: 0 !important; }
+          .da-reconcile-values .da-reconcile-value { display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: 1px 5px !important; }
+          .da-reconcile-value p:first-child { font-size: 8px; }
+          .da-reconcile-value p:nth-child(2) { font-size: 11px; }
+          .da-reconcile-value p:last-child { display: none; }
+          .da-difference { grid-column: 2; grid-row: 2; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 1px 5px !important; border-top: 0 !important; border-left: 1px solid rgba(255,255,255,.1); }
+          .da-difference-value { font-size: 12px; }
+          .da-status { padding: 2px 5px; font-size: 8px; }
+          .da-overview { padding: 4px 6px; }
+          .da-overview { height: 100% !important; }
+          .da-overview-title { margin-bottom: 2px; font-size: 9px; }
+          .da-overview-title svg { width: 14px; height: 14px; }
+          .da-overview-title small { font-size: 7px; }
+          .da-overview-content { min-height: 0; height: calc(100% - 16px); grid-template-columns: minmax(0, 1fr) 46px minmax(84px, 112px); gap: 5px; }
+          .da-overview-donut { width: 46px; height: 46px; flex-basis: 46px; padding: 4px; }
+          .da-overview-donut-hole strong { font-size: 7px; }
+          .da-overview-donut-hole small { font-size: 6px; }
+          .da-overview-breakdown { gap: 3px; }
+          .da-overview-item { grid-template-columns: 6px minmax(14px, 1fr) auto auto; gap: 3px; }
+          .da-overview-dot { width: 6px; height: 6px; }
+          .da-overview-item span:nth-child(2), .da-overview-item small, .da-overview-item strong { font-size: 7px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
