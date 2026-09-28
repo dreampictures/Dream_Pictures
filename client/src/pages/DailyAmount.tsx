@@ -2310,7 +2310,7 @@ export default function DailyAmount() {
           .da-difference-value { font-size: 13px; }
           .da-overview-content { height: auto; grid-template-columns: minmax(0, 1fr) 62px; grid-template-rows: minmax(74px, auto) auto; gap: 8px; }
           .da-overview-chart { grid-column: 1; grid-row: 1; }
-          .da-overview-donut { grid-column: 2; grid-row: 1; }
+          .da-overview-donut { grid-column: 2; grid-row: 1; position: relative; z-index: 2; }
           .da-overview-breakdown { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
           .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
@@ -2397,6 +2397,12 @@ export default function DailyAmount() {
           object-position: right center;
         }
         .da-overview-title { padding-right: 38px; }
+        .da-overview-chart {
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          box-shadow: none;
+        }
         .da-chart-range-control {
           position: absolute;
           z-index: 3;
@@ -2415,6 +2421,18 @@ export default function DailyAmount() {
         }
         .da-overview-content {
           grid-template-columns: minmax(0, 1fr) max-content minmax(130px, 180px);
+        }
+        @media screen and (min-width: 621px) {
+          .da-overview-chart {
+            grid-column: 1 / 3;
+            grid-row: 1;
+          }
+          .da-overview-donut {
+            grid-column: 2;
+            grid-row: 1;
+            position: relative;
+            z-index: 2;
+          }
         }
         .da-overview-breakdown {
           padding-right: clamp(22px, 3vw, 38px);
