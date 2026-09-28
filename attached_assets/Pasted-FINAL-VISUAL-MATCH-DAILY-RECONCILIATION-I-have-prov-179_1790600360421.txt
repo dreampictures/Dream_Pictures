@@ -1,0 +1,1053 @@
+FINAL VISUAL MATCH — DAILY RECONCILIATION
+==========================================
+
+I have provided TWO screenshots with this instruction.
+
+IMAGE 1 = THE TARGET DESIGN / VISUAL REFERENCE
+IMAGE 2 = THE CURRENT DESIGN THAT REPLIT HAS ALREADY BUILT
+
+IMPORTANT:
+
+Do NOT treat Image 1 as general inspiration.
+
+Image 1 is the TARGET UI.
+
+Image 2 is the CURRENT IMPLEMENTATION that you must visually refine.
+
+Your job is to transform the CURRENT implementation (Image 2)
+so that it visually matches the TARGET design (Image 1)
+as closely as possible.
+
+DO NOT rebuild the application from scratch.
+
+DO NOT create a new dashboard.
+
+DO NOT change the existing application architecture.
+
+Modify the existing Daily Reconciliation page.
+
+========================================================
+CORE RULE
+========================================================
+
+IMAGE 1 controls the DESIGN.
+
+IMAGE 2 shows the CURRENT implementation.
+
+The final result should preserve the current application's
+real functionality/data while making the UI visually match Image 1.
+
+Reference image controls:
+
+- overall layout
+- proportions
+- card sizes
+- spacing
+- colors
+- gradients
+- glow
+- borders
+- shadows
+- typography hierarchy
+- icon sizing
+- visual density
+- chart styling
+- donut styling
+- transaction styling
+- reconciliation styling
+- sidebar styling
+- image placement
+
+Existing application controls:
+
+- all values
+- all calculations
+- all data
+- bank names
+- AEPS company names
+- transactions
+- date
+- API
+- database
+- business logic
+- authentication
+- existing functionality
+
+========================================================
+DO NOT CHANGE DATA OR LOGIC
+========================================================
+
+DO NOT change:
+
+- cash calculation
+- cash denomination logic
+- opening balance calculation
+- bank balance logic
+- AEPS balance logic
+- transaction logic
+- expected balance
+- system balance
+- difference calculation
+- date logic
+- refresh
+- print
+- export
+- database
+- API
+- authentication
+
+The reference numbers are ONLY visual examples.
+
+Never hardcode the numbers from Image 1.
+
+If the current application shows ₹500, show ₹500.
+
+If it shows ₹0, show ₹0.
+
+DATA MUST COME FROM THE EXISTING APPLICATION.
+
+========================================================
+IMPORTANT — DO NOT GENERATE IMAGES
+========================================================
+
+ABSOLUTELY DO NOT generate or create any image assets.
+
+Do NOT:
+
+- AI-generate images
+- create stock images
+- use remote images
+- use Unsplash
+- use Pexels
+- use base64 images
+- download random images
+- recreate screenshot illustrations
+- replace missing images with generated images
+
+I will provide the actual image assets separately.
+
+Use only local assets from:
+
+/public/assets/reconciliation/
+
+Expected files:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+reconciliation-illustration.png
+
+If an image does not exist:
+
+reserve the correct space or gracefully hide it.
+
+DO NOT generate a replacement.
+
+========================================================
+1. OVERALL DIFFERENCE BETWEEN CURRENT AND TARGET
+========================================================
+
+The current Replit implementation has the correct basic structure,
+but it is still too flat, too dark and too minimal compared with
+the target.
+
+The target has:
+
+- stronger card gradients
+- stronger accent colors
+- richer glow
+- larger icons
+- stronger visual hierarchy
+- more premium cards
+- more visible decorative waves
+- richer Cash Counting rows
+- richer Bank panel
+- richer AEPS panel
+- stronger Transactions styling
+- larger Balance Overview
+- proper orange area chart
+- proper circular donut chart
+- premium gold System Balance card
+
+Do NOT simply increase the brightness everywhere.
+
+The target uses controlled accent lighting.
+
+========================================================
+2. PAGE BACKGROUND
+========================================================
+
+Target:
+
+deep navy financial dashboard background.
+
+Use layered:
+
+radial-gradient
+linear-gradient
+subtle ambient blue lighting
+
+Do not use a flat solid background.
+
+Keep the page dark.
+
+Add subtle blue ambient glow behind major panels.
+
+========================================================
+3. LEFT SIDEBAR
+========================================================
+
+Match Image 1.
+
+Sidebar:
+
+- dark navy
+- full height
+- slightly lighter than main background
+- subtle right border
+- clean navigation spacing
+
+Navigation:
+
+Dashboard
+Cash Counting
+Bank Balances
+AEPS Wallet
+Transactions
+Reports
+Settings
+
+ACTIVE DASHBOARD:
+
+Target style:
+
+- gold/yellow accent
+- rounded highlighted container
+- gold border
+- subtle gold glow
+- dark gold gradient
+
+Do not make active Dashboard look like a normal button.
+
+Bottom area:
+
+reserve space for:
+
+/assets/reconciliation/sidebar-finance.png
+
+Do not generate the image.
+
+========================================================
+4. TOP HEADER
+========================================================
+
+Match Image 1.
+
+LEFT:
+
+financial icon
+
+Daily Reconciliation
+
+"Daily" = white
+
+"Reconciliation" = gold/yellow
+
+CENTER:
+
+calendar/date navigation
+
+previous
+date
+next
+Today
+
+RIGHT:
+
+Refresh
+Print
+Export
+Edit
+existing actions
+
+Preserve functionality.
+
+Export must have the strong gold/orange appearance from the target.
+
+========================================================
+5. FIVE KPI CARDS
+========================================================
+
+This is a major visual difference.
+
+The target KPI cards are large, colorful and premium.
+
+Current cards need to be visually upgraded.
+
+Cards:
+
+Opening Balance
+Cash Total
+Bank Total
+AEPS Wallet
+Difference
+
+Each card should have:
+
+- large icon tile
+- label
+- large amount
+- secondary status text
+- decorative bottom-right wave
+- accent gradient
+- accent glow
+- illuminated border
+
+========================================================
+OPENING BALANCE
+========================================================
+
+Green/teal.
+
+Icon:
+
+large green rounded square.
+
+Background:
+
+dark green/teal gradient.
+
+Glow:
+
+green.
+
+Bottom wave:
+
+subtle green/cyan.
+
+========================================================
+CASH TOTAL
+========================================================
+
+Blue/cyan.
+
+Icon:
+
+large blue rounded square.
+
+Background:
+
+dark blue gradient.
+
+Glow:
+
+blue/cyan.
+
+Bottom wave:
+
+blue.
+
+========================================================
+BANK TOTAL
+========================================================
+
+Purple/violet.
+
+Icon:
+
+large purple rounded square.
+
+Background:
+
+purple gradient.
+
+Glow:
+
+purple.
+
+Bottom wave:
+
+purple.
+
+========================================================
+AEPS WALLET
+========================================================
+
+Orange/amber.
+
+Icon:
+
+large orange rounded square.
+
+Background:
+
+brown/orange gradient.
+
+Glow:
+
+orange.
+
+Bottom wave:
+
+orange/gold.
+
+========================================================
+DIFFERENCE
+========================================================
+
+Red/pink when mismatch.
+
+Icon:
+
+large balance/scale icon.
+
+Background:
+
+dark red/pink gradient.
+
+Glow:
+
+red/pink.
+
+Bottom wave:
+
+red/pink.
+
+Use existing dynamic difference value and status.
+
+========================================================
+6. KPI WAVE RULE
+========================================================
+
+For this version:
+
+DO NOT implement historical payment logic for these small waves.
+
+They are decorative.
+
+Match the target's:
+
+- shape
+- position
+- opacity
+- gradient
+- glow
+- size
+
+Do not create fake historical data.
+
+Later we will make these graphs data-driven.
+
+========================================================
+7. CASH COUNTING
+========================================================
+
+This is another important visual difference.
+
+The target Cash Counting panel is visually richer than the current one.
+
+Make it look like the target.
+
+Header:
+
+Cash Counting
+
+subtitle:
+
+Enter denomination counts for today
+
+Clear All button
+
+Rows:
+
+₹500
+₹200
+₹100
+₹50
+₹20
+₹10
+Coins
+
+Each row:
+
+colored denomination badge
+minus button
+count input
+plus button
+amount
+
+The target has:
+
+- larger controls
+- stronger borders
+- more visible colored denomination badges
+- better row spacing
+- gold/yellow amount values
+
+Bottom:
+
+large green/cyan glowing Cash Total bar.
+
+Keep the existing cash calculation logic exactly.
+
+========================================================
+8. BANK BALANCES
+========================================================
+
+Match the target.
+
+Header:
+
+Bank icon
+Bank Balances
+Total badge
+
+Rows:
+
+BOB Saving
+BOB Current
+HDFC
+Kotak
+AU
+SBI
+
+Use existing application data.
+
+Do not hardcode balances.
+
+Make rows:
+
+- larger
+- cleaner
+- better separated
+- subtly glowing on hover
+- dark blue gradient
+
+RIGHT SIDE:
+
+reserve space for:
+
+/assets/reconciliation/bank-illustration.png
+
+The target uses a blue bank-building illustration.
+
+Do NOT generate it.
+
+I will provide the image later.
+
+========================================================
+9. AEPS WALLET
+========================================================
+
+Match the target.
+
+Purple/violet card.
+
+Header:
+
+AEPS Wallet
+Total
+
+Rows:
+
+BOB
+Fino
+Payworld
+Digipay
+
+Use existing application data.
+
+RIGHT SIDE:
+
+reserve:
+
+/assets/reconciliation/aeps-illustration.png
+
+Do NOT generate image.
+
+========================================================
+10. TRANSACTIONS
+========================================================
+
+Match the target transaction feed.
+
+Header:
+
+Transactions
+View All
+
+Filters:
+
+All
+Credit
+Debit
+
+Search field.
+
+Each transaction:
+
+large circular icon
+description
+time
+amount
+chevron
+
+Credit:
+
+green/cyan.
+
+Debit:
+
+red/pink.
+
+Rows should have:
+
+- larger height
+- clear separation
+- subtle gradient
+- hover glow
+
+Use existing transaction data.
+
+Do not hardcode reference transactions.
+
+When empty:
+
+show polished empty state.
+
+========================================================
+11. SYSTEM BALANCE / RECONCILIATION CARD
+========================================================
+
+IMPORTANT:
+
+Use the separate System Balance reference image as the visual target
+for this specific card.
+
+Do NOT keep the current plain reconciliation styling.
+
+The target card should visually contain:
+
+SYSTEM BALANCE
+
+large amount
+
+Cash + Banks + AEPS
+
+EXPECTED BALANCE
+
+large amount
+
+Opening + Today's Transactions
+
+DIFFERENCE
+
+large highlighted difference amount
+
+warning icon
+
+Target styling:
+
+- gold/orange gradient
+- dark gold glass surface
+- rounded corners
+- gold border
+- soft gold glow
+- large calculator/balance icon
+- strong typography
+- highlighted Difference box
+- red/pink Difference when mismatch
+
+The Difference section should be visually prominent.
+
+If balanced:
+
+show green Balanced state.
+
+If mismatch:
+
+show red/pink Mismatch state.
+
+Values must remain dynamic.
+
+========================================================
+12. BALANCE OVERVIEW
+========================================================
+
+IMPORTANT:
+
+Use the separate Balance Overview reference image as the exact
+visual target.
+
+The current Balance Overview is too small/simple.
+
+Make it visually match the reference.
+
+It should be a wide premium card.
+
+Header:
+
+Balance Overview
+
+Cash + Banks + AEPS
+
+========================================================
+LEFT SIDE — ORANGE AREA CHART
+========================================================
+
+Approximately 65–70% of the card.
+
+Target:
+
+dark chart background
+
+smooth orange/gold line
+
+glowing line
+
+orange/gold gradient fill
+
+smooth curves
+
+subtle glow
+
+The line must NOT look like a basic straight chart.
+
+It should look like the smooth premium chart in the reference.
+
+FOR THIS VERSION:
+
+Do NOT add historical payment logic.
+
+Do NOT create fake historical data.
+
+The visual curve can be decorative/static for now.
+
+Later we will connect it to historical data.
+
+========================================================
+RIGHT SIDE — DONUT / CIRCULAR CHART
+========================================================
+
+This MUST be a real chart/component.
+
+Do NOT use an image.
+
+Target:
+
+large circular donut ring.
+
+Colors:
+
+Cash = green
+Banks = blue
+AEPS = purple
+
+Center:
+
+System Balance / Total amount
+
+"Total"
+
+Around/beside:
+
+Cash
+Banks
+AEPS
+
+Each legend row:
+
+colored dot
+label
+actual amount
+percentage
+
+The percentages MUST use current real values.
+
+Example:
+
+Cash = Cash Total / System Balance × 100
+
+Banks = Bank Total / System Balance × 100
+
+AEPS = AEPS Total / System Balance × 100
+
+If System Balance is zero:
+
+show a clean zero-state donut.
+
+Do not hardcode the reference values.
+
+========================================================
+13. BALANCE OVERVIEW PROPORTIONS
+========================================================
+
+Target composition:
+
+LEFT:
+large chart
+
+RIGHT:
+donut + legend
+
+The donut should be clearly visible.
+
+Do not make the donut tiny.
+
+The legend should be readable.
+
+The entire Balance Overview should feel like one premium card.
+
+========================================================
+14. CARD DEPTH
+========================================================
+
+Do NOT use simple flat cards.
+
+Major cards should have:
+
+1. dark base
+2. gradient layer
+3. colored border
+4. inner highlight
+5. outer glow
+
+Use CSS:
+
+box-shadow
+radial-gradient
+linear-gradient
+pseudo-elements
+
+Keep it professional.
+
+========================================================
+15. TYPOGRAPHY
+========================================================
+
+Match target hierarchy.
+
+Page title:
+
+large / bold
+
+Section titles:
+
+strong
+
+Amounts:
+
+large / bold
+
+Labels:
+
+small / readable
+
+Secondary text:
+
+muted
+
+Do not make important amounts tiny.
+
+========================================================
+16. DESKTOP PROPORTIONS
+========================================================
+
+Target desktop composition must be maintained.
+
+Optimize for:
+
+1920x1080
+1600x900
+1440x900
+1366x768
+
+Do not make the dashboard excessively compact.
+
+Do not create excessive empty space.
+
+========================================================
+17. RESPONSIVE
+========================================================
+
+Desktop is the priority.
+
+For smaller screens:
+
+sidebar may collapse
+columns may stack
+tables may scroll
+
+But DO NOT compromise the desktop target.
+
+========================================================
+18. IMAGE ASSETS
+========================================================
+
+Create/use:
+
+/public/assets/reconciliation/
+
+Files:
+
+sidebar-finance.png
+bank-illustration.png
+aeps-illustration.png
+cash-illustration.png
+balance-overview.png
+reconciliation-illustration.png
+
+Use local paths only.
+
+Example:
+
+/assets/reconciliation/bank-illustration.png
+
+If missing:
+
+reserve space.
+
+DO NOT:
+
+- generate
+- download
+- invent
+- replace
+- use remote images
+
+I will upload the final images myself later.
+
+========================================================
+19. VERY IMPORTANT — DO NOT CHANGE THE CURRENT LOGIC
+========================================================
+
+The current implementation already has working logic.
+
+Do not touch:
+
+cash calculations
+bank calculations
+AEPS calculations
+transactions
+opening balance
+expected balance
+system balance
+difference
+date navigation
+refresh
+print
+export
+database
+API
+
+Only change the UI/visual presentation.
+
+========================================================
+20. DO NOT ADD DYNAMIC GRAPH LOGIC YET
+========================================================
+
+Do NOT implement:
+
+historical KPI graphs
+payment-history graphs
+historical reconciliation graphs
+
+yet.
+
+For now:
+
+KPI waves = decorative visual
+
+Balance Overview orange chart = visual recreation
+
+Balance Overview donut = REAL current-value chart
+
+Later we will add historical payment/reconciliation graph logic.
+
+========================================================
+21. FINAL VISUAL QA
+========================================================
+
+After making the changes:
+
+RUN the actual webpage.
+
+Compare the browser result against IMAGE 1.
+
+Then separately compare:
+
+System Balance card against its reference.
+
+Balance Overview against its reference.
+
+Do not only compare the overall page.
+
+Check each part:
+
+- Sidebar
+- Header
+- KPI cards
+- Cash Counting
+- Bank Balances
+- AEPS Wallet
+- Transactions
+- System Balance
+- Expected Balance
+- Difference
+- Balance Overview
+- Orange area chart
+- Donut chart
+- Legend
+
+If a section still looks like a generic admin dashboard,
+continue refining that section.
+
+Do not stop after only changing colors.
+
+========================================================
+FINAL OBJECTIVE
+========================================================
+
+CURRENT REPLIT DESIGN
+        ↓
+VISUAL REFINEMENT
+        ↓
+TARGET DESIGN
+
+The final result should visually match the target screenshot's:
+
+- layout
+- proportions
+- card design
+- gradients
+- glow
+- spacing
+- icons
+- charts
+- donut
+- reconciliation card
+- sidebar
+- transaction feed
+- cash panel
+- bank panel
+- AEPS panel
+
+while preserving 100% of the existing application's
+real data and functionality.
+
+IMPORTANT:
+
+NO IMAGE GENERATION.
+NO STOCK IMAGES.
+NO REMOTE IMAGES.
+NO FAKE BUSINESS DATA.
+NO HARDCODED REFERENCE VALUES.
+NO LOGIC CHANGES.
+NO DATABASE CHANGES.
+
+FIRST COMPLETE THE VISUAL MATCH.
+
+ONLY AFTER THE DESIGN IS APPROVED WILL WE IMPLEMENT
+REAL HISTORICAL PAYMENT/RECONCILIATION GRAPH LOGIC.
