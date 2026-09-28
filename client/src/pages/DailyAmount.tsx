@@ -2473,10 +2473,7 @@ export default function DailyAmount() {
           .da-overview-donut {
             transform: translateY(-14px);
             padding: 9px;
-            box-shadow:
-              0 0 13px rgba(61, 156, 255, .5),
-              0 0 28px rgba(61, 156, 255, .34),
-              0 0 44px rgba(166, 122, 255, .24);
+            box-shadow: none;
           }
         }
         @media screen and (min-width: 621px) and (min-height: 621px) {
