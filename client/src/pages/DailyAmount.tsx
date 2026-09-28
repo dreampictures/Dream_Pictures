@@ -250,8 +250,8 @@ function TotalBar({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function MetricIconSlot({ imageSrc, label, fallback, slotName, accent }: {
-  imageSrc?: string; label: string; fallback: React.ReactNode; slotName: string; accent: string;
+function MetricIconSlot({ imageSrc, fallback, slotName, accent }: {
+  imageSrc?: string; fallback: React.ReactNode; slotName: string; accent: string;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   return (
@@ -276,7 +276,7 @@ function MetricCard({ label, accent, icon, iconImage, children, testId, sub, cla
       data-testid={testId}
       className={`da-metric min-w-0 rounded-lg px-2 py-1.5 flex items-center gap-2 ${className}`}
     >
-      <MetricIconSlot key={iconImage || testId} imageSrc={iconImage} label={label} fallback={icon} slotName={testId} accent={accent} />
+      <MetricIconSlot key={iconImage || testId} imageSrc={iconImage} fallback={icon} slotName={testId} accent={accent} />
       <div className="min-w-0 flex-1">
         <p className="da-metric-label text-[9px] text-slate-400 truncate">{label}</p>
         <div className="da-metric-value text-xs sm:text-[13px] font-bold font-mono text-white truncate">{children}</div>
@@ -842,7 +842,7 @@ export default function DailyAmount() {
         }
         .da-metric::before {
           content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-           opacity: .48; background: radial-gradient(ellipse at 100% 100%, rgba(31, 222, 171, .22), transparent 68%);
+           opacity: .38; background: radial-gradient(ellipse at 100% 100%, color-mix(in srgb, currentColor 25%, transparent), transparent 68%);
         }
         .da-metric::after {
            content: ""; position: absolute; right: 0; bottom: 0; z-index: -1; width: 96px; height: 48px;
@@ -850,17 +850,32 @@ export default function DailyAmount() {
            clip-path: polygon(0 80%, 15% 67%, 28% 72%, 43% 53%, 57% 67%, 72% 43%, 85% 52%, 100% 30%, 100% 100%, 0 100%);
         }
         .da-metric:hover { transform: translateY(-1px); border-color: currentColor; box-shadow: 0 0 19px var(--metric-glow, rgba(64,143,225,.16)), inset 0 1px rgba(255,255,255,.07); }
-        .da-metric:not([data-testid="metric-difference"]) { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; }
-        .da-metric[data-testid="metric-difference"] { --metric-glow: rgba(255, 72, 112, .18); color: #ff8297; border-color: rgba(255, 111, 137, .52) !important; }
-        .da-metric[data-testid="metric-difference"].is-balanced { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .52) !important; }
-        .da-metric-icon { position: relative; z-index: 1; width: 62px; height: 72px; flex: 0 0 62px; border: 1px solid rgba(106,255,218,.4); border-radius: 14px; color: #ecfff7 !important; background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 17px rgba(21,220,164,.24), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-opening-balance"] { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .58) !important; background: linear-gradient(135deg, rgba(6, 82, 68, .98), rgba(5, 44, 53, .98) 58%, rgba(5, 31, 49, .98)) !important; }
+        .da-metric[data-testid="metric-cash-total"] { --metric-glow: rgba(39, 132, 255, .2); color: #48a9ff; border-color: rgba(57, 145, 255, .6) !important; background: linear-gradient(135deg, rgba(8, 55, 125, .98), rgba(5, 33, 82, .98) 58%, rgba(5, 27, 62, .98)) !important; }
+        .da-metric[data-testid="metric-bank-total"] { --metric-glow: rgba(151, 74, 255, .2); color: #bb8bff; border-color: rgba(160, 93, 255, .58) !important; background: linear-gradient(135deg, rgba(64, 29, 131, .97), rgba(39, 22, 86, .98) 58%, rgba(26, 20, 61, .98)) !important; }
+        .da-metric[data-testid="metric-aeps-total"] { --metric-glow: rgba(244, 146, 45, .18); color: #ffb253; border-color: rgba(243, 152, 61, .56) !important; background: linear-gradient(135deg, rgba(105, 57, 19, .96), rgba(64, 39, 30, .98) 58%, rgba(43, 29, 39, .98)) !important; }
+        .da-metric[data-testid="metric-difference"] { --metric-glow: rgba(255, 72, 112, .18); color: #ff8297; border-color: rgba(255, 111, 137, .58) !important; background: linear-gradient(135deg, rgba(102, 25, 54, .96), rgba(59, 25, 51, .98) 58%, rgba(39, 21, 49, .98)) !important; }
+        .da-metric[data-testid="metric-difference"].is-balanced { --metric-glow: rgba(25, 224, 169, .2); color: #45d8b3; border-color: rgba(63, 211, 173, .58) !important; background: linear-gradient(135deg, rgba(6, 82, 68, .98), rgba(5, 44, 53, .98) 58%, rgba(5, 31, 49, .98)) !important; }
+        .da-metric-icon { position: relative; z-index: 1; width: 62px; height: 72px; flex: 0 0 62px; overflow: hidden; border: 1px solid rgba(255,255,255,.25); border-radius: 14px; color: #f6fffc !important; background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 17px rgba(21,220,164,.24), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-cash-total"] .da-metric-icon { border-color: rgba(113,190,255,.42); background: linear-gradient(145deg, #168cff, #0758c5) !important; box-shadow: 0 0 15px rgba(29,132,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-bank-total"] .da-metric-icon { border-color: rgba(201,153,255,.42); background: linear-gradient(145deg, #a145f1, #6221bd) !important; box-shadow: 0 0 15px rgba(152,69,255,.23), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-aeps-total"] .da-metric-icon { border-color: rgba(255,195,119,.4); background: linear-gradient(145deg, #f4a438, #b9631a) !important; box-shadow: 0 0 15px rgba(241,139,47,.18), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-difference"] .da-metric-icon { border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric[data-testid="metric-difference"].is-balanced .da-metric-icon { border-color: rgba(106,255,218,.38); background: linear-gradient(145deg, #21c99e, #08755f) !important; box-shadow: 0 0 15px rgba(21,220,164,.2), inset 0 1px rgba(255,255,255,.3); }
+        .da-metric-icon-image { display: block; width: 100%; height: 100%; padding: 5px; object-fit: contain; }
         .da-metric-icon svg { width: 23px; height: 23px; }
-        .da-metric[data-testid="metric-difference"]:not(.is-balanced) .da-metric-icon { color: #fff1f4 !important; border-color: rgba(255,133,165,.42); background: linear-gradient(145deg, #ef416e, #b6194f) !important; box-shadow: 0 0 15px rgba(245,56,104,.22), inset 0 1px rgba(255,255,255,.3); }
         .da-metric > div:last-child { position: relative; z-index: 1; }
         .da-metric-label { color: #f2f8f5; font-size: clamp(11px, 1.08vw, 15px); font-weight: 500; letter-spacing: .05px; text-transform: none; }
         .da-metric-value { color: #ffe35a; font-size: clamp(16px, 1.7vw, 24px); font-weight: 800; letter-spacing: -.35px; line-height: 1.12; }
-        .da-metric-value > span, .da-metric-value input { color: #ffe35a !important; }
-        .da-metric-sub { color: #26e18d; font-size: clamp(8px, .78vw, 11px); font-weight: 600; }
+        .da-metric[data-testid="metric-opening-balance"] .da-metric-value > span,
+        .da-metric[data-testid="metric-opening-balance"] .da-metric-value input { color: #ffe35a !important; }
+        .da-metric[data-testid="metric-cash-total"] .da-metric-value,
+        .da-metric[data-testid="metric-cash-total"] .da-metric-value > span,
+        .da-metric[data-testid="metric-bank-total"] .da-metric-value,
+        .da-metric[data-testid="metric-bank-total"] .da-metric-value > span,
+        .da-metric[data-testid="metric-aeps-total"] .da-metric-value,
+        .da-metric[data-testid="metric-aeps-total"] .da-metric-value > span { color: #f3f7ff !important; }
+        .da-metric-sub { color: #45e58b; font-size: clamp(8px, .78vw, 11px); font-weight: 600; }
         .da-metric[data-testid="metric-difference"] .da-metric-value,
         .da-metric[data-testid="metric-difference"] .da-metric-value > span { color: #ff8798 !important; }
         .da-metric[data-testid="metric-difference"].is-balanced .da-metric-value,
