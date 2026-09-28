@@ -2392,6 +2392,53 @@ export default function DailyAmount() {
           object-fit: cover;
           object-position: right center;
         }
+        .da-overview-title { padding-right: 38px; }
+        .da-chart-range-control {
+          position: absolute;
+          z-index: 3;
+          top: 0;
+          right: 0;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 2px;
+          margin-left: 0;
+        }
+        .da-chart-range-button {
+          min-width: 32px;
+          padding: 3px 4px;
+          font-size: 9px;
+          text-align: center;
+        }
+        .da-overview-content {
+          grid-template-columns: minmax(0, 1fr) max-content minmax(130px, 180px);
+        }
+        .da-overview-donut {
+          width: auto;
+          height: calc(100% - 4px);
+          aspect-ratio: 1;
+          flex-basis: auto;
+          justify-self: center;
+          align-self: center;
+        }
+        .da-overview-item { column-gap: 3px; }
+        .da-overview-item small {
+          min-width: 28px;
+          color: #b5c7dc;
+          font-size: clamp(10px, .75vw, 12px);
+          text-align: right;
+        }
+        @media screen and (max-width: 620px) {
+          .da-overview-content {
+            grid-template-columns: minmax(0, 1fr) 88px;
+            grid-template-rows: minmax(88px, auto) auto;
+          }
+          .da-overview-donut {
+            width: 84px;
+            height: 84px;
+            flex-basis: 84px;
+          }
+          .da-overview-item small { min-width: 24px; font-size: 10px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
