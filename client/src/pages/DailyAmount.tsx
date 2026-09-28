@@ -495,7 +495,6 @@ function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, histo
 
   return (
     <div className="da-overview-chart" role="group" aria-label="Historical system balance chart">
-      <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
       {plottedPoints.length === 0 ? (
         <div className="da-overview-chart-empty" role={historyError ? "alert" : undefined}>
           {historyLoading ? "Loading history…" : historyError ? "History unavailable" : hasAnyHistory ? "No records in this range" : "No historical data yet"}
@@ -1740,8 +1739,6 @@ export default function DailyAmount() {
         .da-overview-title small { margin-left: 1px; color: #a3b5c9; font-size: 9px; }
         .da-overview-content { height: calc(100% - 28px); min-height: 74px; grid-template-columns: minmax(0, 1fr) clamp(60px, 4.2vw, 76px) minmax(130px, 180px); gap: clamp(10px, 1vw, 17px); }
         .da-overview-chart { border-bottom-color: rgba(247, 177, 65, .34); background: linear-gradient(180deg, rgba(231, 150, 43, .08), transparent); }
-        .da-overview-chart .da-overview-artwork { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; opacity: .14; background: transparent; }
-        .da-overview-chart .da-artwork-placeholder { background: radial-gradient(ellipse at 65% 50%, rgba(242, 174, 60, .08), transparent 75%); }
         .da-overview-chart svg { position: relative; z-index: 1; }
         .da-overview-chart svg path:last-child { filter: drop-shadow(0 0 3px rgba(255, 176, 61, .7)); }
         .da-overview-chart-empty { position: relative; z-index: 2; color: #9fb3c9; font-size: 10px; }
@@ -2370,6 +2367,31 @@ export default function DailyAmount() {
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, .14) 0%, rgba(0, 0, 0, .24) 30%, rgba(0, 0, 0, .68) 64%, #000 100%);
         }
+        .da-overview-title,
+        .da-overview-content {
+          position: relative;
+          z-index: 1;
+        }
+        .da-overview > .da-overview-artwork {
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border: 0;
+          border-radius: inherit;
+          background: transparent;
+          opacity: .28;
+          pointer-events: none;
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, .22) 30%, rgba(0, 0, 0, .66) 64%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, .22) 30%, rgba(0, 0, 0, .66) 64%, #000 100%);
+        }
+        .da-overview > .da-overview-artwork img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: right center;
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
@@ -2893,6 +2915,7 @@ export default function DailyAmount() {
           </div>
 
           <div className="da-overview" role="group" aria-label="Balance overview">
+            <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
             <div className="da-overview-title">
               <BarChart3 size={12} />
               <span>Balance Overview</span>
