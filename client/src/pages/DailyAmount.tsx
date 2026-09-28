@@ -2318,6 +2318,34 @@ export default function DailyAmount() {
           .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
         }
+        #bank-panel { --da-bank-art-width: clamp(76px, 28%, 150px); }
+        #bank-panel .da-account-table-header {
+          padding-right: var(--da-bank-art-width);
+        }
+        #bank-panel .da-bank-content .da-illustrated-rows {
+          padding-right: var(--da-bank-art-width);
+        }
+        #bank-panel .da-bank-illustration {
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: var(--da-bank-art-width);
+          height: auto;
+          transform: none;
+          overflow: hidden;
+          border-radius: 0;
+          opacity: .98;
+          background: radial-gradient(ellipse at 72% 52%, rgba(36, 127, 239, .24), transparent 74%);
+        }
+        #bank-panel .da-bank-illustration img {
+          position: absolute;
+          inset: 0;
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
