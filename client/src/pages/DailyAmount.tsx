@@ -2335,7 +2335,7 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/bank-illustration.png") right center / auto 100% no-repeat;
+          background: url("/assets/reconciliation/bank-illustration.png") right center / contain no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
@@ -2386,7 +2386,7 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/aeps-illustration.png") right center / auto 100% no-repeat;
+          background: url("/assets/reconciliation/aeps-illustration.png") right center / contain no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
