@@ -2348,6 +2348,64 @@ export default function DailyAmount() {
           .da-overview-item { grid-template-columns: 7px minmax(0, 1fr) auto auto; gap: 3px; }
           .da-overview-donut { width: 62px; height: 62px; flex-basis: 62px; }
         }
+        /* Reference palette: gold for the system total, red for a mismatch, green when balanced. */
+        .da-panel.da-reconciliation-card {
+          position: relative;
+          border-color: rgba(255, 220, 139, .92) !important;
+          background:
+            radial-gradient(ellipse at 8% 0%, rgba(255, 248, 205, .52), transparent 54%),
+            radial-gradient(ellipse at 100% 100%, rgba(198, 105, 25, .25), transparent 52%),
+            linear-gradient(125deg, #ffc64b, #efad37 57%, #d89131) !important;
+          box-shadow: inset 0 1px rgba(255, 250, 220, .42), 0 0 20px rgba(232, 157, 45, .2), 0 8px 22px rgba(0, 5, 15, .24) !important;
+        }
+        .da-panel.da-reconciliation-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          border-radius: inherit;
+          background: radial-gradient(ellipse at 92% 12%, rgba(255, 248, 218, .28), transparent 48%);
+          pointer-events: none;
+        }
+        .da-reconciliation-card > .da-reconcile-layout { position: relative; z-index: 1; }
+        .da-reconciliation-card .da-system-icon {
+          border-color: rgba(255, 255, 255, .72);
+          color: #3b2609;
+          background: linear-gradient(145deg, #ffe68a, #ffc24c);
+          box-shadow: inset 0 1px rgba(255, 255, 255, .72), 0 2px 7px rgba(110, 61, 7, .16);
+        }
+        .da-reconciliation-card .da-system-label { color: #533404; }
+        .da-reconciliation-card .da-system-amount { color: #211700; text-shadow: 0 1px rgba(255, 240, 192, .35); }
+        .da-reconciliation-card .da-system-caption { color: #684814; }
+        .da-reconciliation-card .da-expected-line { border-top-color: rgba(94, 61, 10, .25); }
+        .da-reconciliation-card .da-expected-line span { color: #684910; }
+        .da-reconciliation-card .da-expected-line strong { color: #2e200d; }
+        .da-reconciliation-card .da-expected-line small { color: #65461c; }
+        .da-reconciliation-card .da-difference-box {
+          border-color: rgba(166, 102, 17, .48);
+          background: linear-gradient(135deg, rgba(255, 215, 105, .94), rgba(247, 167, 48, .98));
+          box-shadow: inset 0 1px rgba(255, 255, 255, .42), 0 2px 8px rgba(115, 62, 6, .14);
+        }
+        .da-reconciliation-card .da-difference-copy > p { color: #57370a; }
+        .da-reconciliation-card .da-difference-box.is-mismatch {
+          border-color: rgba(185, 81, 33, .58);
+          background: linear-gradient(135deg, #ffc653, #ed992e);
+        }
+        .da-reconciliation-card .da-difference-box.is-mismatch .da-difference-icon {
+          color: #fff7f5;
+          background: #c83b47;
+        }
+        .da-reconciliation-card .da-difference-box.is-mismatch .da-difference-value { color: #b32635; text-shadow: 0 1px rgba(255, 233, 202, .42); }
+        .da-reconciliation-card.is-mismatch .da-status { color: #9f2634; border-color: rgba(159, 38, 52, .48); }
+        .da-reconciliation-card .da-difference-box.is-balanced {
+          border-color: rgba(46, 133, 86, .55);
+          background: linear-gradient(135deg, #d8f4c4, #a8dda0);
+        }
+        .da-reconciliation-card .da-difference-box.is-balanced .da-difference-copy > p { color: #1c5e3b; }
+        .da-reconciliation-card .da-difference-box.is-balanced .da-difference-icon { color: #f3fff8; background: #218252; }
+        .da-reconciliation-card .da-difference-box.is-balanced .da-difference-value { color: #146b42; text-shadow: none; }
+        .da-reconciliation-card.is-balanced .da-status { color: #146b42; border-color: rgba(20, 107, 66, .46); }
+
         #bank-panel {
           --da-bank-art-width: clamp(76px, 28%, 150px);
           --da-bank-entry-inset: clamp(24px, 3vw, 36px);
