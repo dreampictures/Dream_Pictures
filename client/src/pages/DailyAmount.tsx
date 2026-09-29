@@ -1670,7 +1670,7 @@ export default function DailyAmount() {
         .da-section-total > span:last-child { font-size: 13px; }
         .da-illustrated-content { position: relative; flex: 1; min-height: 0; }
         .da-illustrated-rows { position: relative; z-index: 1; height: 100%; }
-        .da-illustrated-content .da-illustrated-rows { padding-right: clamp(52px, 5.5vw, 98px); }
+        .da-illustrated-content .da-illustrated-rows { padding-right: calc(clamp(52px, 5.5vw, 98px) + var(--da-aeps-entry-inset, 0px)); }
         .da-inline-illustration {
           position: absolute;
           z-index: 0;
@@ -1826,7 +1826,7 @@ export default function DailyAmount() {
           .da-section-total span { font-size: 8px; }
           .da-section-total > span:last-child { font-size: 9px; }
           .da-inline-illustration { width: 42px; height: 62px; }
-          .da-illustrated-content .da-illustrated-rows { padding-right: 46px; }
+          .da-illustrated-content .da-illustrated-rows { padding-right: calc(46px + var(--da-aeps-entry-inset, 0px)); }
           .da-total-badge { gap: 4px; padding: 3px 5px; }
           .da-total-badge span { font-size: 7px; }
           .da-total-badge strong { font-size: 8px; }
@@ -1910,7 +1910,7 @@ export default function DailyAmount() {
           .da-overview-item span:nth-child(2), .da-overview-item small { font-size: 8px; }
           .da-overview-item strong { font-size: 8px; }
           .da-inline-illustration { width: 50px; height: 75px; }
-          .da-illustrated-content .da-illustrated-rows { padding-right: 54px; }
+          .da-illustrated-content .da-illustrated-rows { padding-right: calc(54px + var(--da-aeps-entry-inset, 0px)); }
         }
         @media (min-width: 921px) and (min-height: 621px) and (max-height: 820px) {
           .da-column:nth-child(2) > #bank-panel { flex: 1.2 1 0%; min-height: 0; }
@@ -2010,7 +2010,7 @@ export default function DailyAmount() {
           #aeps-panel .da-account-row:nth-of-type(odd) { background: rgba(151, 90, 224, .1); }
           .da-account-input:disabled { border-color: transparent !important; background: transparent !important; box-shadow: none; color: #eef5ff !important; opacity: 1 !important; cursor: default; }
           .da-account-row .relative > span { color: #92a9c1; }
-          .da-account-table-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin: 0 2px 3px; padding: 0 clamp(52px, 5.5vw, 98px) 4px 5px; border-bottom: 1px solid rgba(132, 169, 207, .22); color: #9bb2ca; font-size: 9px; font-weight: 650; line-height: 1.2; }
+          .da-account-table-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin: 0 2px 3px; padding: 0 calc(clamp(52px, 5.5vw, 98px) + var(--da-aeps-entry-inset, 0px)) 4px 5px; border-bottom: 1px solid rgba(132, 169, 207, .22); color: #9bb2ca; font-size: 9px; font-weight: 650; line-height: 1.2; }
           .da-account-table-header span:last-child { min-width: 48px; text-align: right; }
           #bank-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(32, 117, 205, .25), rgba(32, 117, 205, .06)); box-shadow: inset 2px 0 rgba(93, 177, 255, .72), 0 0 15px rgba(55, 148, 255, .16); }
           #aeps-panel .da-account-row:hover { background: linear-gradient(90deg, rgba(133, 77, 214, .25), rgba(133, 77, 214, .06)); box-shadow: inset 2px 0 rgba(196, 139, 255, .75), 0 0 15px rgba(154, 86, 255, .17); }
@@ -2090,7 +2090,7 @@ export default function DailyAmount() {
           .da-cash-total-band span:first-child { font-size: 10px; }
           .da-cash-total-band > div > span:last-child { font-size: 14px; }
           .da-account-row { height: 17px !important; min-height: 17px !important; }
-          .da-account-table-header { padding-right: 46px; padding-bottom: 2px; font-size: 7px; }
+          .da-account-table-header { padding-right: calc(46px + var(--da-aeps-entry-inset, 0px)); padding-bottom: 2px; font-size: 7px; }
           .da-tx-filterbar { gap: 4px; padding: 4px 6px; }
           .da-tx-filter { min-height: 20px; padding: 0 6px; font-size: 8px; }
           .da-tx-date { width: 90px; height: 20px; font-size: 8px; }
@@ -2127,7 +2127,7 @@ export default function DailyAmount() {
         }
 
         @media screen and (max-width: 920px) {
-          .da-account-table-header { padding-right: 54px; font-size: 8px; }
+          .da-account-table-header { padding-right: calc(54px + var(--da-aeps-entry-inset, 0px)); font-size: 8px; }
         }
 
         @media screen and (min-width: 921px) {
@@ -2351,6 +2351,9 @@ export default function DailyAmount() {
         #bank-panel {
           --da-bank-art-width: clamp(76px, 28%, 150px);
           --da-bank-entry-inset: clamp(24px, 3vw, 36px);
+        }
+        #aeps-panel {
+          --da-aeps-entry-inset: clamp(16px, 2vw, 24px);
         }
         #bank-panel .da-card-head,
         #bank-panel .da-card-body {
