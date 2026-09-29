@@ -2353,7 +2353,8 @@ export default function DailyAmount() {
           --da-bank-entry-inset: clamp(24px, 3vw, 36px);
         }
         #aeps-panel {
-          --da-aeps-entry-inset: clamp(16px, 2vw, 24px);
+          --da-aeps-art-width: clamp(76px, 28%, 150px);
+          --da-aeps-entry-inset: clamp(24px, 3vw, 36px);
         }
         #bank-panel .da-card-head,
         #bank-panel .da-card-body {
@@ -2380,6 +2381,10 @@ export default function DailyAmount() {
         }
         #bank-panel .da-bank-content .da-illustrated-rows {
           padding-right: calc(var(--da-bank-art-width) + var(--da-bank-entry-inset));
+        }
+        #aeps-panel .da-account-table-header,
+        #aeps-panel .da-aeps-content .da-illustrated-rows {
+          padding-right: calc(var(--da-aeps-art-width) + var(--da-aeps-entry-inset));
         }
         #bank-panel .da-account-input,
         #aeps-panel .da-account-input {
