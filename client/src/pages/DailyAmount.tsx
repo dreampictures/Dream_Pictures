@@ -2946,6 +2946,17 @@ export default function DailyAmount() {
           .da-column:nth-child(2) > #bank-panel { flex: 0 0 auto; min-height: 230px; }
           .da-column:nth-child(2) > #aeps-panel { flex: 0 0 auto; min-height: 190px; }
         }
+        @media screen and (min-width: 921px) and (min-height: 621px) {
+          .da-main { overflow-x: hidden; overflow-y: auto; }
+          .da-dashboard-grid {
+            flex: 0 0 auto;
+            grid-template-rows: minmax(441px, auto) clamp(194px, 24vh, 224px);
+          }
+          .da-column { overflow: visible; }
+          .da-column:nth-child(2) { min-height: 441px; }
+          .da-column:nth-child(2) > #bank-panel { flex: 0 0 auto; min-height: 240px; }
+          .da-column:nth-child(2) > #aeps-panel { flex: 0 0 auto; min-height: 190px; }
+        }
       `}</style>
 
       <aside className="da-sidebar" aria-label="Daily reconciliation navigation">
