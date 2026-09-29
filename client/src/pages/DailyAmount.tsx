@@ -2396,6 +2396,8 @@ export default function DailyAmount() {
           background: #c83b47;
         }
         .da-reconciliation-card .da-difference-box.is-mismatch .da-difference-value { color: #b32635; text-shadow: 0 1px rgba(255, 233, 202, .42); }
+        .da-reconciliation-card .da-difference-box.is-mismatch .da-difference-value.is-positive { color: #146b42; text-shadow: 0 1px rgba(255, 245, 214, .58); }
+        .da-reconciliation-card .da-difference-box.is-mismatch .da-difference-value.is-negative { color: #b32635; }
         .da-reconciliation-card.is-mismatch .da-status { color: #9f2634; border-color: rgba(159, 38, 52, .48); }
         .da-reconciliation-card .da-difference-box.is-balanced {
           border-color: rgba(46, 133, 86, .55);
@@ -3146,7 +3148,7 @@ export default function DailyAmount() {
                   </div>
                   <div className="da-difference-copy">
                     <p>Difference</p>
-                    <strong className="da-difference-value">
+                    <strong className={`da-difference-value ${isBalanced ? "is-balanced" : difference > 0 ? "is-positive" : "is-negative"}`}>
                       {difference >= 0 ? `+₹${fmt(difference)}` : `−₹${fmt(Math.abs(difference))}`}
                     </strong>
                     <span className={`da-status ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
