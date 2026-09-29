@@ -1626,6 +1626,39 @@ export default function DailyAmount() {
         .da-cash-total-band span:first-child { font-size: 13px; }
         .da-cash-total-band > div > span:last-child { font-size: clamp(18px, 1.2vw, 23px); }
         .da-cash-illustration { width: 48px; height: 37px; flex: 0 0 48px; border: 0; background: transparent; filter: drop-shadow(0 0 8px rgba(37, 220, 167, .23)); }
+        .da-cash-total-band {
+          position: relative;
+          overflow: hidden;
+        }
+        .da-cash-total-band::after {
+          content: "";
+          position: absolute;
+          z-index: 1;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(90deg, rgba(3, 49, 42, .62), rgba(3, 43, 45, .34) 58%, rgba(3, 37, 43, .58));
+        }
+        .da-cash-total-band > div { position: static; }
+        .da-cash-total-band > div > span { position: relative; z-index: 2; }
+        .da-cash-total-band .da-cash-illustration {
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          flex: none;
+          border: 0;
+          border-radius: inherit;
+          opacity: .34;
+          pointer-events: none;
+          filter: none;
+        }
+        .da-cash-total-band .da-cash-illustration img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 58%;
+        }
 
         .da-account-row { min-height: clamp(26px, 3.4vh, 38px); gap: 8px; padding: 4px 5px; border-bottom-color: rgba(99, 147, 194, .14); border-radius: 7px; transition: background .16s, border-color .16s; }
         .da-account-row:hover { background: rgba(41, 104, 163, .14); }
@@ -2390,6 +2423,38 @@ export default function DailyAmount() {
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
+        .da-reconciliation-card {
+          position: relative;
+          isolation: isolate;
+        }
+        .da-reconciliation-card > .da-reconcile-layout {
+          position: relative;
+          z-index: 1;
+        }
+        .da-reconciliation-card > .da-reconciliation-illustration {
+          display: block;
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          flex: none;
+          margin: 0;
+          border: 0;
+          border-radius: inherit;
+          opacity: .28;
+          overflow: hidden;
+          pointer-events: none;
+          background: transparent;
+          -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .08) 25%, rgba(0, 0, 0, .56) 68%, #000 100%);
+          mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .08) 25%, rgba(0, 0, 0, .56) 68%, #000 100%);
+        }
+        .da-reconciliation-card > .da-reconciliation-illustration img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: right center;
+        }
         .da-overview-title {
           position: relative;
           z-index: 2;
@@ -2718,7 +2783,7 @@ export default function DailyAmount() {
                 <div className="da-cash-total-band rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-emerald-400">Cash Total</span>
-                    <Artwork src="/assets/reconciliation/cash-illustration.png" label="Cash illustration" className="da-artwork-small da-cash-illustration" />
+                    <Artwork src="/assets/reconciliation/cash-illustration.png" label="" decorative className="da-artwork-small da-cash-illustration" />
                     <span className="text-base font-bold font-mono text-emerald-400">₹{fmt(cashTotal)}</span>
                   </div>
                 </div>
@@ -2994,10 +3059,10 @@ export default function DailyAmount() {
 
             {/* Reconciliation Summary */}
             <div className={`da-panel da-reconciliation-card shrink-0 rounded-xl overflow-hidden ${isBalanced ? "is-balanced" : "is-mismatch"}`} data-balanced={isBalanced} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
+              <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="" decorative className="da-reconciliation-illustration" />
               <div className="da-reconcile-layout">
                 <div className="da-system-block">
                   <div className="da-system-icon" aria-hidden="true"><Calculator size={22} /></div>
-                  <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="" decorative className="da-reconciliation-illustration" />
                   <div className="da-system-primary">
                     <p className="da-system-label">System Balance</p>
                     <p className="da-system-amount">₹{fmt(systemBalance)}</p>
