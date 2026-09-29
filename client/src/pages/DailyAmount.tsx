@@ -476,22 +476,55 @@ function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, histo
   const startTimestamp = Date.parse(`${startDate}T00:00:00.000Z`);
   const endTimestamp = Date.parse(`${endDate}T00:00:00.000Z`);
   const duration = Math.max(1, endTimestamp - startTimestamp);
-  const minValue = points.length ? Math.min(...points.map((point) => point.systemBalance)) : 0;
-  const maxValue = points.length ? Math.max(...points.map((point) => point.systemBalance)) : 0;
-  const plottedPoints = points.map((point) => ({
+  const sortedPoints = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const minValue = sortedPoints.length ? Math.min(...sortedPoints.map((point) => point.systemBalance)) : 0;
+  const maxValue = sortedPoints.length ? Math.max(...sortedPoints.map((point) => point.systemBalance)) : 0;
+  const valueRange = Math.max(0, maxValue) - Math.min(0, minValue);
+  const rawTickStep = (valueRange || 1000) / 4;
+  const tickMagnitude = 10 ** Math.floor(Math.log10(rawTickStep));
+  const normalizedTickStep = rawTickStep / tickMagnitude;
+  const tickStep = (normalizedTickStep <= 1 ? 1 : normalizedTickStep <= 2 ? 2 : normalizedTickStep <= 5 ? 5 : 10) * tickMagnitude;
+  const axisMin = valueRange ? Math.floor(Math.min(0, minValue) / tickStep) * tickStep : 0;
+  const axisMax = valueRange ? Math.ceil(Math.max(0, maxValue) / tickStep) * tickStep : tickStep;
+  const yTickCount = Math.max(2, Math.min(7, Math.round((axisMax - axisMin) / tickStep) + 1));
+  const yTicks = Array.from({ length: yTickCount }, (_, index) => axisMin + index * tickStep);
+  const compactRupees = new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 });
+  const formatAxisValue = (value: number) => `${value < 0 ? "−" : ""}₹${compactRupees.format(Math.abs(value))}`;
+  const tickCount = duration <= 8 * 86_400_000 ? 5 : 7;
+  const dateFormatter = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" });
+  const dateTicks = Array.from({ length: tickCount }, (_, index) => {
+    const ratio = index / (tickCount - 1);
+    const timestamp = startTimestamp + duration * ratio;
+    return {
+      x: 2 + ratio * 96,
+      label: dateFormatter.format(new Date(timestamp)),
+    };
+  });
+  const plottedPoints = sortedPoints.map((point) => ({
     ...point,
-    x: 4 + ((Date.parse(`${point.date}T00:00:00.000Z`) - startTimestamp) / duration) * 92,
-    y: 35 - normalizedRangeRatio(point.systemBalance, minValue, maxValue) * 27,
+    x: 2 + Math.min(1, Math.max(0, (Date.parse(`${point.date}T00:00:00.000Z`) - startTimestamp) / duration)) * 96,
+    y: 95 - normalizedRangeRatio(point.systemBalance, axisMin, axisMax) * 90,
   }));
-  const linePath = plottedPoints.map((point, index) =>
-    `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
-  ).join(" ");
+  const linePath = plottedPoints.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+    const previous = plottedPoints[index - 1];
+    const before = plottedPoints[index - 2] ?? previous;
+    const after = plottedPoints[index + 1] ?? point;
+    const lowerY = Math.min(previous.y, point.y);
+    const upperY = Math.max(previous.y, point.y);
+    const control1Y = Math.min(upperY, Math.max(lowerY, previous.y + (point.y - before.y) / 6));
+    const control2Y = Math.min(upperY, Math.max(lowerY, point.y - (after.y - previous.y) / 6));
+    const deltaX = point.x - previous.x;
+    return `${path} C${(previous.x + deltaX / 3).toFixed(2)} ${control1Y.toFixed(2)} ${(point.x - deltaX / 3).toFixed(2)} ${control2Y.toFixed(2)} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+  }, "");
   const firstPoint = plottedPoints[0];
   const lastPoint = plottedPoints[plottedPoints.length - 1];
+  const zeroY = 95 - normalizedRangeRatio(0, axisMin, axisMax) * 90;
   const areaPath = plottedPoints.length > 1
-    ? `${linePath} L${lastPoint.x.toFixed(2)} 40 L${firstPoint.x.toFixed(2)} 40 Z`
+    ? `${linePath} L${lastPoint.x.toFixed(2)} ${zeroY.toFixed(2)} L${firstPoint.x.toFixed(2)} ${zeroY.toFixed(2)} Z`
     : "";
   const activePoint = plottedPoints.find((point) => point.date === hoveredDate);
+  const markerStep = Math.max(1, Math.ceil(Math.max(0, plottedPoints.length - 1) / 5));
 
   return (
     <div className="da-overview-chart" role="group" aria-label="Historical system balance chart">
@@ -500,51 +533,63 @@ function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, histo
           {historyLoading ? "Loading history…" : historyError ? "History unavailable" : hasAnyHistory ? "No records in this range" : "No historical data yet"}
         </div>
       ) : (
-        <svg viewBox="0 0 100 40" preserveAspectRatio="none" role="group" aria-label="System balance by saved reconciliation date">
-          <defs>
-            <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#e99a32" stopOpacity=".48" />
-              <stop offset="100%" stopColor="#e99a32" stopOpacity=".02" />
-            </linearGradient>
-          </defs>
-          {areaPath && <path d={areaPath} fill="url(#da-overview-area-gradient)" />}
-          {plottedPoints.length > 1 && (
-            <path
-              className="da-overview-line"
-              d={linePath}
-              fill="none"
-              stroke="#f3a63f"
-              strokeWidth="1.5"
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
-          {plottedPoints.map((point) => (
-            <g key={point.date}>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="5"
-                fill="transparent"
-                tabIndex={0}
-                role="button"
+        <div className="da-overview-chart-layout">
+          <div className="da-chart-yaxis" aria-label="System balance in rupees">
+            {[...yTicks].reverse().map((value) => <span key={value}>{formatAxisValue(value)}</span>)}
+          </div>
+          <div className="da-chart-plot-surface">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="da-overview-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f0b84d" stopOpacity=".38" />
+                  <stop offset="100%" stopColor="#f0b84d" stopOpacity=".015" />
+                </linearGradient>
+              </defs>
+              <g className="da-overview-grid">
+                {yTicks.map((value) => {
+                  const y = 95 - normalizedRangeRatio(value, axisMin, axisMax) * 90;
+                  return <line key={`y-${value}`} x1="0" x2="100" y1={y} y2={y} />;
+                })}
+                {dateTicks.map((tick, index) => (
+                  <line key={`x-${index}`} x1={tick.x} x2={tick.x} y1="5" y2="95" />
+                ))}
+              </g>
+              {areaPath && <path d={areaPath} fill="url(#da-overview-area-gradient)" />}
+              {plottedPoints.length > 1 && (
+                <path
+                  className="da-overview-line"
+                  d={linePath}
+                  fill="none"
+                  stroke="#f4bc50"
+                  strokeWidth="2.2"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+            </svg>
+            {plottedPoints.map((point, index) => (
+              <button
+                key={`${point.date}-${index}`}
+                type="button"
+                className={`da-chart-hitpoint${index === 0 || index === plottedPoints.length - 1 || index % markerStep === 0 ? " has-marker" : ""}`}
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
                 aria-label={`${formatHistoryDate(point.date)}. System Balance: ₹${fmt(point.systemBalance)}`}
                 onMouseEnter={() => setHoveredDate(point.date)}
                 onMouseLeave={() => setHoveredDate(null)}
                 onFocus={() => setHoveredDate(point.date)}
                 onBlur={() => setHoveredDate(null)}
-              />
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={point.date === hoveredDate ? "2.5" : "1.7"}
-                fill="#f3a63f"
-                stroke="#0b1930"
-                strokeWidth=".6"
-                pointerEvents="none"
-              />
-            </g>
-          ))}
-        </svg>
+              >
+                <span />
+              </button>
+            ))}
+          </div>
+          <div className="da-chart-xaxis" aria-label="Saved reconciliation dates">
+            {dateTicks.map((tick, index) => (
+              <span className={index === 0 ? "is-first" : index === dateTicks.length - 1 ? "is-last" : ""} key={`${tick.label}-${index}`}>
+                {tick.label}
+              </span>
+            ))}
+          </div>
+        </div>
       )}
       {activePoint && (
         <div className="da-overview-tooltip" aria-live="polite">
@@ -2637,6 +2682,253 @@ export default function DailyAmount() {
         }
         @media screen and (min-width: 621px) and (max-height: 620px) {
           .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) 140px; }
+        }
+        .da-overview {
+          display: grid;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: 0;
+          padding: 9px 12px 10px;
+          border-color: rgba(203, 164, 91, .48);
+          background: linear-gradient(150deg, rgba(12, 28, 52, .98), rgba(7, 19, 37, .98));
+        }
+        .da-overview-title {
+          min-height: 22px;
+          margin: 0 0 7px;
+          padding-right: 52px;
+          gap: 7px;
+          color: #f0f3f8;
+          font-size: clamp(12px, 1.08vw, 15px);
+          letter-spacing: .01em;
+        }
+        .da-overview-title > svg { width: 15px; height: 15px; flex: 0 0 auto; color: #f0bd53; }
+        .da-overview-title small { color: #9caec3; font-size: clamp(8px, .76vw, 10px); }
+        .da-chart-range-control {
+          top: 0;
+          right: 0;
+          z-index: 4;
+          gap: 3px;
+          padding: 2px;
+          border-color: rgba(199, 169, 108, .25);
+          background: rgba(5, 13, 26, .68);
+        }
+        .da-chart-range-button {
+          min-width: 42px;
+          padding: 5px 7px;
+          color: #a9b8ca;
+          font-size: 10px;
+        }
+        .da-overview-content {
+          width: 100%;
+          height: 100%;
+          min-height: 0;
+          grid-template-columns: minmax(0, 1fr) clamp(112px, 13vw, 144px) minmax(128px, 170px);
+          grid-template-rows: minmax(0, 1fr);
+          align-items: stretch;
+          gap: clamp(8px, 1.1vw, 14px);
+        }
+        .da-overview-chart {
+          grid-column: 1;
+          grid-row: 1;
+          min-height: 0;
+          height: 100%;
+          overflow: visible;
+          border: 0;
+          background: transparent;
+        }
+        .da-overview-chart-layout {
+          display: grid;
+          width: 100%;
+          height: 100%;
+          min-height: 0;
+          grid-template-columns: clamp(38px, 4.5vw, 52px) minmax(0, 1fr);
+          grid-template-rows: minmax(0, 1fr) 18px;
+          column-gap: 6px;
+          row-gap: 3px;
+        }
+        .da-overview-chart-empty {
+          grid-column: 1 / -1;
+          grid-row: 1 / -1;
+          color: #8c9fb6;
+          font-size: 10px;
+        }
+        .da-chart-yaxis {
+          display: flex;
+          min-height: 0;
+          flex-direction: column;
+          align-items: flex-end;
+          justify-content: space-between;
+          padding: 3px 0 2px;
+          color: #91a2b7;
+          font: 600 clamp(8px, .72vw, 10px)/1 ui-monospace, monospace;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+        .da-chart-plot-surface {
+          position: relative;
+          grid-column: 2;
+          grid-row: 1;
+          min-width: 0;
+          min-height: 0;
+          overflow: visible;
+        }
+        .da-chart-plot-surface > svg {
+          display: block;
+          width: 100%;
+          height: 100%;
+          overflow: visible;
+        }
+        .da-overview-grid line {
+          vector-effect: non-scaling-stroke;
+          stroke: rgba(144, 164, 190, .15);
+          stroke-width: .7;
+          stroke-dasharray: 2 4;
+        }
+        .da-overview-grid line:first-child {
+          stroke: rgba(202, 170, 108, .27);
+          stroke-dasharray: none;
+        }
+        .da-overview-chart .da-overview-line {
+          filter: drop-shadow(0 0 3px rgba(245, 188, 80, .72));
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        .da-chart-hitpoint {
+          position: absolute;
+          z-index: 2;
+          display: grid;
+          width: 18px;
+          height: 18px;
+          padding: 0;
+          place-items: center;
+          transform: translate(-50%, -50%);
+          border: 0;
+          border-radius: 50%;
+          background: transparent;
+          cursor: pointer;
+        }
+        .da-chart-hitpoint > span {
+          width: 6px;
+          height: 6px;
+          border: 1px solid #fff0c1;
+          border-radius: 50%;
+          background: #f8c75f;
+          box-shadow: 0 0 0 3px rgba(245, 188, 80, .14), 0 0 9px rgba(245, 188, 80, .85);
+          opacity: 0;
+          transition: opacity .12s ease;
+        }
+        .da-chart-hitpoint.has-marker > span,
+        .da-chart-hitpoint:hover > span,
+        .da-chart-hitpoint:focus-visible > span { opacity: 1; }
+        .da-chart-hitpoint:focus-visible { outline: 2px solid #fff0c1; outline-offset: 0; }
+        .da-chart-xaxis {
+          display: flex;
+          min-width: 0;
+          grid-column: 2;
+          grid-row: 2;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 0;
+          color: #899bb1;
+          font: 500 clamp(8px, .7vw, 10px)/1.2 "DM Sans", sans-serif;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+        .da-chart-xaxis span { flex: 0 1 auto; text-align: center; }
+        .da-chart-xaxis .is-first { text-align: left; }
+        .da-chart-xaxis .is-last { text-align: right; }
+        .da-overview-tooltip { top: 3px; right: 4px; }
+        .da-overview-breakdown {
+          grid-column: 3;
+          grid-row: 1;
+          justify-content: center;
+          gap: 10px;
+          min-width: 0;
+          padding: 44px clamp(38px, 5vw, 52px) 0 0;
+        }
+        .da-overview-item {
+          grid-template-columns: 8px minmax(24px, 1fr) auto auto;
+          gap: 5px;
+          align-items: center;
+        }
+        .da-overview-dot { width: 8px; height: 8px; }
+        .da-overview-item span:nth-child(2) { color: #a8b7c9; font-size: clamp(10px, .82vw, 12px); }
+        .da-overview-item strong { color: #eef2f7; font-size: clamp(10px, .82vw, 12px); }
+        .da-overview-item small { min-width: 28px; color: #aab9cb; font-size: clamp(9px, .72vw, 11px); }
+        .da-overview-donut {
+          grid-column: 2;
+          grid-row: 1;
+          position: relative;
+          z-index: 2;
+          width: auto;
+          height: min(100%, clamp(112px, 13vw, 144px));
+          flex-basis: auto;
+          justify-self: center;
+          align-self: center;
+          padding: 9px;
+          transform: none;
+          box-shadow: 0 0 24px rgba(67, 134, 221, .17);
+        }
+        .da-overview-donut-hole strong { font-size: clamp(12px, 1.15vw, 16px); }
+        .da-overview-donut-hole small { font-size: clamp(9px, .8vw, 11px); }
+        @media screen and (min-width: 621px) and (min-height: 621px) {
+          .da-dashboard-grid { grid-template-rows: minmax(0, 1fr) clamp(194px, 24vh, 224px); }
+        }
+        @media screen and (min-width: 621px) and (max-height: 620px) {
+          .da-overview { padding: 6px 9px 7px; }
+          .da-overview-title { min-height: 19px; margin-bottom: 4px; font-size: 11px; }
+          .da-overview-title small { font-size: 8px; }
+          .da-chart-range-control { flex-direction: row; gap: 2px; }
+          .da-chart-range-button { min-width: 33px; padding: 3px 4px; font-size: 8px; }
+          .da-overview-content { gap: 7px; }
+          .da-chart-yaxis { font-size: 8px; }
+          .da-chart-xaxis { font-size: 8px; }
+          .da-overview-breakdown { gap: 6px; padding: 0 0 0 0; }
+          .da-overview-item { grid-template-columns: 7px minmax(18px, 1fr) auto auto; gap: 3px; }
+          .da-overview-item span:nth-child(2),
+          .da-overview-item strong { font-size: 9px; }
+          .da-overview-item small { min-width: 22px; font-size: 8px; }
+          .da-overview-donut { height: min(100%, 96px); padding: 6px; }
+          .da-overview-donut-hole strong { font-size: 11px; }
+          .da-overview-donut-hole small { font-size: 8px; }
+        }
+        @media screen and (max-width: 620px) {
+          .da-overview { padding: 8px 9px 9px; }
+          .da-overview-title { margin-bottom: 6px; padding-right: 0; font-size: 12px; }
+          .da-overview-title small { display: none; }
+          .da-chart-range-control { flex-direction: row; gap: 1px; }
+          .da-chart-range-button { min-width: 31px; padding: 4px 3px; font-size: 8px; }
+          .da-overview-content {
+            height: auto;
+            grid-template-columns: minmax(0, 1fr) clamp(86px, 24vw, 116px);
+            grid-template-rows: minmax(110px, auto) auto;
+            gap: 8px 9px;
+          }
+          .da-overview-chart { grid-column: 1; grid-row: 1; min-height: 110px; }
+          .da-overview-chart-layout { grid-template-columns: 37px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 17px; column-gap: 4px; }
+          .da-chart-yaxis { font-size: 8px; }
+          .da-chart-xaxis { font-size: 7px; }
+          .da-overview-donut {
+            grid-column: 2;
+            grid-row: 1;
+            width: auto;
+            height: min(100%, clamp(86px, 24vw, 116px));
+            padding: 6px;
+          }
+          .da-overview-donut-hole strong { font-size: 11px; }
+          .da-overview-donut-hole small { font-size: 8px; }
+          .da-overview-breakdown {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 5px;
+            padding: 0;
+          }
+          .da-overview-item { grid-template-columns: 6px minmax(0, 1fr) auto; gap: 4px; }
+          .da-overview-item span:nth-child(2) { font-size: 9px; }
+          .da-overview-item strong { font-size: 9px; }
+          .da-overview-item small { display: none; }
         }
       `}</style>
 

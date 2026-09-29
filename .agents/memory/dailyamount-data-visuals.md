@@ -15,7 +15,7 @@ Never request or reuse the user's real PIN to inspect the dashboard. Use an isol
 
 **Why:** The dashboard is PIN-protected, and layout verification should not expose credentials or alter financial records.
 
-**How to apply:** When capturing `/dailyamount` without an authorized demo fixture, keep the test browser isolated and confirm protected API calls remain rejected.
+**How to apply:** When capturing `/dailyamount` without an authorized demo fixture, use an isolated browser profile with a deliberately invalid test PIN and confirm protected API calls remain rejected. Do not restart or reload the live authenticated preview for visual QA: its unload handler can emit the current form state through a beacon.
 
 ## Reference composition
 
