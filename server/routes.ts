@@ -13,7 +13,13 @@ const CDN_BASE_URL = "https://cdn.thedreampictures.com";
 
 function validatePin(body: any, res: any): boolean {
   const expected = process.env.ADMIN_PIN;
-  if (!expected) return true; // no PIN configured — allow
+  if (!expected) {
+    if (process.env.NODE_ENV === "production") {
+      res.status(503).json({ message: "Admin PIN is not configured" });
+      return false;
+    }
+    return true; // keep local development behavior
+  }
   if (body?.adminPin !== expected) {
     res.status(403).json({ message: "Invalid PIN" });
     return false;
@@ -661,7 +667,13 @@ export async function registerRoutes(
   function validateDaPin(req: Request, res: any): boolean {
     const pin = req.headers["x-da-pin"] as string || req.body?.daPin as string || req.query?.daPin as string;
     const expected = process.env.ADMIN_PIN;
-    if (!expected) return true;
+    if (!expected) {
+      if (process.env.NODE_ENV === "production") {
+        res.status(503).json({ message: "Daily Amount PIN is not configured" });
+        return false;
+      }
+      return true;
+    }
     if (pin !== expected) {
       res.status(403).json({ message: "Invalid PIN" });
       return false;
@@ -672,7 +684,9 @@ export async function registerRoutes(
   app.post("/api/dailyamount/verify-pin", (req, res) => {
     const { pin } = req.body;
     const expected = process.env.ADMIN_PIN;
-    if (!expected || pin === expected) {
+    if (!expected && process.env.NODE_ENV === "production") {
+      res.status(503).json({ ok: false, message: "Daily Amount PIN is not configured" });
+    } else if (!expected || pin === expected) {
       res.json({ ok: true });
     } else {
       res.status(403).json({ message: "Invalid PIN" });
