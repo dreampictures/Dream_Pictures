@@ -75,22 +75,14 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
       className="dailyamount-login-preview relative flex min-h-screen items-center justify-center px-4 py-8"
       style={{
         minHeight: "100svh",
-        backgroundImage: 'url("/__mockup/images/login-background.png")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+          backgroundColor: "#071226",
       }}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#020916]/10" />
-      <div className="relative z-10 w-full max-w-[432px] -translate-y-[3px]">
+      <div className="relative z-10 w-full max-w-[432px]">
         <div className="relative mb-5 text-center">
           <div className="relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-amber-300/70 bg-amber-300/[0.08] shadow-[0_0_24px_rgba(250,204,21,0.22)]">
             <Lock size={32} className="text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
           </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-[72px] z-0 h-[90px] w-[calc(100%+80px)] -translate-x-1/2 rounded-full blur-[2px]"
-            style={{ background: "radial-gradient(ellipse, rgba(0,14,40,0.99) 0%, rgba(0,14,40,0.97) 82%, rgba(0,14,40,0) 100%)" }}
-          />
           <h1 className="relative z-10 text-[21px] font-bold leading-[26px] text-white">Daily Reconciliation</h1>
           <p className="relative z-10 mt-[10px] text-xs leading-[18px] tracking-wide text-slate-400">Enter your PIN to continue</p>
         </div>
