@@ -1,0 +1,559 @@
+DAILY RECONCILIATION LOGIN — CINEMATIC REAL LENS FLARE SYSTEM
+FINAL HIGH-QUALITY IMPLEMENTATION
+
+IMPORTANT:
+The current lens-flare animation is NOT acceptable.
+
+It looks:
+- fake
+- jerky
+- stop-and-go
+- like a moving CSS circle
+- like a basic glow effect
+- not like a real camera lens flare
+
+COMPLETELY REWORK THE LENS-FLARE ANIMATION.
+
+The goal is to create a PREMIUM, CINEMATIC, PHOTOREALISTIC
+camera-lens flare effect similar to a real anamorphic/cinematic
+light passing through a camera lens.
+
+DO NOT modify the existing authentication functionality.
+
+==================================================
+1. EXISTING BACKGROUND
+==================================================
+
+Use the uploaded login background image EXACTLY as it is.
+
+DO NOT:
+- regenerate it
+- redraw it
+- replace it
+- animate the background itself
+- add artificial CSS gradients over the entire background
+
+The background remains static.
+
+The lens flare is a separate animated layer above the background.
+
+==================================================
+2. MOST IMPORTANT — NO JERKY MOVEMENT
+==================================================
+
+The previous animation had a major problem:
+
+The flare was moving in visible steps and stopping between positions.
+
+FIX THIS COMPLETELY.
+
+The flare movement MUST be:
+
+- continuous
+- perfectly smooth
+- frame-independent
+- cinematic
+- fluid
+- natural
+
+NEVER animate the flare using a sequence of discrete
+left/top position jumps.
+
+DO NOT use:
+
+left: 10%;
+left: 20%;
+left: 30%;
+left: 40%;
+
+DO NOT use many CSS keyframes with sudden position changes.
+
+Instead use a smooth continuous animation system.
+
+Prefer:
+
+requestAnimationFrame()
+
+combined with:
+
+- elapsed time
+- normalized progress
+- smooth interpolation
+- transform: translate3d()
+- opacity
+- scale
+- blur
+
+The animation must remain smooth even if the frame rate changes.
+
+==================================================
+3. USE A SINGLE CONTINUOUS LIGHT PATH
+==================================================
+
+The main light source should travel along ONE continuous,
+smooth cinematic path.
+
+Example concept:
+
+START:
+outside/near left edge
+
+        ↓
+
+slow entrance
+
+        ↓
+
+smooth diagonal movement
+
+        ↓
+
+passes through the visual area near the login card
+
+        ↓
+
+bright cinematic peak
+
+        ↓
+
+continues smoothly toward opposite side
+
+        ↓
+
+slow fade
+
+        ↓
+
+exits screen
+
+There must NEVER be:
+
+- sudden stops
+- sudden jumps
+- teleportation
+- direction changes
+- visible keyframe snapping
+
+The movement should feel physically continuous.
+
+==================================================
+4. REAL CAMERA OPTICAL EFFECT
+==================================================
+
+Do NOT create one large glowing circle.
+
+A real lens flare should consist of MULTIPLE optical components.
+
+Build the flare from several layered elements.
+
+A. PRIMARY LIGHT SOURCE
+
+A small extremely bright warm-white/golden core.
+
+It should be:
+
+- sharp in the center
+- extremely bright
+- surrounded by soft golden bloom
+
+The core should NOT look like a simple yellow circle.
+
+Use layered radial gradients and blur.
+
+--------------------------------------------------
+
+B. ANAMORPHIC HORIZONTAL STREAK
+
+Add a very thin horizontal cinematic light streak.
+
+Characteristics:
+
+- extremely bright near the source
+- fades smoothly toward both sides
+- warm gold/white center
+- very subtle blue/cyan edge contamination
+- soft Gaussian-like blur
+
+The streak should stretch horizontally as the flare
+moves through the scene.
+
+--------------------------------------------------
+
+C. LENS GHOSTS
+
+Add subtle translucent lens ghosts.
+
+Use approximately 4–7 ghost elements.
+
+They should:
+
+- appear at different distances from the primary light
+- have different sizes
+- have very low opacity
+- move with optical relationship to the main flare
+- fade in/out naturally
+
+DO NOT make them look like obvious circles.
+
+They should be subtle enough that the viewer may not
+immediately notice them.
+
+--------------------------------------------------
+
+D. LENS RINGS
+
+Add 1–3 extremely subtle translucent rings.
+
+They should be:
+
+- soft
+- partially transparent
+- slightly blurred
+- warm/cool mixed
+- never solid circles
+
+They should react naturally as the light crosses the screen.
+
+--------------------------------------------------
+
+E. BLOOM
+
+The primary flare should have a soft bloom.
+
+Use multiple layers:
+
+small bright core
++
+medium warm glow
++
+large extremely soft glow
+
+The outer glow should be subtle.
+
+DO NOT make the entire login screen glow yellow.
+
+==================================================
+5. PHYSICS-LIKE LIGHT BEHAVIOUR
+==================================================
+
+The brightness must change naturally according to the
+flare's position.
+
+Use a smooth brightness curve.
+
+For example:
+
+ENTER:
+low intensity
+
+APPROACH:
+gradually increasing intensity
+
+CENTER / PEAK:
+short bright highlight
+
+EXIT:
+gradually decreasing intensity
+
+Do NOT use sudden opacity changes.
+
+Use smooth interpolation such as:
+
+smoothstep
+easeInOut
+or another continuous easing function.
+
+==================================================
+6. FLARE SHOULD NOT MOVE AT CONSTANT SPEED
+==================================================
+
+A real cinematic camera movement should have subtle
+acceleration/deceleration.
+
+Use:
+
+slow start
+→ gradual acceleration
+→ smooth cruising movement
+→ gentle deceleration
+→ exit
+
+But IMPORTANT:
+
+There must be NO visible stopping.
+
+The light should always remain in continuous motion.
+
+==================================================
+7. DURATION
+==================================================
+
+Target animation duration:
+
+approximately 3.5–5 seconds.
+
+Do not make it extremely fast.
+
+The viewer should have enough time to notice the effect.
+
+But it should still feel premium and cinematic.
+
+==================================================
+8. RANDOMNESS — VERY SUBTLE
+==================================================
+
+Every page visit may have tiny variations in:
+
+- starting position
+- path angle
+- intensity
+- ghost opacity
+- ghost spacing
+
+BUT:
+
+Do NOT randomize the movement heavily.
+
+Do NOT create unpredictable animation.
+
+The result should remain elegant and controlled.
+
+==================================================
+9. LOGIN UI MUST STAY CLEAN
+==================================================
+
+Layer structure:
+
+BACKGROUND
+    ↓
+AMBIENT FLARE
+    ↓
+LENS GHOSTS
+    ↓
+MAIN FLARE
+    ↓
+LOGIN UI
+
+The login UI must always remain above the animation.
+
+The flare must NOT make these unreadable:
+
+Daily Reconciliation
+Enter your PIN to continue
+PIN input
+Eye icon
+Unlock button
+
+When the flare passes behind the login card,
+the card should remain visually dominant.
+
+==================================================
+10. LOGIN CARD
+==================================================
+
+Keep the current premium login design.
+
+Dark navy glass card.
+
+Use:
+
+- subtle transparency
+- subtle border
+- soft shadow
+- backdrop blur
+- gold accent
+
+Do not redesign the authentication UI unnecessarily.
+
+The main improvement is the cinematic lighting.
+
+==================================================
+11. REALISTIC LIGHT COMPOSITING
+==================================================
+
+This is extremely important.
+
+Use proper visual compositing.
+
+The flare should visually blend with the background
+rather than appearing as an object sitting on top.
+
+If supported by the current browser implementation,
+use appropriate blending such as:
+
+screen
+or
+lighter
+
+for the luminous elements.
+
+Use opacity carefully.
+
+The flare should look like LIGHT,
+not like a PNG moving across the screen.
+
+==================================================
+12. NO FAKE PARTICLE STORM
+==================================================
+
+Do NOT create hundreds of particles.
+
+Do NOT create:
+
+- fireworks
+- sparkles everywhere
+- floating dots everywhere
+- neon particles
+- sci-fi effects
+
+Only a VERY small number of subtle optical artifacts.
+
+The effect must remain premium.
+
+==================================================
+13. PERFORMANCE
+==================================================
+
+Use GPU-friendly animation.
+
+Prefer:
+
+transform: translate3d()
+opacity
+filter where appropriate
+
+Avoid continuous layout recalculation.
+
+Do NOT animate:
+
+top
+left
+width
+height
+
+for the moving flare.
+
+Use transforms.
+
+Use requestAnimationFrame for the main motion.
+
+Cancel the animation frame when the component unmounts.
+
+==================================================
+14. REFRESH / VISIT BEHAVIOUR
+==================================================
+
+Animation must automatically start:
+
+- when /dailyamount is opened
+- when browser refreshes
+- when user leaves /dailyamount and returns
+- when the login component mounts again
+
+Play ONCE per page visit.
+
+Do NOT continuously loop.
+
+Do NOT require clicking a button.
+
+Do NOT use localStorage to permanently suppress the animation.
+
+==================================================
+15. REDUCED MOTION
+==================================================
+
+Respect:
+
+prefers-reduced-motion
+
+When enabled:
+
+Disable the moving flare.
+
+Show only a very subtle static golden glow.
+
+==================================================
+16. RESPONSIVE
+==================================================
+
+Desktop:
+Full cinematic effect.
+
+Tablet:
+Scale the effect appropriately.
+
+Mobile:
+Reduce flare size and intensity.
+
+Do NOT allow the flare to cover the entire screen.
+
+==================================================
+17. IMPORTANT — NO IMAGE GENERATION
+==================================================
+
+Do NOT generate a new image.
+
+Do NOT replace the supplied background.
+
+Do NOT create a GIF.
+
+Do NOT create a video.
+
+The flare must be generated as a lightweight frontend
+optical effect.
+
+==================================================
+18. QUALITY CHECK
+==================================================
+
+Before considering the implementation complete, test the
+animation multiple times.
+
+Check specifically:
+
+1. Does the light move continuously?
+2. Is there ANY visible stop?
+3. Is there ANY visible jump?
+4. Does the flare look like a glowing circle?
+5. Do the lens ghosts behave naturally?
+6. Does the horizontal streak look cinematic?
+7. Does brightness change smoothly?
+8. Does the flare blend with the background?
+9. Does the login UI remain readable?
+10. Does refresh start the animation again?
+11. Does revisiting /dailyamount start it again?
+12. Does it remain smooth on a normal desktop browser?
+
+If the animation looks like a basic CSS glow,
+DO NOT consider it finished.
+
+The final effect should resemble:
+
+"A real bright cinematic light source passing across
+a professional camera lens"
+
+NOT:
+
+"a yellow circle moving across a webpage."
+
+==================================================
+FINAL DESIGN DIRECTION
+==================================================
+
+Overall aesthetic:
+
+PREMIUM FINTECH
++
+DARK NAVY
++
+GOLD
++
+CINEMATIC OPTICAL LIGHT
++
+SUBTLE ANAMORPHIC FLARE
++
+SMOOTH MOTION
+
+The animation should be elegant enough that it feels like
+part of a professionally designed financial application,
+not a generic website animation.
