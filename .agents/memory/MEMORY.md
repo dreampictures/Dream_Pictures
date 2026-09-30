@@ -3,3 +3,4 @@
 - [DailyAmount visual constraints](dailyamount-data-visuals.md) — keep values history-backed and visual QA isolated from the real PIN.
 - [DailyAmount PIN screen](dailyamount-pin-screen.md) — preserve the plain navy background and one-shot lens flare without changing authentication.
 - [Fly local image builds](fly-local-image-builds.md) — if Fly’s remote Depot builder stalls here, local Docker can build with Fly’s local-only option.
+- [Vite React deduplication](vite-react-deduplication.md) — identical React versions can still become separate Vite modules through pnpm paths and break hooks.
