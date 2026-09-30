@@ -236,201 +236,37 @@
   font-weight: 600;
 }
 
-.da-pin-flare-layer {
+.da-pin-lock-canvas {
   position: absolute;
   inset: 0;
   z-index: 1;
-  overflow: hidden;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-.da-pin-flare-ambient,
-.da-pin-flare-track,
-.da-pin-flare-ghost {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: none;
-}
-
-.da-pin-flare-ambient,
-.da-pin-flare-track {
-  width: 0;
-  height: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-}
-
-.da-pin-flare-ambient { z-index: 0; }
-.da-pin-flare-ghost { z-index: 1; opacity: 0; }
-.da-pin-flare-track { z-index: 2; }
-
-.da-pin-flare-running {
-  will-change: transform, opacity, filter;
-}
-
-.da-pin-flare-halo,
-.da-pin-flare-streak-soft,
-.da-pin-flare-core,
-.da-pin-flare-streak,
-.da-pin-flare-ring,
-.da-pin-flare-dust {
-  position: absolute;
-  left: 0;
-  top: 0;
   pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.da-pin-lock-canvas.is-ready {
+  opacity: 1;
+}
+
+.da-pin-lock-fallback {
+  position: relative;
+  z-index: 2;
+  transition: opacity 140ms ease;
+}
+
+.da-pin-lock-fallback.is-hidden {
+  visibility: hidden;
   opacity: 0;
-}
-
-.da-pin-flare-halo {
-  width: clamp(280px, 52vw, 760px);
-  height: clamp(128px, 28vh, 300px);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background:
-    radial-gradient(ellipse 12% 24% at 50% 50%, rgba(255, 255, 247, 0.28), transparent 70%),
-    radial-gradient(ellipse 38% 58% at 50% 50%, rgba(255, 221, 170, 0.25), rgba(255, 187, 91, 0.12) 44%, transparent 76%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 190, 91, 0.11), transparent 72%);
-  filter: blur(17px);
-}
-
-.da-pin-flare-streak-soft {
-  width: clamp(520px, 132vw, 1800px);
-  height: clamp(8px, 1.8vh, 22px);
-  transform: translate(-50%, -50%);
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(107, 196, 255, 0.035) 32%,
-    rgba(255, 215, 153, 0.13) 46%,
-    rgba(255, 243, 218, 0.22) 50%,
-    rgba(255, 197, 115, 0.09) 55%,
-    rgba(105, 198, 255, 0.035) 68%,
-    transparent 100%);
-  filter: blur(7px);
-}
-
-.da-pin-flare-streak {
-  width: clamp(520px, 145vw, 1900px);
-  height: 1.5px;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(93, 190, 255, 0.04) 36%,
-    rgba(255, 206, 122, 0.28) 46%,
-    rgba(255, 238, 192, 0.94) 49.2%,
-    rgba(255, 255, 248, 1) 50%,
-    rgba(255, 230, 177, 0.96) 50.8%,
-    rgba(255, 192, 104, 0.34) 54%,
-    rgba(103, 200, 255, 0.16) 59%,
-    rgba(255, 190, 91, 0.045) 70%,
-    transparent 100%);
-  filter: blur(0.55px) drop-shadow(0 0 5px rgba(255, 211, 139, 0.56));
-}
-
-.da-pin-flare-core {
-  width: 42px;
-  height: 28px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 238, 0.96) 7%,
-    rgba(255, 232, 178, 0.78) 23%,
-    rgba(255, 192, 103, 0.3) 48%,
-    transparent 76%);
-  box-shadow: 0 0 7px 1px rgba(255, 247, 219, 0.56), 0 0 21px rgba(255, 198, 106, 0.4);
-  filter: blur(1px);
-}
-
-.da-pin-flare-core::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 3px;
-  height: 3px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #fffef4;
-  box-shadow: 0 0 5px 2px rgba(255, 255, 239, 0.85);
-}
-
-.da-pin-flare-ring {
-  border: 1px solid rgba(255, 236, 202, 0.25);
-  border-radius: 50%;
-  filter: blur(1.4px);
-}
-
-.da-pin-flare-ring-one {
-  width: 158px;
-  height: 70px;
-  box-shadow: 0 0 10px rgba(255, 208, 131, 0.1), inset 0 0 8px rgba(255, 233, 194, 0.05);
-}
-
-.da-pin-flare-ring-two {
-  width: 246px;
-  height: 118px;
-  border-color: rgba(130, 205, 255, 0.17);
-}
-
-.da-pin-flare-ring-three {
-  width: 82px;
-  height: 46px;
-  border-color: rgba(255, 224, 177, 0.2);
-}
-
-.da-pin-flare-dust {
-  width: 34px;
-  height: 26px;
-  background:
-    radial-gradient(1px 1px at 18% 36%, rgba(255, 247, 217, 0.54), transparent 75%),
-    radial-gradient(1px 1px at 76% 28%, rgba(255, 228, 177, 0.38), transparent 75%),
-    radial-gradient(1px 1px at 58% 78%, rgba(139, 214, 255, 0.3), transparent 75%);
-}
-
-.da-pin-flare-ghost-one {
-  width: 112px;
-  height: 28px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(135, 213, 255, 0.25), rgba(154, 212, 255, 0.07) 44%, transparent 76%);
-  filter: blur(5px);
-}
-
-.da-pin-flare-ghost-two {
-  width: 64px;
-  height: 38px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 224, 178, 0.22), rgba(255, 187, 104, 0.06) 46%, transparent 78%);
-  filter: blur(4px);
-}
-
-.da-pin-flare-ghost-three {
-  width: 30px;
-  height: 72px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(156, 218, 255, 0.2), rgba(180, 223, 255, 0.055) 42%, transparent 78%);
-  filter: blur(4px);
-}
-
-.da-pin-flare-ghost-four {
-  width: 94px;
-  height: 12px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, transparent, rgba(255, 216, 163, 0.16), rgba(173, 222, 255, 0.12), transparent);
-  filter: blur(3px);
-}
-
-.da-pin-flare-ghost-five {
-  width: 36px;
-  height: 24px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 246, 218, 0.18), rgba(135, 209, 255, 0.06) 50%, transparent 78%);
-  filter: blur(3px);
 }
 
 .da-pin-lock-frame {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   border: 2px solid rgba(250, 204, 21, 0.96);
   box-shadow:
     0 0 25px rgba(250, 204, 21, 0.34),
@@ -473,37 +309,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .da-pin-flare-ambient {
-    transform: translate3d(50vw, 48vh, 0);
-    opacity: 0.12;
-  }
-
-  .da-pin-flare-halo { opacity: 0.7; }
-  .da-pin-flare-streak-soft,
-  .da-pin-flare-track,
-  .da-pin-flare-ghost { display: none; }
-
   .da-pin-unlock {
     transition: none;
   }
-}
-
-@media (max-width: 640px) {
-  .da-pin-flare-halo {
-    width: min(72vw, 320px);
-    height: min(20vh, 170px);
-    filter: blur(13px);
-  }
-
-  .da-pin-flare-streak-soft { width: 148vw; height: 11px; }
-  .da-pin-flare-streak { width: 158vw; height: 1px; }
-  .da-pin-flare-core { width: 32px; height: 22px; }
-  .da-pin-flare-ring-one { width: 118px; height: 54px; }
-  .da-pin-flare-ring-two { width: 184px; height: 88px; }
-  .da-pin-flare-ring-three { width: 66px; height: 38px; }
-  .da-pin-flare-ghost-one { width: 86px; height: 22px; }
-  .da-pin-flare-ghost-two { width: 50px; height: 30px; }
-  .da-pin-flare-ghost-three { width: 24px; height: 56px; }
-  .da-pin-flare-ghost-four { width: 72px; height: 9px; }
-  .da-pin-flare-ghost-five { width: 28px; height: 19px; }
 }

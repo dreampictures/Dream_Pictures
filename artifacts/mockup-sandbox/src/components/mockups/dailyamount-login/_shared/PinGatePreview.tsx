@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
-import { CinematicLensFlare } from "./CinematicLensFlare";
+import { LockReveal3D } from "./LockReveal3D";
 import "../_group.css";
 
 type PinGatePreviewProps = {
@@ -89,11 +89,10 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
           backgroundRepeat: "no-repeat",
       }}
     >
-      <CinematicLensFlare />
       <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
         <div className="da-pin-heading-group relative z-10 mb-5 text-center">
           <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
-            <Lock size={34} strokeWidth={3} className="relative z-10 text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
+            <LockReveal3D />
           </div>
           <h1 className="da-pin-heading relative z-10 text-[22px] leading-[28px] text-white">Daily Reconciliation</h1>
           <p className="da-pin-subtitle relative z-10 mt-[10px] text-xs leading-[18px] tracking-wide text-slate-300">Enter your PIN to continue</p>

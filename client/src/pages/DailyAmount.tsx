@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings, Calculator } from "lucide-react";
-import { DailyAmountLensFlare } from "@/components/DailyAmountLensFlare";
+import { LockReveal3D } from "@/components/LockReveal3D";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -261,11 +261,10 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <DailyAmountLensFlare />
       <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
         <div className="da-pin-heading-group relative z-10 mb-5 text-center">
           <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
-            <Lock size={34} strokeWidth={3} className="relative z-10 text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
+            <LockReveal3D />
           </div>
           <h1 className="da-pin-heading relative z-10 text-[22px] leading-[28px] text-white">Daily Reconciliation</h1>
           <p className="da-pin-subtitle relative z-10 mt-[10px] text-xs leading-[18px] tracking-wide text-slate-300">Enter your PIN to continue</p>
