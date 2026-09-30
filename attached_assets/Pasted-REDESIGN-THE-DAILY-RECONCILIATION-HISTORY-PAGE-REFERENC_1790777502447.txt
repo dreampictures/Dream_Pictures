@@ -1,0 +1,452 @@
+REDESIGN THE DAILY RECONCILIATION HISTORY PAGE
+
+REFERENCE IMAGE:
+Use the attached reference screenshot as the PRIMARY VISUAL DESIGN REFERENCE.
+
+IMPORTANT:
+The reference image is a DESIGN REFERENCE ONLY.
+Do NOT copy fake/sample data from the screenshot into the application.
+Use the application's existing real History data, calculations, API/database data and business logic.
+
+GOAL:
+Redesign the existing History page so it visually follows the attached reference very closely.
+
+Do NOT create a completely different dashboard.
+Do NOT make a generic/simple table.
+Do NOT reduce the design to plain cards.
+The final page should feel like a premium dark fintech/financial management application.
+
+--------------------------------------------------
+1. OVERALL VISUAL STYLE
+--------------------------------------------------
+
+Match the reference image's visual language:
+
+- Dark navy / midnight blue background
+- Premium fintech dashboard appearance
+- Subtle blue/purple ambient gradients
+- Glassmorphism-style surfaces
+- Rounded cards
+- Thin blue borders
+- Very subtle outer glow
+- Strong but clean hierarchy
+- White headings
+- Muted blue-gray secondary text
+- Green for Cash
+- Blue for Banks
+- Purple for AEPS
+- Gold/yellow for System Balance
+- Avoid excessive neon/glow
+- Keep everything professional and readable
+
+The page must NOT look flat.
+
+Use:
+- layered dark backgrounds
+- subtle radial gradients
+- soft shadows
+- thin borders
+- controlled accent glows
+- consistent 10–16px corner radius
+- comfortable spacing
+
+--------------------------------------------------
+2. PAGE HEADER
+--------------------------------------------------
+
+Create a premium History header.
+
+Left side:
+
+Back button
+History icon
+"History"
+small subtitle:
+"137 entries • Daily system balance history"
+
+The number must come from the real application data.
+
+Right side:
+
+Date range selector:
+[calendar] Start Date
+"to"
+End Date
+[Apply]
+
+Then:
+
+[Export ▼]
+
+Buttons should match the same dark glass / blue bordered style.
+
+Do not hardcode dates.
+
+Use the application's actual history date range.
+
+--------------------------------------------------
+3. TOP SUMMARY SECTION
+--------------------------------------------------
+
+Below the header create a wide summary panel.
+
+The reference has four major summary areas:
+
+1. Total Entries
+2. Total Cash
+3. Total Banks
+4. Total AEPS
+
+Use the REAL values calculated from the existing History data.
+
+Each section should have:
+
+- appropriate finance icon
+- large number
+- descriptive label
+- small supporting text
+- subtle colored accent
+- subtle trend indicator ONLY if real historical comparison data exists
+
+IMPORTANT:
+
+Do NOT invent percentage changes.
+
+If the current backend does not provide a real percentage/change value,
+DO NOT display fake percentages.
+
+--------------------------------------------------
+4. HISTORY RECORD DESIGN
+--------------------------------------------------
+
+This is the most important section.
+
+Do NOT use the old narrow centered cards.
+
+Instead, each history record should be a wide horizontal premium card.
+
+Each row should visually resemble:
+
+---------------------------------------------------------
+DATE / TIME | OPENING BALANCE | CASH | BANKS | AEPS |
+SYSTEM BALANCE | VIEW DETAILS
+---------------------------------------------------------
+
+Use responsive layout while maintaining this visual structure.
+
+Each record should contain:
+
+LEFT:
+
+Calendar icon
+Date
+Time
+
+Example visual structure:
+
+Tue, 29 Sep 2026
+09:30 PM
+
+If the record is today, show a small green "Today" badge.
+
+Do NOT hardcode "Today".
+Calculate it from the selected/current date.
+
+--------------------------------------------------
+5. OPENING BALANCE
+--------------------------------------------------
+
+Show:
+
+Opening Balance: ₹X
+
+Use the actual opening balance from the record.
+
+Typography should be smaller than the main amounts.
+
+--------------------------------------------------
+6. CASH CARD
+--------------------------------------------------
+
+Create a green tinted mini-card.
+
+Icon:
+cash/wallet
+
+Value:
+REAL cash amount
+
+Label:
+Cash
+
+Example styling:
+
+Dark green transparent background
+Green border
+Soft green glow
+White/green typography
+
+Do NOT use fake values.
+
+--------------------------------------------------
+7. BANK CARD
+--------------------------------------------------
+
+Create a blue tinted mini-card.
+
+Icon:
+bank
+
+Value:
+REAL bank total
+
+Label:
+Banks
+
+Style:
+
+Dark blue background
+Blue border
+Subtle blue glow
+
+--------------------------------------------------
+8. AEPS CARD
+--------------------------------------------------
+
+Create a purple tinted mini-card.
+
+Icon:
+AEPS/wallet/card
+
+Value:
+REAL AEPS total
+
+Label:
+AEPS
+
+Style:
+
+Dark purple background
+Purple border
+Subtle purple glow
+
+--------------------------------------------------
+9. SYSTEM BALANCE
+--------------------------------------------------
+
+System Balance should be visually more prominent.
+
+Use a gold/yellow premium card.
+
+Show:
+
+System Balance
+₹REAL_VALUE
+
+Use the application's existing system balance calculation.
+
+Do NOT change the calculation.
+
+Do NOT create a new formula.
+
+The gold card should visually stand out from Cash / Banks / AEPS.
+
+--------------------------------------------------
+10. VIEW DETAILS
+--------------------------------------------------
+
+At the far right of every history record add:
+
+[ View Details → ]
+
+Use the existing History detail functionality.
+
+Do NOT break the current click/navigation behavior.
+
+If the existing application uses another action for opening history details,
+preserve that behavior.
+
+--------------------------------------------------
+11. REAL DATA ONLY
+--------------------------------------------------
+
+VERY IMPORTANT:
+
+DO NOT replace existing History functionality.
+
+Preserve:
+
+- existing database
+- existing API
+- existing calculations
+- existing history records
+- existing date filtering
+- existing pagination/loading
+- existing detail functionality
+- existing export functionality
+
+Do NOT create mock history data.
+
+Do NOT hardcode:
+
+- dates
+- balances
+- cash values
+- bank values
+- AEPS values
+- system balances
+- entry counts
+
+The reference screenshot's numbers are ONLY visual examples.
+
+--------------------------------------------------
+12. RESPONSIVE DESIGN
+--------------------------------------------------
+
+Desktop is the primary target.
+
+At desktop width the history cards should remain wide and organized.
+
+For tablet/mobile:
+
+Stack the information intelligently instead of allowing horizontal overflow.
+
+Never create an ugly horizontal scrollbar.
+
+--------------------------------------------------
+13. VISUAL DETAILS
+--------------------------------------------------
+
+Use subtle background effects:
+
+- dark navy base
+- very subtle blue radial glow
+- subtle purple glow near selected/active areas
+- very subtle gold accent around system balance
+
+Do NOT make the background too bright.
+
+Do NOT use excessive gradients.
+
+Do NOT use large decorative images.
+
+Do NOT create AI-generated images.
+
+Use existing local icons/assets where available.
+
+If an icon asset does not exist, use the existing icon library already installed in the project.
+
+--------------------------------------------------
+14. TYPOGRAPHY
+--------------------------------------------------
+
+Use a modern clean sans-serif font.
+
+Hierarchy:
+
+Page title:
+large / bold
+
+Section labels:
+medium / semibold
+
+Amounts:
+bold
+
+Secondary information:
+smaller / muted
+
+Keep typography close to the reference screenshot.
+
+--------------------------------------------------
+15. CARD SPACING
+--------------------------------------------------
+
+Maintain generous spacing.
+
+History records should have:
+
+- 14–16px rounded corners
+- 1px subtle borders
+- internal padding around 16–20px
+- consistent gap between rows
+- subtle shadow
+- subtle hover effect
+
+On hover:
+
+- slightly brighter border
+- very subtle elevation
+- no excessive animation
+
+--------------------------------------------------
+16. DO NOT CHANGE BUSINESS LOGIC
+--------------------------------------------------
+
+THIS IS CRITICAL.
+
+Do NOT modify:
+
+- calculations
+- database schema
+- API responses
+- reconciliation formulas
+- cash calculation
+- bank calculation
+- AEPS calculation
+- system balance calculation
+- existing history logic
+
+Only modify the UI/UX presentation unless a tiny frontend-only change is absolutely required for displaying existing data.
+
+--------------------------------------------------
+17. DO NOT USE REFERENCE DATA
+--------------------------------------------------
+
+The attached screenshot contains sample values such as:
+
+₹75,010.76
+₹4,59,482.17
+₹4,53,452.47
+etc.
+
+DO NOT put these values into the application.
+
+Render the REAL values coming from the existing application.
+
+--------------------------------------------------
+18. FINAL QUALITY REQUIREMENT
+--------------------------------------------------
+
+Before finishing:
+
+Compare the implemented History page against the attached reference screenshot.
+
+Check:
+
+- overall composition
+- dark navy background
+- header spacing
+- summary section
+- card proportions
+- Cash green styling
+- Banks blue styling
+- AEPS purple styling
+- System Balance gold styling
+- typography
+- borders
+- glow
+- spacing
+- alignment
+- button styling
+- visual hierarchy
+
+The final result should look like a professional production fintech dashboard,
+NOT a basic CRUD/table page.
+
+MOST IMPORTANT:
+
+REFERENCE SCREENSHOT = VISUAL TARGET
+CURRENT APPLICATION = REAL DATA + REAL FUNCTIONALITY
+
+Match the DESIGN without changing the existing BUSINESS LOGIC.
