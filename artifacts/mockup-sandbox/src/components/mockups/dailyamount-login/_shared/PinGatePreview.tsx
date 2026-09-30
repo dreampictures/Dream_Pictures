@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import "../_group.css";
 
@@ -11,7 +11,16 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
+  const [flareRun, setFlareRun] = useState(0);
   const isReference = variant === "reference";
+
+  useEffect(() => {
+    const replayOnRestore = (event: PageTransitionEvent) => {
+      if (event.persisted) setFlareRun((run) => run + 1);
+    };
+    window.addEventListener("pageshow", replayOnRestore);
+    return () => window.removeEventListener("pageshow", replayOnRestore);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,11 +97,10 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
           backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="relative z-10 w-full max-w-[432px]">
-        <div className="relative mb-5 text-center">
-        <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
+      <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
+        <div className="da-pin-heading-group relative z-10 mb-5 text-center">
+          <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
             <Lock size={34} strokeWidth={3} className="relative z-10 text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
-            <span aria-hidden="true" className="da-pin-lock-orbit-flare" />
           </div>
           <h1 className="da-pin-heading relative z-10 text-[22px] leading-[28px] text-white">Daily Reconciliation</h1>
           <p className="da-pin-subtitle relative z-10 mt-[10px] text-xs leading-[18px] tracking-wide text-slate-300">Enter your PIN to continue</p>
@@ -122,8 +130,9 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : "Unlock"}
           </button>
-          <span aria-hidden="true" className="da-pin-card-lens" />
+          <span key={`glass-${flareRun}`} aria-hidden="true" className="da-pin-glass-reflection" />
         </form>
+        <span key={`beam-${flareRun}`} aria-hidden="true" className="da-pin-light-sweep" />
       </div>
     </div>
   );
