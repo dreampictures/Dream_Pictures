@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings, Calculator } from "lucide-react";
+import { DailyAmountLensFlare } from "@/components/DailyAmountLensFlare";
 
 const PIN_KEY = "da_auth_pin";
 
@@ -223,15 +224,6 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
-  const [flareRun, setFlareRun] = useState(0);
-
-  useEffect(() => {
-    const replayOnRestore = (event: PageTransitionEvent) => {
-      if (event.persisted) setFlareRun((run) => run + 1);
-    };
-    window.addEventListener("pageshow", replayOnRestore);
-    return () => window.removeEventListener("pageshow", replayOnRestore);
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -269,19 +261,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="da-pin-flare-layer" aria-hidden="true">
-        <div key={`flare-${flareRun}`} className="da-pin-flare-track">
-          <span className="da-pin-flare-halo" />
-          <span className="da-pin-flare-core" />
-          <span className="da-pin-flare-streak" />
-          <span className="da-pin-flare-streak-soft" />
-          <span className="da-pin-flare-ring" />
-          <span className="da-pin-flare-blue-ghost" />
-          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-one" />
-          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-two" />
-          <span className="da-pin-flare-dust" />
-        </div>
-      </div>
+      <DailyAmountLensFlare />
       <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
         <div className="da-pin-heading-group relative z-10 mb-5 text-center">
           <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">

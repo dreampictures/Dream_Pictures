@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
+import { CinematicLensFlare } from "./CinematicLensFlare";
 import "../_group.css";
 
 type PinGatePreviewProps = {
@@ -11,16 +12,7 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
-  const [flareRun, setFlareRun] = useState(0);
   const isReference = variant === "reference";
-
-  useEffect(() => {
-    const replayOnRestore = (event: PageTransitionEvent) => {
-      if (event.persisted) setFlareRun((run) => run + 1);
-    };
-    window.addEventListener("pageshow", replayOnRestore);
-    return () => window.removeEventListener("pageshow", replayOnRestore);
-  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,19 +89,7 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
           backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="da-pin-flare-layer" aria-hidden="true">
-        <div key={`flare-${flareRun}`} className="da-pin-flare-track">
-          <span className="da-pin-flare-halo" />
-          <span className="da-pin-flare-core" />
-          <span className="da-pin-flare-streak" />
-          <span className="da-pin-flare-streak-soft" />
-          <span className="da-pin-flare-ring" />
-          <span className="da-pin-flare-blue-ghost" />
-          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-one" />
-          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-two" />
-          <span className="da-pin-flare-dust" />
-        </div>
-      </div>
+      <CinematicLensFlare />
       <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
         <div className="da-pin-heading-group relative z-10 mb-5 text-center">
           <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
