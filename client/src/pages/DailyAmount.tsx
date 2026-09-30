@@ -267,7 +267,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
         </div>
         <form
           onSubmit={handleSubmit}
-          className="da-pin-form space-y-4 rounded-2xl px-[27px] py-[30px]"
+          className="da-pin-form flex flex-col gap-4 rounded-2xl px-[27px] py-[30px]"
           style={{
             background: "rgba(7,18,38,0.56)",
             backdropFilter: "blur(14px)",
