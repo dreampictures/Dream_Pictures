@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Calendar, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingDown, TrendingUp } from "lucide-react";
 import "./_group.css";
 import { calcSystemBalance, fmt, formatDate, previewHistory, previewTransactions } from "./_shared/previewData";
 
@@ -147,7 +147,6 @@ export function Current() {
                   </div>
                 </div>
               )}
-              <span className="sr-only"><Calendar size={1} /></span>
             </button>
           );
         })}
