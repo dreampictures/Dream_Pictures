@@ -5,14 +5,16 @@
 }
 
 @keyframes da-pin-lock-flare {
-  to { transform: rotate(1turn); }
+  0% { transform: rotate(-18deg); opacity: 0.35; }
+  22% { opacity: 1; }
+  100% { transform: rotate(342deg); opacity: 1; }
 }
 
 @keyframes da-pin-card-flare {
   0% { transform: translateX(0); opacity: 0; }
   10% { opacity: 1; }
-  88% { opacity: 0.95; }
-  100% { transform: translateX(220%); opacity: 0; }
+  82% { opacity: 1; }
+  100% { transform: translateX(220%); opacity: 0.95; }
 }
 
 .da-pin-heading {
@@ -57,7 +59,7 @@
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   filter: drop-shadow(0 0 5px rgba(250, 204, 21, 0.9));
-  animation: da-pin-lock-flare 3.8s linear infinite;
+  animation: da-pin-lock-flare 2.6s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
 }
 
 .da-pin-form {
@@ -90,7 +92,7 @@
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, #eab308 32%, #fff8cf 58%, #f59e0b 78%, transparent);
   box-shadow: 0 0 11px rgba(250, 204, 21, 0.85);
-  animation: da-pin-card-flare 4.4s ease-in-out infinite;
+  animation: da-pin-card-flare 3.4s cubic-bezier(0.22, 1, 0.36, 1) 0.55s 1 both;
 }
 
 .da-pin-unlock {
@@ -128,7 +130,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .da-pin-lock-frame::after { animation: none; }
-  .da-pin-form::after { animation: none; opacity: 0; }
+  .da-pin-lock-frame::after { animation: none; transform: rotate(342deg); opacity: 1; }
+  .da-pin-form::after { animation: none; transform: translateX(220%); opacity: 0; }
   .da-pin-unlock { transition: none; }
 }
