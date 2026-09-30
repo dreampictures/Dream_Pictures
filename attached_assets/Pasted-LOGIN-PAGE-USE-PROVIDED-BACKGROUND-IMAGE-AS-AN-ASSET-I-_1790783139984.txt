@@ -1,0 +1,131 @@
+LOGIN PAGE — USE PROVIDED BACKGROUND IMAGE AS AN ASSET
+
+I will provide/upload a background image for the Daily Reconciliation
+login page.
+
+IMPORTANT:
+DO NOT generate, recreate, redraw, replace, or approximate this background
+using CSS, gradients, SVG, canvas, AI-generated images, or any other method.
+
+USE THE EXACT UPLOADED IMAGE AS THE LOGIN PAGE BACKGROUND.
+
+Create a proper local asset folder for login-page assets if one does not
+already exist.
+
+Suggested asset:
+
+/public/assets/login-background.png
+
+Use the exact filename/path that the project uses, but keep the image as
+a separate local asset.
+
+BACKGROUND BEHAVIOR:
+
+- Full viewport background
+- Cover the entire screen
+- Maintain the original image aspect ratio
+- Do NOT stretch or distort the image
+- Do NOT crop important visual elements unnecessarily
+- Use background-size: cover
+- Use background-position: center
+- Keep the image behind the login UI
+- Add only a very subtle dark overlay if required for text readability
+
+IMPORTANT:
+Do NOT recreate the visual curves, gold lines, blue waves, particles or
+other elements visible in the supplied background image.
+
+They are already part of the image.
+
+--------------------------------------------------
+
+LOGIN UI
+
+Keep the existing Daily Reconciliation login functionality.
+
+Place the login interface centered over the background.
+
+Use:
+
+Gold lock icon
+Daily Reconciliation
+Enter your PIN to continue
+
+PIN input:
+Enter PIN
+Eye/show PIN button
+
+Gold:
+Unlock
+
+The login UI should be implemented as REAL HTML/React components,
+NOT part of the background image.
+
+--------------------------------------------------
+
+CARD
+
+Use a subtle dark glass-style login card:
+
+- dark navy transparent background
+- subtle border
+- soft shadow
+- 14–16px rounded corners
+- slight backdrop blur if appropriate
+
+Do not make the card opaque enough to hide the background.
+
+--------------------------------------------------
+
+PIN INPUT
+
+- dark navy transparent input
+- gold border
+- gold focus glow
+- rounded corners
+- centered placeholder/text
+- preserve existing eye/show PIN functionality
+
+--------------------------------------------------
+
+UNLOCK BUTTON
+
+- full width
+- gold/yellow gradient
+- dark text
+- rounded corners
+- subtle gold shadow/glow
+- smooth hover effect
+
+Do NOT change the existing authentication/PIN logic.
+
+--------------------------------------------------
+
+IMPORTANT — FUNCTIONALITY MUST NOT CHANGE
+
+Do NOT modify:
+
+- PIN validation
+- authentication
+- API
+- database
+- session handling
+- routes
+- security logic
+- error handling
+
+Only update the visual UI.
+
+--------------------------------------------------
+
+FINAL RESULT
+
+The uploaded background image must be the EXACT visual background.
+
+The login interface must sit cleanly on top of it.
+
+Do NOT ask the AI to generate any replacement image.
+
+Do NOT create any new background image.
+
+Use the supplied local asset directly.
