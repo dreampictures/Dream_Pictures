@@ -254,6 +254,10 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
       style={{
         minHeight: "100svh",
         backgroundColor: "#071226",
+        backgroundImage: "url('/assets/login-background/background.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <div className="relative z-10 w-full max-w-[432px]">

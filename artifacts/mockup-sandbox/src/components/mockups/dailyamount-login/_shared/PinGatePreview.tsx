@@ -27,7 +27,13 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
     return (
       <div
         className="dailyamount-login-preview flex min-h-screen items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #0a0e1a 100%)" }}
+        style={{
+          backgroundColor: "#071226",
+          backgroundImage: "url('/__mockup/images/login-background.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
       >
         <div className="mx-4 w-full max-w-sm">
           <div className="mb-8 text-center">
@@ -76,6 +82,10 @@ export function PinGatePreview({ variant }: PinGatePreviewProps) {
       style={{
         minHeight: "100svh",
           backgroundColor: "#071226",
+          backgroundImage: "url('/__mockup/images/login-background.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
       }}
     >
       <div className="relative z-10 w-full max-w-[432px]">
