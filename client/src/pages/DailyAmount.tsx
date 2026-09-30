@@ -601,7 +601,9 @@ function BalanceOverviewChart({ points, startDate, endDate, hasAnyHistory, histo
   );
 }
 
-function Artwork({ src, label, className = "", decorative = false }: { src: string; label: string; className?: string; decorative?: boolean }) {
+function Artwork({ src, label, className = "", decorative = false, loading = "lazy" }: {
+  src: string; label: string; className?: string; decorative?: boolean; loading?: "eager" | "lazy";
+}) {
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     setFailed(false);
@@ -615,7 +617,7 @@ function Artwork({ src, label, className = "", decorative = false }: { src: stri
       data-image-slot={src.split("?")[0].split("/").pop()}
     >
       {failed ? <span className="da-artwork-placeholder" aria-hidden="true" /> : (
-        <img src={src} alt="" onError={() => setFailed(true)} />
+        <img src={src} alt="" loading={loading} decoding="async" onError={() => setFailed(true)} />
       )}
     </div>
   );
@@ -2477,7 +2479,7 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/bank-illustration.png") right center / contain no-repeat;
+          background: url("/assets/reconciliation/bank-illustration.webp") right center / contain no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
@@ -2532,7 +2534,7 @@ export default function DailyAmount() {
           border-radius: inherit;
           pointer-events: none;
           opacity: .96;
-          background: url("/assets/reconciliation/aeps-illustration.png") right center / contain no-repeat;
+          background: url("/assets/reconciliation/aeps-illustration.webp") right center / contain no-repeat;
           -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
           mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .45) 62%, #000 100%);
         }
@@ -2998,7 +3000,7 @@ export default function DailyAmount() {
           ))}
         </nav>
       <div className="da-side-art">
-          <Artwork src="/assets/reconciliation/sidebar-finance.png?v=2" label="Financial illustration" />
+          <Artwork src="/assets/reconciliation/sidebar-finance.webp" label="Financial illustration" loading="eager" />
         </div>
         <div className="da-side-foot">Daily closeout<br />Stay organized</div>
       </aside>
@@ -3170,7 +3172,7 @@ export default function DailyAmount() {
                 <div className="da-cash-total-band rounded-lg p-2.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-semibold text-emerald-400">Cash Total</span>
-                    <Artwork src="/assets/reconciliation/cash-illustration.png" label="" decorative className="da-artwork-small da-cash-illustration" />
+                    <Artwork src="/assets/reconciliation/cash-illustration.webp" label="" decorative className="da-artwork-small da-cash-illustration" loading="eager" />
                     <span className="text-base font-bold font-mono text-emerald-400">₹{fmt(cashTotal)}</span>
                   </div>
                 </div>
@@ -3446,7 +3448,7 @@ export default function DailyAmount() {
 
             {/* Reconciliation Summary */}
             <div className={`da-panel da-reconciliation-card shrink-0 rounded-xl overflow-hidden ${isBalanced ? "is-balanced" : "is-mismatch"}`} data-balanced={isBalanced} style={{ background: "linear-gradient(155deg, rgba(13,32,55,0.97), rgba(9,26,47,0.97))", border: "1px solid rgba(78,117,158,0.42)", boxShadow: "inset 0 1px rgba(255,255,255,0.025)" }}>
-              <Artwork src="/assets/reconciliation/reconciliation-illustration.png" label="" decorative className="da-reconciliation-illustration" />
+              <Artwork src="/assets/reconciliation/reconciliation-illustration.webp" label="" decorative className="da-reconciliation-illustration" />
               <div className="da-reconcile-layout">
                 <div className="da-system-block">
                   <div className="da-system-icon" aria-hidden="true"><Calculator size={22} /></div>
@@ -3480,7 +3482,7 @@ export default function DailyAmount() {
           </div>
 
           <div className="da-overview" role="group" aria-label="Balance overview">
-            <Artwork src="/assets/reconciliation/balance-overview.png" label="" decorative className="da-overview-artwork" />
+            <Artwork src="/assets/reconciliation/balance-overview.webp" label="" decorative className="da-overview-artwork" />
             <div className="da-overview-title">
               <BarChart3 size={12} />
               <span>Balance Overview</span>
