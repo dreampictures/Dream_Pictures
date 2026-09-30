@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <script>
+      if (window.location.pathname.replace(/\/+$/, "") === "/dailyamount") {
+        document.documentElement.classList.add("skip-dp-preloader");
+      }
+    </script>
 
     <!-- Primary SEO -->
     <title>Dream Pictures | Wedding & Portrait Photography | Ferozepur, Punjab</title>
@@ -73,6 +78,9 @@
         inset: 0;
         z-index: 99999;
         overflow: hidden;
+      }
+      html.skip-dp-preloader #preloader {
+        display: none;
       }
 
       /* ── Solid black background ─────────────────────────── */
@@ -308,6 +316,10 @@
       (function () {
         var el = document.getElementById('preloader');
         if (!el) return;
+        if (document.documentElement.classList.contains('skip-dp-preloader')) {
+          el.remove();
+          return;
+        }
 
         // Trigger shutter + fade after 2.5s
         var t1 = setTimeout(function () {
