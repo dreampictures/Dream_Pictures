@@ -259,17 +259,22 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
       }}
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#020916]/10" />
-      <div className="relative z-10 w-full max-w-[292px]">
-        <div className="mb-3 text-center">
-          <div className="mx-auto mb-2.5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/70 bg-amber-300/[0.08] shadow-[0_0_24px_rgba(250,204,21,0.22)]">
-            <Lock size={25} className="text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
+      <div className="relative z-10 w-full max-w-[432px] -translate-y-[3px]">
+        <div className="relative mb-5 text-center">
+          <div className="relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-amber-300/70 bg-amber-300/[0.08] shadow-[0_0_24px_rgba(250,204,21,0.22)]">
+            <Lock size={32} className="text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]" />
           </div>
-          <h1 className="text-[18px] font-bold leading-tight text-white">Daily Reconciliation</h1>
-          <p className="mt-1 text-xs tracking-wide text-slate-400">Enter your PIN to continue</p>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[72px] z-0 h-[90px] w-[calc(100%+80px)] -translate-x-1/2 rounded-full blur-[2px]"
+            style={{ background: "radial-gradient(ellipse, rgba(0,14,40,0.99) 0%, rgba(0,14,40,0.97) 82%, rgba(0,14,40,0) 100%)" }}
+          />
+          <h1 className="relative z-10 text-[21px] font-bold leading-[26px] text-white">Daily Reconciliation</h1>
+          <p className="relative z-10 mt-[10px] text-xs leading-[18px] tracking-wide text-slate-400">Enter your PIN to continue</p>
         </div>
         <form
           onSubmit={handleSubmit}
-          className="space-y-2.5 rounded-[15px] p-[18px]"
+          className="space-y-4 rounded-2xl px-[27px] py-[30px]"
           style={{
             background: "rgba(7,18,38,0.56)",
             backdropFilter: "blur(14px)",
@@ -286,7 +291,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
               placeholder="Enter PIN"
               aria-label="Enter PIN"
               aria-describedby={error ? "dailyamount-pin-error" : undefined}
-              className="h-[42px] w-full rounded-xl bg-[#09172e]/75 px-4 pr-11 text-center text-sm tracking-[0.32em] text-white outline-none transition placeholder:tracking-[0.28em] placeholder:text-slate-400 focus:ring-2 focus:ring-amber-300/50"
+              className="h-[60px] w-full rounded-xl bg-[#09172e]/75 px-4 pr-11 text-center text-sm tracking-[0.32em] text-white outline-none transition placeholder:tracking-[0.28em] placeholder:text-slate-400 focus:ring-2 focus:ring-amber-300/50"
               style={{
                 border: "1px solid rgba(250,204,21,0.82)",
                 boxShadow: "0 0 15px rgba(250,204,21,0.08)",
@@ -308,7 +313,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
             data-testid="button-pin-submit"
             type="submit"
             disabled={loading || !pin}
-            className="flex h-10 w-full items-center justify-center rounded-[11px] font-semibold text-[#15100a] shadow-[0_6px_18px_rgba(235,174,25,0.20)] transition duration-200 hover:-translate-y-px hover:shadow-[0_8px_22px_rgba(235,174,25,0.30)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09172e] disabled:cursor-not-allowed disabled:opacity-55"
+            className="flex h-[56px] w-full items-center justify-center rounded-[11px] font-semibold text-[#15100a] shadow-[0_6px_18px_rgba(235,174,25,0.20)] transition duration-200 hover:-translate-y-px hover:shadow-[0_8px_22px_rgba(235,174,25,0.30)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09172e] disabled:cursor-not-allowed disabled:opacity-55"
             style={{ background: "linear-gradient(180deg, #f7c743 0%, #e8ad1e 100%)" }}
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : "Unlock"}
