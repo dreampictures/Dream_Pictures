@@ -1,0 +1,272 @@
+DAILY RECONCILIATION LOGIN — REALISTIC LENS FLARE ANIMATION
+
+Add a premium cinematic lens-flare animation to the existing
+/dailyamount login page.
+
+IMPORTANT:
+The existing login functionality MUST NOT change.
+
+Keep:
+- PIN authentication
+- PIN validation
+- Eye/show PIN functionality
+- Unlock action
+- Existing routes
+- Existing API/database
+- Existing login state/session logic
+
+ONLY add the visual animation.
+
+--------------------------------------------------
+LENS FLARE ANIMATION
+--------------------------------------------------
+
+Create a realistic cinematic golden lens-flare effect using
+HTML/CSS/JavaScript.
+
+Do NOT use a video.
+Do NOT use a GIF.
+Do NOT generate a new image for every animation.
+Do NOT use an external animation library unless one already exists
+in the project.
+
+Use the existing uploaded background image as the static background.
+
+The animation should appear as a REAL light source moving across
+the background.
+
+--------------------------------------------------
+ANIMATION BEHAVIOUR
+--------------------------------------------------
+
+Every time the /dailyamount login page is loaded/visited:
+
+1. Start the lens-flare animation automatically.
+
+2. Play the animation ONCE from beginning to end.
+
+3. The animation should also run again after a FULL browser refresh.
+
+4. If the user leaves the login page and later visits /dailyamount
+again, the animation should run again.
+
+5. Do NOT continuously loop the animation.
+
+6. Do NOT restart the animation every few seconds.
+
+7. After completing, the page should remain clean and static.
+
+--------------------------------------------------
+REALISTIC CINEMATIC MOVEMENT
+--------------------------------------------------
+
+The flare should feel like a real camera lens catching a moving
+light source.
+
+Animation sequence:
+
+PHASE 1:
+Start with the golden light source mostly outside/near the left edge.
+
+PHASE 2:
+The light slowly enters the screen.
+
+PHASE 3:
+Move diagonally/horizontally across the background with realistic
+acceleration and deceleration.
+
+PHASE 4:
+As the light passes near the login area:
+
+- bright central flare
+- soft golden glow
+- horizontal light streak
+- subtle circular lens artifacts
+- small bokeh reflections
+- subtle secondary reflections
+
+PHASE 5:
+The flare continues toward the opposite side.
+
+PHASE 6:
+Gradually fade out and disappear.
+
+The animation should take approximately 2.5–4 seconds.
+
+Do NOT make it too fast.
+
+--------------------------------------------------
+REALISM
+--------------------------------------------------
+
+The most important requirement is REALISTIC LIGHT BEHAVIOUR.
+
+Avoid:
+- cartoon-like effects
+- simple glowing circles
+- obvious CSS blobs
+- flashing lights
+- excessive particles
+- cheap neon effects
+
+Use multiple layered elements to simulate a real lens flare:
+
+1. Main light source
+2. Soft radial glow
+3. Horizontal anamorphic streak
+4. Secondary lens rings
+5. Small translucent bokeh reflections
+6. Very subtle chromatic/blue secondary reflections
+7. Golden dust/particles near the light
+8. Soft fading trail
+
+The layers should move together but NOT at exactly the same speed,
+creating natural optical parallax.
+
+--------------------------------------------------
+LIGHT INTENSITY
+--------------------------------------------------
+
+The flare should:
+
+- start dim
+- gradually become brighter
+- reach a short bright peak
+- gradually fade
+
+Do NOT suddenly flash the entire screen white.
+
+Maximum brightness should still preserve the readability of:
+
+Daily Reconciliation
+Enter your PIN to continue
+Enter PIN
+Unlock
+
+--------------------------------------------------
+LOGIN UI INTERACTION
+--------------------------------------------------
+
+The login UI must remain clearly visible throughout the animation.
+
+Do NOT allow the flare to permanently cover the:
+
+- PIN input
+- eye icon
+- Unlock button
+- title
+
+The flare can temporarily pass behind/around the login panel.
+
+The login card should remain above the animation layer.
+
+Use proper z-index layering:
+
+Background
+↓
+Lens flare animation
+↓
+Login UI
+
+--------------------------------------------------
+PERFORMANCE
+--------------------------------------------------
+
+IMPORTANT:
+
+The animation must be lightweight.
+
+Prefer:
+
+CSS transforms
+CSS opacity
+requestAnimationFrame where necessary
+
+Use transform/opacity for animation rather than continuously
+changing expensive layout properties.
+
+Do NOT create hundreds of DOM elements.
+
+Keep CPU/GPU usage low.
+
+The animation must work smoothly on desktop and mobile.
+
+--------------------------------------------------
+REFRESH / VISIT LOGIC
+--------------------------------------------------
+
+The animation should trigger on:
+
+- first visit to /dailyamount
+- browser refresh
+- leaving /dailyamount and returning to it
+
+It should NOT require the user to click anything.
+
+Do NOT store a permanent "animation already played" flag in
+localStorage/sessionStorage that prevents it from running on
+future visits.
+
+A normal page/component mount should start the animation.
+
+If React is being used, trigger it from the login page component
+mount lifecycle.
+
+--------------------------------------------------
+ACCESSIBILITY
+--------------------------------------------------
+
+Respect:
+
+prefers-reduced-motion
+
+If the user has reduced motion enabled:
+
+- disable the cinematic movement
+- keep only a very subtle static glow
+- do not create rapid flashing
+
+--------------------------------------------------
+IMPORTANT VISUAL RULE
+--------------------------------------------------
+
+The uploaded login background image is the BASE ENVIRONMENT.
+
+Do NOT replace it.
+
+Do NOT modify it.
+
+Do NOT recreate it.
+
+The lens flare must be an animated layer ABOVE the background.
+
+The result should look as if a real golden light source is passing
+in front of a camera lens while the dark navy background remains
+unchanged.
+
+--------------------------------------------------
+FINAL RESULT
+--------------------------------------------------
+
+When the user opens /dailyamount:
+
+Dark navy cinematic background appears
+        ↓
+After a tiny natural delay
+        ↓
+Golden light enters from the side
+        ↓
+Realistic lens flare sweeps across
+        ↓
+Bright cinematic highlight
+        ↓
+Lens artifacts briefly appear
+        ↓
+Light exits/fades
+        ↓
+Login screen remains clean and static
+
+The effect should feel like a premium fintech/cinematic product intro,
+NOT like a website animation demo.
+
+Do not change any existing business or authentication logic.

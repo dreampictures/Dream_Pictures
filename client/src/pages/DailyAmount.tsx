@@ -259,7 +259,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
 
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center px-4 py-8"
+      className="da-pin-screen isolate relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8"
       style={{
         minHeight: "100svh",
         backgroundColor: "#071226",
@@ -269,6 +269,19 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
         backgroundRepeat: "no-repeat",
       }}
     >
+      <div className="da-pin-flare-layer" aria-hidden="true">
+        <div key={`flare-${flareRun}`} className="da-pin-flare-track">
+          <span className="da-pin-flare-halo" />
+          <span className="da-pin-flare-core" />
+          <span className="da-pin-flare-streak" />
+          <span className="da-pin-flare-streak-soft" />
+          <span className="da-pin-flare-ring" />
+          <span className="da-pin-flare-blue-ghost" />
+          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-one" />
+          <span className="da-pin-flare-bokeh da-pin-flare-bokeh-two" />
+          <span className="da-pin-flare-dust" />
+        </div>
+      </div>
       <div className="da-pin-stage relative z-10 w-full max-w-[432px]">
         <div className="da-pin-heading-group relative z-10 mb-5 text-center">
           <div className="da-pin-lock-frame relative z-10 mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-300/[0.08]">
@@ -322,9 +335,7 @@ function PinScreen({ onSuccess }: { onSuccess: (pin: string) => void }) {
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : "Unlock"}
           </button>
-          <span key={`glass-${flareRun}`} aria-hidden="true" className="da-pin-glass-reflection" />
         </form>
-        <span key={`beam-${flareRun}`} aria-hidden="true" className="da-pin-light-sweep" />
       </div>
     </div>
   );
