@@ -3,11 +3,25 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Plus, Minus, Lock, Unlock, LogOut, ChevronLeft, ChevronRight, History, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Banknote, BarChart3, CalendarDays, Coins, Download, Home, Landmark, Printer, RefreshCw, Scale, Search, Wallet, WalletCards, ArrowUpRight, FileText, Settings, Calculator } from "lucide-react";
 import { LockReveal3D } from "@/components/LockReveal3D";
+import {
+  calculateAepsTotalPaise,
+  calculateBankTotalPaise,
+  calculateCashTotalPaise,
+  calculateExpectedBalancePaise,
+  dateKeyInTimeZone,
+  fromPaise,
+  getDailyEntryValidationError,
+  getDailyTransactionValidationError,
+  isValidMoneyAmount,
+  MAX_DAILY_AMOUNT_RUPEES,
+  sumAmountsPaise,
+  toPaise,
+} from "@shared/dailyamount";
 
 const PIN_KEY = "da_auth_pin";
 
 function todayStr() {
-  return new Date().toISOString().split("T")[0];
+  return dateKeyInTimeZone(new Date());
 }
 
 function fmt(n: number) {
@@ -89,23 +103,34 @@ function dailyHistoryMetrics(entry: any): DailyHistoryPoint | null {
     bobSaving, bobCurrent, hdfc, kotak, au, sbi,
     aepsBob, aepsFino, aepsPayworld, aepsDigipay,
   ] = fields as number[];
-  const cashTotal = notes10 * 10 + notes20 * 20 + notes50 * 50 +
-    notes100 * 100 + notes200 * 200 + notes500 * 500 + coins;
-  const bankTotal = bobSaving + bobCurrent + hdfc + kotak + au + sbi;
-  const aepsTotal = aepsBob + aepsFino + aepsPayworld + aepsDigipay;
-  const systemBalance = cashTotal + bankTotal + aepsTotal;
-  if (![cashTotal, bankTotal, aepsTotal, systemBalance].every(Number.isFinite)) return null;
+  const entryValues = {
+    openingBalance,
+    notes10, notes20, notes50, notes100, notes200, notes500, coins,
+    bobSaving, bobCurrent, hdfc, kotak, au, sbi,
+    aepsBob, aepsFino, aepsPayworld, aepsDigipay,
+  };
+  if (getDailyEntryValidationError(entryValues)) return null;
+
+  const cashTotalPaise = calculateCashTotalPaise(entryValues);
+  const bankTotalPaise = calculateBankTotalPaise(entryValues);
+  const aepsTotalPaise = calculateAepsTotalPaise(entryValues);
+  const systemBalancePaise = cashTotalPaise + bankTotalPaise + aepsTotalPaise;
+  if (![cashTotalPaise, bankTotalPaise, aepsTotalPaise, systemBalancePaise].every(Number.isSafeInteger)) return null;
+  const cashTotal = fromPaise(cashTotalPaise);
+  const bankTotal = fromPaise(bankTotalPaise);
+  const aepsTotal = fromPaise(aepsTotalPaise);
+  const systemBalance = fromPaise(systemBalancePaise);
 
   const storedDifference = optionalHistoryNumber(entry.difference);
   const incomeTotal = optionalHistoryNumber(entry.incomeTotal);
   const expenseTotal = optionalHistoryNumber(entry.expenseTotal);
-  const calculatedDifference = incomeTotal !== null && expenseTotal !== null
-    ? systemBalance - (openingBalance + incomeTotal - expenseTotal)
+  const calculatedDifferencePaise = incomeTotal !== null && expenseTotal !== null
+    ? systemBalancePaise - calculateExpectedBalancePaise(openingBalance, toPaise(incomeTotal), toPaise(expenseTotal))
     : null;
   const difference = storedDifference !== null
-    ? storedDifference
-    : calculatedDifference !== null && Number.isFinite(calculatedDifference)
-      ? calculatedDifference
+    ? fromPaise(toPaise(storedDifference))
+    : calculatedDifferencePaise !== null && Number.isSafeInteger(calculatedDifferencePaise)
+      ? fromPaise(calculatedDifferencePaise)
       : null;
 
   return {
@@ -205,13 +230,17 @@ function AmountInput({
         const normalized = decimalIndex === -1
           ? input
           : input.slice(0, decimalIndex + 1) + input.slice(decimalIndex + 1).replace(/\./g, "");
+        if ((normalized.split(".")[1] || "").length > 2) return;
+        const parsed = normalized === "" ? 0 : pf(normalized);
+        if (!isValidMoneyAmount(parsed)) return;
         setDraft(normalized);
-        onChange(normalized === "" ? 0 : pf(normalized));
+        onChange(parsed);
       }}
       onBlur={() => setIsFocused(false)}
       onKeyDown={onKeyDown}
       disabled={disabled}
       placeholder={placeholder}
+      title="Use up to two decimal places."
       className={className}
       style={style}
     />
@@ -344,6 +373,7 @@ function Card({ title, subtitle, accent = "#d4af37", icon, children, className =
 // ─── Denomination Row ─────────────────────────────────────────────────────────
 function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: number; onChange: (v: number) => void; disabled?: boolean }) {
   const total = count * denom;
+  const maxCount = Math.floor(MAX_DAILY_AMOUNT_RUPEES / denom);
   return (
     <div className="da-denom-row flex items-center gap-2 py-1.5">
       <div className="w-14 shrink-0 text-center">
@@ -366,10 +396,20 @@ function DenomRow({ denom, count, onChange, disabled }: { denom: number; count: 
         </button>
         <input
           type="number"
-          step="0.01"
+          step="1"
           min="0"
+          max={maxCount}
           value={count || ""}
-          onChange={(e) => onChange(pf(e.target.value))}
+          onChange={(e) => {
+            if (e.target.value === "") {
+              onChange(0);
+              return;
+            }
+            const nextCount = Number(e.target.value);
+            if (Number.isSafeInteger(nextCount) && nextCount >= 0 && nextCount <= maxCount) {
+              onChange(nextCount);
+            }
+          }}
           disabled={disabled}
           placeholder="0"
           className="da-count-input w-16 bg-slate-950/50 text-white text-center rounded-md px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-80"
@@ -663,7 +703,8 @@ export default function DailyAmount() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [date, setDate] = useState(todayStr());
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [txType, setTxType] = useState<"income" | "expense">("income");
   const [txAmount, setTxAmount] = useState("");
@@ -696,6 +737,9 @@ export default function DailyAmount() {
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStatusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const saveSequenceRef = useRef(0);
   const loadedDateRef = useRef<string>("");
   // Tracks if user is actively editing — prevents server re-renders from overwriting keystrokes
   const userEditingRef = useRef(false);
@@ -822,22 +866,50 @@ export default function DailyAmount() {
   }, [prevBalanceData, entry, entryLoading]);
 
   // ── Save entry to server ──────────────────────────────────────────────────
-  const saveEntry = useCallback(async (data: typeof fields) => {
+  const saveEntry = useCallback((data: typeof fields) => {
     if (!pin) return;
-    setSaveStatus("saving");
-    try {
-      const res = await fetch(`/api/dailyamount/entry/${date}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "x-da-pin": pin },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) void qc.invalidateQueries({ queryKey: ["/api/dailyamount/history"] });
-      setSaveStatus("saved");
-      setLastSaved(new Date());
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch {
-      setSaveStatus("idle");
-    }
+    const sequence = ++saveSequenceRef.current;
+    const send = async () => {
+      if (sequence !== saveSequenceRef.current) return;
+
+      const validationError = getDailyEntryValidationError(data);
+      if (validationError) {
+        setSaveStatus("error");
+        setSaveError(validationError);
+        return;
+      }
+
+      setSaveStatus("saving");
+      setSaveError("");
+      try {
+        const res = await fetch(`/api/dailyamount/entry/${date}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "x-da-pin": pin },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) {
+          const errorBody = await res.json().catch(() => null);
+          throw new Error(errorBody?.message || `Save failed (${res.status})`);
+        }
+        if (sequence !== saveSequenceRef.current) return;
+        void qc.invalidateQueries({ queryKey: ["/api/dailyamount/history"] });
+        setSaveStatus("saved");
+        setSaveError("");
+        setLastSaved(new Date());
+        if (saveStatusTimer.current) clearTimeout(saveStatusTimer.current);
+        saveStatusTimer.current = setTimeout(() => {
+          if (sequence === saveSequenceRef.current) setSaveStatus("idle");
+        }, 3000);
+      } catch (error) {
+        if (sequence !== saveSequenceRef.current) return;
+        setSaveStatus("error");
+        setSaveError(error instanceof Error ? error.message : "Could not save this entry.");
+      }
+    };
+
+    const queuedSave = saveQueueRef.current.then(send, send);
+    saveQueueRef.current = queuedSave.then(() => undefined, () => undefined);
+    return queuedSave;
     // NOTE: We deliberately do NOT call qc.setQueryData here.
     // Updating the cache would trigger the entry useEffect, which would
     // call setFields and overwrite any in-progress keystrokes (e.g. "100." → "100").
@@ -912,11 +984,13 @@ export default function DailyAmount() {
     mutationFn: async () => {
       if (!pin) throw new Error("No PIN");
       const amount = pf(txAmount);
-      if (!amount || amount <= 0) throw new Error("Invalid amount");
+      const transaction = { date: currentDate, type: txType, amount, note: txNote };
+      const validationError = getDailyTransactionValidationError(transaction);
+      if (validationError) throw new Error(validationError);
       const res = await fetch("/api/dailyamount/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-da-pin": pin },
-        body: JSON.stringify({ date: currentDate, type: txType, amount, note: txNote }),
+        body: JSON.stringify(transaction),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -959,9 +1033,7 @@ export default function DailyAmount() {
   });
 
   function changeDate(delta: number) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + delta);
-    setDate(d.toISOString().split("T")[0]);
+    setDate(shiftHistoryDate(date, delta));
     setEditUnlocked(false);
     setTxSearch("");
   }
@@ -1004,7 +1076,7 @@ export default function DailyAmount() {
       ["Expected Balance", expectedBalance],
       ["System Balance", systemBalance],
       ["Difference", difference],
-      ["Status", isBalanced ? "Balanced" : "Mismatch"],
+      ["Status", reconciliationWarning ? `Invalid data: ${reconciliationWarning}` : isBalanced ? "Balanced" : "Mismatch"],
       [],
       ["Section", "Item", "Value"],
       ["Cash", "₹500 notes", fields.notes500],
@@ -1070,19 +1142,44 @@ export default function DailyAmount() {
     };
   }, [pin]);
 
-  // ── Calculations (all decimal-safe with parseFloat) ───────────────────────
-  const cashTotal =
-    fields.notes10 * 10 + fields.notes20 * 20 + fields.notes50 * 50 +
-    fields.notes100 * 100 + fields.notes200 * 200 + fields.notes500 * 500 + fields.coins;
-  const bankTotal = fields.bobSaving + fields.bobCurrent + fields.hdfc + fields.kotak + fields.au + fields.sbi;
-  const aepsTotal = fields.aepsBob + fields.aepsFino + fields.aepsPayworld + fields.aepsDigipay;
-  const systemBalance = cashTotal + bankTotal + aepsTotal;
+  // Keep all currency arithmetic in integer paise; convert to rupees for display/export.
+  const cashTotalPaise = calculateCashTotalPaise(fields);
+  const bankTotalPaise = calculateBankTotalPaise(fields);
+  const aepsTotalPaise = calculateAepsTotalPaise(fields);
+  const systemBalancePaise = cashTotalPaise + bankTotalPaise + aepsTotalPaise;
+  const cashTotal = fromPaise(cashTotalPaise);
+  const bankTotal = fromPaise(bankTotalPaise);
+  const aepsTotal = fromPaise(aepsTotalPaise);
+  const systemBalance = fromPaise(systemBalancePaise);
   const txArray = Array.isArray(transactions) ? transactions : [];
-  const incomeTotal = txArray.filter((t) => t.type === "income").reduce((s, t) => s + pf(t.amount), 0);
-  const expenseTotal = txArray.filter((t) => t.type === "expense").reduce((s, t) => s + pf(t.amount), 0);
-  const expectedBalance = fields.openingBalance + incomeTotal - expenseTotal;
-  const difference = systemBalance - expectedBalance;
-  const isBalanced = Math.abs(difference) < 0.01;
+  const validTransactions = txArray.filter((transaction) => !getDailyTransactionValidationError({
+    date: transaction.date ?? date,
+    type: transaction.type,
+    amount: transaction.amount,
+    note: transaction.note ?? "",
+  }));
+  const invalidTransactionCount = txArray.length - validTransactions.length;
+  const incomeTotalPaise = sumAmountsPaise(validTransactions
+    .filter((transaction) => transaction.type === "income")
+    .map((transaction) => transaction.amount));
+  const expenseTotalPaise = sumAmountsPaise(validTransactions
+    .filter((transaction) => transaction.type === "expense")
+    .map((transaction) => transaction.amount));
+  const expectedBalancePaise = calculateExpectedBalancePaise(fields.openingBalance, incomeTotalPaise, expenseTotalPaise);
+  const differencePaise = systemBalancePaise - expectedBalancePaise;
+  const incomeTotal = fromPaise(incomeTotalPaise);
+  const expenseTotal = fromPaise(expenseTotalPaise);
+  const expectedBalance = fromPaise(expectedBalancePaise);
+  const difference = fromPaise(differencePaise);
+  const entryValidationError = getDailyEntryValidationError(fields);
+  const totalsSafe = [
+    cashTotalPaise, bankTotalPaise, aepsTotalPaise, systemBalancePaise,
+    incomeTotalPaise, expenseTotalPaise, expectedBalancePaise, differencePaise,
+  ].every(Number.isSafeInteger);
+  const reconciliationWarning = entryValidationError
+    || (invalidTransactionCount ? `${invalidTransactionCount} invalid transaction(s) must be corrected or deleted.` : "")
+    || (!totalsSafe ? "Totals are outside the safe calculation range." : "");
+  const isBalanced = !reconciliationWarning && differencePaise === 0;
   const cashShare = systemBalance > 0 ? (cashTotal / systemBalance) * 100 : 0;
   const bankShare = systemBalance > 0 ? (bankTotal / systemBalance) * 100 : 0;
   const aepsShare = systemBalance > 0 ? (aepsTotal / systemBalance) * 100 : 0;
@@ -3072,9 +3169,10 @@ export default function DailyAmount() {
         )}
 
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
-          <div className="hidden xl:flex items-center min-w-[72px] justify-end mr-1">
+          <div className={`${saveStatus === "error" ? "flex" : "hidden xl:flex"} items-center min-w-[72px] justify-end mr-1`}>
             {saveStatus === "saving" && <span className="text-[11px] text-amber-300 flex items-center gap-1"><Loader2 size={11} className="animate-spin" />Saving</span>}
             {saveStatus === "saved" && <span className="text-[11px] text-emerald-400 flex items-center gap-1"><CheckCircle size={11} />Saved</span>}
+            {saveStatus === "error" && <span role="alert" aria-label={`Save failed: ${saveError}`} title={saveError} className="text-[11px] text-red-400 flex items-center gap-1"><AlertTriangle size={11} />Save failed</span>}
             {saveStatus === "idle" && lastSaved && <span className="text-[11px] text-slate-500">{lastSaved.toLocaleTimeString()}</span>}
           </div>
           <button data-testid="button-refresh" onClick={refreshData} className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-slate-300 hover:text-white hover:bg-white/5 transition-colors" title="Refresh data">
@@ -3133,7 +3231,7 @@ export default function DailyAmount() {
           <MetricCard label="AEPS Wallet" accent="#ff9f1c" icon={<Wallet size={17} />} testId="metric-aeps-total" sub="4 sources" sparklineSeries={aepsHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className="text-white">₹{fmt(aepsTotal)}</span>
           </MetricCard>
-          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""} sparklineSeries={differenceHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
+          <MetricCard label="Difference" accent={isBalanced ? "#34d399" : "#fb7185"} icon={<Scale size={17} />} testId="metric-difference" sub={reconciliationWarning ? "Fix invalid entries" : isBalanced ? "In balance" : "Needs review"} className={isBalanced ? "is-balanced" : ""} sparklineSeries={differenceHistory} sparklineStartDate={historyStartDate} sparklineEndDate={historyEndDate}>
             <span className={isBalanced ? "text-emerald-300" : "text-rose-300"}>{difference >= 0 ? "+" : "−"}₹{fmt(Math.abs(difference))}</span>
           </MetricCard>
         </div>
@@ -3400,6 +3498,7 @@ export default function DailyAmount() {
                       <input
                         data-testid="input-tx-note"
                         type="text"
+                        maxLength={500}
                         value={txNote}
                         onChange={(e) => setTxNote(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && txAmount && addTxMutation.mutate()}
@@ -3503,7 +3602,7 @@ export default function DailyAmount() {
                       {difference >= 0 ? `+₹${fmt(difference)}` : `−₹${fmt(Math.abs(difference))}`}
                     </strong>
                     <span className={`da-status ${isBalanced ? "text-emerald-400" : "text-red-400"}`}>
-                      {isBalanced ? "BALANCED" : "MISMATCH"}
+                      {reconciliationWarning ? "INVALID DATA" : isBalanced ? "BALANCED" : "MISMATCH"}
                     </span>
                   </div>
                 </div>

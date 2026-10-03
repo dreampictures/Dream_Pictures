@@ -2,6 +2,12 @@ import type { Express, Request, Response as ExpressResponse } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
+import {
+  getDailyEntryValidationError,
+  getDailyTransactionValidationError,
+  isValidDateKey,
+  type DailyAmountEntryValues,
+} from "@shared/dailyamount";
 import { z } from "zod";
 import { S3Client, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
@@ -705,29 +711,34 @@ export async function registerRoutes(
 
   app.put("/api/dailyamount/entry/:date", async (req, res) => {
     if (!validateDaPin(req, res)) return;
+    const date = req.params.date;
+    if (!isValidDateKey(date)) {
+      return res.status(400).json({ message: "Entry date must be a valid calendar date." });
+    }
+    const validationError = getDailyEntryValidationError(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
     try {
-      const date = req.params.date;
-      const n = (v: any) => Number(v) || 0;
+      const values = req.body as DailyAmountEntryValues;
       const entry = await storage.upsertDailyEntry({
+        openingBalance: values.openingBalance,
+        notes10: values.notes10,
+        notes20: values.notes20,
+        notes50: values.notes50,
+        notes100: values.notes100,
+        notes200: values.notes200,
+        notes500: values.notes500,
+        coins: values.coins,
+        bobSaving: values.bobSaving,
+        bobCurrent: values.bobCurrent,
+        hdfc: values.hdfc,
+        kotak: values.kotak,
+        au: values.au,
+        sbi: values.sbi,
+        aepsBob: values.aepsBob,
+        aepsFino: values.aepsFino,
+        aepsPayworld: values.aepsPayworld,
+        aepsDigipay: values.aepsDigipay,
         date,
-        openingBalance: n(req.body.openingBalance),
-        notes10: n(req.body.notes10),
-        notes20: n(req.body.notes20),
-        notes50: n(req.body.notes50),
-        notes100: n(req.body.notes100),
-        notes200: n(req.body.notes200),
-        notes500: n(req.body.notes500),
-        coins: n(req.body.coins),
-        bobSaving: n(req.body.bobSaving),
-        bobCurrent: n(req.body.bobCurrent),
-        hdfc: n(req.body.hdfc),
-        kotak: n(req.body.kotak),
-        au: n(req.body.au),
-        sbi: n(req.body.sbi),
-        aepsBob: n(req.body.aepsBob),
-        aepsFino: n(req.body.aepsFino),
-        aepsPayworld: n(req.body.aepsPayworld),
-        aepsDigipay: n(req.body.aepsDigipay),
       });
       res.json(entry);
     } catch (err) {
@@ -747,14 +758,15 @@ export async function registerRoutes(
 
   app.post("/api/dailyamount/transactions", async (req, res) => {
     if (!validateDaPin(req, res)) return;
+    const validationError = getDailyTransactionValidationError(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
     try {
-      const { date, type, amount, note } = req.body;
-      if (!date || !type || !amount) return res.status(400).json({ message: "Missing fields" });
+      const { date, type, amount, note = "" } = req.body;
       const tx = await storage.createDailyTransaction({
         date,
         type,
-        amount: Number(amount) || 0,
-        note: note || "",
+        amount,
+        note,
       });
       res.json(tx);
     } catch (err: any) {

@@ -13,6 +13,12 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, isNull, isNotNull, lt } from "drizzle-orm";
+import {
+  calculateAepsTotalPaise,
+  calculateBankTotalPaise,
+  calculateCashTotalPaise,
+  fromPaise,
+} from "@shared/dailyamount";
 
 export interface IStorage {
   getPortfolioItems(): Promise<PortfolioItem[]>;
@@ -348,17 +354,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(dailyEntries.date))
       .limit(1);
     if (!prev) return 0;
-    const cash =
-      (prev.notes10 || 0) * 10 + (prev.notes20 || 0) * 20 + (prev.notes50 || 0) * 50 +
-      (prev.notes100 || 0) * 100 + (prev.notes200 || 0) * 200 + (prev.notes500 || 0) * 500 +
-      (prev.coins || 0);
-    const bank =
-      (prev.bobSaving || 0) + (prev.bobCurrent || 0) + (prev.hdfc || 0) +
-      (prev.kotak || 0) + (prev.au || 0) + (prev.sbi || 0);
-    const aeps =
-      (prev.aepsBob || 0) + (prev.aepsFino || 0) +
-      (prev.aepsPayworld || 0) + (prev.aepsDigipay || 0);
-    return cash + bank + aeps;
+    const totalPaise =
+      calculateCashTotalPaise(prev) +
+      calculateBankTotalPaise(prev) +
+      calculateAepsTotalPaise(prev);
+    return fromPaise(totalPaise);
   }
 }
 
